@@ -1,10 +1,12 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
+use YAML;
 use File::Copy;
 use File::Path qw(make_path);
 use autodie;
 use Carp;
+use FindBin;
 # Sist oppdaterte skal ligge på $HOME/bin
 # Andre kopier skal ikke fore komme kun på backup disker.
 
@@ -24,6 +26,8 @@ use Carp;
 #	START KODE
 ####################################
 print "Starter backup prosessen.\n";
+my $configfile = ($ENV{CONFIG_DIR}||$FindBin::Bin.'../../etc').'/backup-pl.yml';
+my $config = YAML::LoadFile($configfile); 
 
 my @catalogsForBackup = ();
 my ($BACKUPDISK,$PROJECT_HOME,$CONFIG,$FILLOG,$debug,$nocopy,$test,@backupFiles,@backupDisks);
@@ -249,7 +253,7 @@ foreach my $i (0..$#backupDisks) {
 }
 #LAGER truecryptdisk-liste med filer
 #Av mounter eventuelle truecrypt disker
-system("/usr/bin/truecrypt -t -d");
+system($config->{cryptapp}->{dismount});
 #looper gjennom truecryptdisk-listen. For å sjekke at alt er klart
 my $i=0;
 my $filBackupDisk="@";
@@ -262,10 +266,14 @@ foreach $filBackupDisk (@backupDisks) {
 	$filBackupDisk=$1;
 	croak "ERROR: disk ikke funnet eller avvist." if (! $filBackupDisk=~/[\w]+/);
 	#mounter aktuell truecrypt disk/fil
-	chdir($PROJECT_HOME);
+	chdir($config->{backup_dir});
 	$BACKUPDISK="\/media\/truecrypt$i";
 
-	my $out="/usr/bin/truecrypt -t  -k \"\" --protect-hidden=no $filBackupDisk $BACKUPDISK";
+	#	find relative path i not starting with /
+	my $out = $config->{cryptapp}->{mount}." $filBackupDisk $BACKUPDISK";
+	if ( $out !~ /^\//) {
+	  $out = $FindBin::Bin.'/../'.$out;
+	}
 	print "DEBUGtruecryptout:",$out,"\n" if $debug==1;
 	system($out);
 	#
