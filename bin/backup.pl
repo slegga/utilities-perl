@@ -7,6 +7,7 @@ use File::Path qw(make_path);
 use autodie;
 use Carp;
 use FindBin;
+use File::Find;
 # Sist oppdaterte skal ligge på $HOME/bin
 # Andre kopier skal ikke fore komme kun på backup disker.
 

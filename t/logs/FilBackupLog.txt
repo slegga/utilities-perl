@@ -1,4 +1,5 @@
-Start time:2016-10-26 21:26
+Start time:2016-10-26 22:12
 
 Backup disk test.tc - /tmp/backupdisk1
-End time:2016-10-26 21:26
+INFO kopiert /tmp/backupdisk1/home/bruker/git/utillities-perl/t/script/../fromdir/test.txt
+End time:2016-10-26 22:12
