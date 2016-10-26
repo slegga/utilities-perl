@@ -211,9 +211,12 @@ $test=0;
 $debug=0;
 $nocopy=0;
 
-$PROJECT_HOME='/home/stein';
-$PROJECT_HOME =~ /([\w.-\/]+)/;
-$PROJECT_HOME=$1;
+$PROJECT_HOME=$config->{project_home};
+if ($PROJECT_HOME !~ /\//) {
+  $PROJECT_HOME = $FindBin::Bin . '/../'.$PROJECT_HOME;
+}
+# $PROJECT_HOME =~ /([\w.-\/]+)/;
+# $PROJECT_HOME=$1;
 $FILLOG=$PROJECT_HOME . "/logs/FilBackupLog.txt";
 $PROJECT_HOME=$PROJECT_HOME . "/Backup";
 #LESER OG BEHANDLER INNPUT
@@ -267,7 +270,7 @@ foreach $filBackupDisk (@backupDisks) {
 	croak "ERROR: disk ikke funnet eller avvist." if (! $filBackupDisk=~/[\w]+/);
 	#mounter aktuell truecrypt disk/fil
 	chdir($config->{backup_dir});
-	$BACKUPDISK="\/media\/truecrypt$i";
+	$BACKUPDISK=$config->{to_backup_disk}.$i;
 
 	#	find relative path i not starting with /
 	my $out = $config->{cryptapp}->{mount}." $filBackupDisk $BACKUPDISK";

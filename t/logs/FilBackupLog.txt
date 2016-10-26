@@ -1,0 +1,4 @@
+Start time:2016-10-26 18:36
+
+Backup disk test.tc - /tmp/backupdisk1
+End time:2016-10-26 18:36

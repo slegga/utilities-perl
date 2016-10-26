@@ -1,0 +1,5 @@
+cryptapp: 
+  dismount: "t/script/cryptapp.pl dismount"
+  mount:    "t/script/cryptapp.pl mount"
+to_backup_disk: /tmp/backupdisk
+project_home: t
