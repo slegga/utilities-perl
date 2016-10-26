@@ -33,7 +33,7 @@ my @catalogsForBackup = ();
 my ($BACKUPDISK,$PROJECT_HOME,$CONFIG,$FILLOG,$debug,$nocopy,$test,@backupFiles,@backupDisks);
 my (@trueCryptDiskList);
 my $osfilter=qr /([\@\w\/\~Ã¦Ã¸Ã¥Ã¶Ã»ÃÃÃ .&\+\,\#\*\=\~\%\)\(\[\]\{\}\'\Â´\?\!+-]+)/;
-$PROJECT_HOME='/home/stein';
+$PROJECT_HOME=$config->{project_home};
 #####################################
 #	SUBCODE
 #####################################
@@ -269,7 +269,7 @@ foreach $filBackupDisk (@backupDisks) {
 	$filBackupDisk=$1;
 	croak "ERROR: disk ikke funnet eller avvist." if (! $filBackupDisk=~/[\w]+/);
 	#mounter aktuell truecrypt disk/fil
-	chdir($config->{backup_dir});
+	chdir($PROJECT_HOME);
 	$BACKUPDISK=$config->{to_backup_disk}.$i;
 
 	#	find relative path i not starting with /
