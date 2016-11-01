@@ -33,7 +33,6 @@ my $config = YAML::LoadFile($configfile);
 my @catalogsForBackup = ();
 my ($BACKUPDISK,$PROJECT_HOME,$CONFIG,$FILLOG,$debug,$nocopy,$test,@backupFiles,@backupDisks);
 my (@trueCryptDiskList);
-my $osfilter=qr /([\@\w\/\~Ã¦Ã¸Ã¥Ã¶Ã»ÃÃÃ .&\+\,\#\*\=\~\%\)\(\[\]\{\}\'\Â´\?\!+-]+)/;
 $PROJECT_HOME=$config->{project_home};
 #####################################
 #	SUBCODE
@@ -61,42 +60,22 @@ exit;
 }
 
 sub hentTre {
-	my @both=();
-	my @folders=@_;
-	my @all=();
-	while (defined(my $current_folder = pop(@folders))) {
-		if(!defined $current_folder) {
-			croak ("ERROR:hentTre:katalog ikke definert. $current_folder");
-		}
-		elsif(-f $current_folder) {
-			push(@all,$current_folder);
-			next;
-		}
-		my $error_current_folder=$current_folder;
-		$current_folder=~/$osfilter/;#/([\w\/\~Ã¦Ã¸Ã¥Ã¶Ã»ÃÃÃ .&\+\,\#\~\%\)\(\[\]\{\}\'\Â´\!+-\?]+)/;
-		$current_folder=$1;
-		chdir($current_folder) or croak("Kan ikke åpne $current_folder. Var $error_current_folder. $!");
-		@both = glob("*");
-		foreach my $item (@both) {
-			# next if (-l $item);
-			if (-d $item) { #Get all folders into another array - so that first the files will appear and then the folders.
-				if ($item ne "lost+found") {
-					push(@folders,$current_folder . '/' . $item);
-				}
-			} else { #If it is a file just put it into the final array.
-				push(@all,$current_folder .'/' . $item);
-			}
-		} # foreach
-	} # while
-	return @all;
-} # sub
+  my @folders=@_;
+  my @all;
+  my $cb = sub {
+    return    if ($_ eq 'lost+found') ;
+    if (-f $_) {
+      push @all,$File::Find::name;
+    }
+  };
+  find($cb, @folders);
+  return @all;
+}
+
 
 sub kopier {
 	my $filTilKopiering=$_[0];
-	$filTilKopiering=~/$osfilter/;#/([\@\w\/\~Ã¦Ã¸Ã¥Ã¶Ã»ÃÃÃ .&\+\,\#\~\%\)\(\[\]\{\}\'\Â´\!+-]+)/;
-	$filTilKopiering=$1;
 
-#	print"DEBUG kopier ",$filTilKopiering,"\n";
 	if (! defined($filTilKopiering)) {
 		croak "ERROR:forsøker å kopiere fil uten navn. $!. Avslutter... \n";
 	}
@@ -141,8 +120,6 @@ sub kopier {
 sub slett {
 #	print "DEBUG slett innput: ",join(", ",@_),"\n";
 	my $filTilSletting=$_[0];
-	$filTilSletting=~/^$BACKUPDISK$osfilter/;#/(^$BACKUPDISK[\@\w\/\~Ã¦Ã¸Ã¥Ã¶Ã»ÃÃÃ .&\+\,\#\~\%\)\(\[\]\{\}\'\Â´\!+-]+)/;
-	$filTilSletting=$1;
 	if (! defined($filTilSletting)) {
 		croak "ERROR:forsøker å slette fil uten navn \n";
 	}
@@ -447,11 +424,10 @@ foreach my $row (0..$#trueCryptDiskList) {
 }
 printf LOGFILE "End time:%d-%d-%d %d:%d\n",$datetime[5]+1900,$datetime[4]+1,@datetime[3,2,1];
 close (LOGFILE);
+
 #Av mounter eventuelle truecrypt disker
 chdir($PROJECT_HOME);
-#@Vent=split (/\n/,system("lsof\|grep \-e\"\/media\/\"");
-#print "\@vent",join(", ",@vent);
-system("/usr/bin/truecrypt -t -d");
+system($config->{cryptapp}->{dismount});
 if ($nocopy==1) {
 	croak "Avbryter før kopieringen.\n";
 }
