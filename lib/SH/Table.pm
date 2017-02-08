@@ -327,7 +327,8 @@ sub showrow {
 
 =head2 control
 
-Check that data matched the data definitions
+Check that data matched the data definitions.
+Does not return any thing. Ask user if trouble.
 
 =cut
 
@@ -483,6 +484,8 @@ sub editrow {
     if ($innput) {
         my @tmp = split /\;/, $innput;
         $self->{data}->[$r] = \@tmp;
+	$self->control();
+	$self->commit();
     }
     $self->control();
     $self->commit();
