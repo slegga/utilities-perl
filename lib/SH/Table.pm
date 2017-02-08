@@ -484,6 +484,8 @@ sub editrow {
         my @tmp = split /\;/, $innput;
         $self->{data}->[$r] = \@tmp;
     }
+    $self->control();
+    $self->commit();
 }
 
 #print Dumper $self;
@@ -591,6 +593,9 @@ sub append {
         close($fh);
     }
     push( @{ $self->{data} }, \@newline );
+    $self->control();
+    $self->commit();
+
     return \@newline;
 }
 
@@ -614,6 +619,9 @@ sub unshift {
         $self->commit();
     }
     unshift( @{ $self->{data} }, \@newline );
+    $self->control();
+    $self->commit();
+
     return \@newline;
 }
 
