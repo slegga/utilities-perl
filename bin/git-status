@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use YAML;
+use File::Copy;
+use File::Path qw(make_path);
+use autodie;
+use Carp;
+use FindBin;
+use File::Find;
+use Git::Repository;
+use feature 'say';
+
+my $gitdir = "$FindBin::Bin/../..";
+opendir my $dh , $gitdir;
+while (my $item = readdir $dh) {
+    next if $item =~/^\./;
+    my $wd = "$gitdir/$item";
+    next if ! -d $wd;
+    next if ! -d "$wd/.git";
+    say "$wd";
+    my $r = Git::Repository->new( work_tree => $wd );
+    my $output = $r->run( 'status' );
+    next if ($output =~/On branch master\s*\nYour branch is up-to-date.+nothing to commit\, working tree clean/ms);#/m);
+    say $output;
+}
+closedir $dh;
