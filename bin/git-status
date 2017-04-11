@@ -12,7 +12,7 @@ use Git::Repository;
 use feature 'say';
 
 my $gitdir = "$FindBin::Bin/../..";
-opendir my $dh , $gitdir;
+opendir (my $dh , $gitdir);
 while (my $item = readdir $dh) {
     next if $item =~/^\./;
     my $wd = "$gitdir/$item";
