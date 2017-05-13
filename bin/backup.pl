@@ -27,7 +27,7 @@ use File::Find;
 #	START KODE
 ####################################
 print "Starter backup prosessen.\n";
-my $configfile = ($ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/backup-pl.yml';
+my $configfile = ($ENV{SUDO_USER} ? '/home/'.$ENV{SUDO_USER}.'/etc' : $ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/backup-pl.yml';
 my $config = YAML::LoadFile($configfile); 
 
 my @catalogsForBackup = ();
