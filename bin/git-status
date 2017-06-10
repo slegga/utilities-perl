@@ -1,13 +1,9 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
-use YAML;
-use File::Copy;
-use File::Path qw(make_path);
 use autodie;
 use Carp;
 use FindBin;
-use File::Find;
 use Git::Repository;
 use feature 'say';
 
