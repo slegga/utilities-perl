@@ -19,9 +19,10 @@ while (my $item = readdir $dh) {
     my $output = $r->run( 'status' );
     if ($output =~/On branch master\s*\nYour branch is up-to-date.+nothing to commit\, working tree clean/ms) {
         $r->run( 'pull' );
+        next;
       
     }
     say $output;
-    die "git repo is unclean.";
+#    die "git repo is unclean.";
 }
 closedir $dh;
