@@ -11,17 +11,14 @@ my $gitdir = "$FindBin::Bin/../..";
 opendir (my $dh , $gitdir);
 while (my $item = readdir $dh) {
     next if $item =~/^\./;
+    next if $item eq 'mt7601';
     my $wd = "$gitdir/$item";
     next if ! -d $wd;
     next if ! -d "$wd/.git";
     say "$wd";
     my $r = Git::Repository->new( work_tree => $wd );
-    my $output = $r->run( 'status' );
-    if ($output =~/On branch master\s*\nYour branch is up-to-date.+nothing to commit\, working tree clean/ms) {
-        $r->run( 'pull' );
-      
-    }
+    my $output = $r->run( 'pull' );
+#    next if ($output =~/On branch master\s*\nYour branch is up-to-date.+nothing to commit\, working tree clean/ms);#/m);
     say $output;
-    die "git repo is unclean.";
 }
 closedir $dh;
