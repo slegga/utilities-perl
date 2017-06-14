@@ -14,6 +14,7 @@ while (my $item = readdir $dh) {
     my $wd = "$gitdir/$item";
     next if ! -d $wd;
     next if ! -d "$wd/.git";
+    next if $item eq 'mt7601';
     say "$wd";
     my $r = Git::Repository->new( work_tree => $wd );
     my $output = $r->run( 'status' );
