@@ -17,6 +17,7 @@ while (my $item = readdir $dh) {
     next if $item eq 'mt7601';
     say "$wd";
     my $r = Git::Repository->new( work_tree => $wd );
+    $r->run( 'remote','update');
     my $output = $r->run( 'status' );
     if ($output =~/On branch master\s*\nYour branch is up-to-date.+nothing to commit\, working tree clean/ms) {
         $r->run( 'pull' );
