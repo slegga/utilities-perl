@@ -4,8 +4,11 @@ use strict;
 use autodie;
 use Carp;
 use FindBin;
-use Git::Repository;
+use Mojo::File;
 use feature 'say';
+use Git::Repository;
+
+
 
 my $gitdir = "$FindBin::Bin/../..";
 opendir (my $dh , $gitdir);
@@ -21,7 +24,7 @@ while (my $item = readdir $dh) {
     my $output = $r->run( 'status' );
     if ($output =~/On branch master\s*\nYour branch is up-to-date.+nothing to commit\, working tree clean/ms) {
         $r->run( 'pull' );
-#To slow make a new script				print `prove -l -Q -m`;
+				print `prove -l -Q -m`;
         next;
       
     }
