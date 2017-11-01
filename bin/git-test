@@ -18,17 +18,20 @@ while (my $item = readdir $dh) {
     say "$wd";
     my $r = Git::Repository->new( work_tree => $wd );
     my $output = $r->run( 'pull' );
-    my $bindir = $gitdir.'/'.$item.'/bin';
-    opendir (my $dhh, $bindir); 
-    while (my $script = readdir $dhh)    {
-        next if $script =~/\.sh$/;
-        my $fh;
-        open( $fh,'<', $bindir.'/'.$script);
-        my $line = <$fh>;
-        next if ! defined $line;
-        chomp $line;
-        warn $bindir.'/'.$script." has no standard shebang. Should be: #!/usr/bin/env perl" if $line ne '#!/usr/bin/env perl';
-    }
+    for my $subdir (qw/bin script/) {
+      my $bindir = "$gitdir/$item/$subdir";
+      next if ! -d $bindir;
+      opendir (my $dhh, $bindir); 
+      while (my $script = readdir $dhh)    {
+          next if $script =~/\.(ptkdb|sh)$/;
+          my $fh;
+          open( $fh,'<', $bindir.'/'.$script);
+          my $line = <$fh>;
+          next if ! defined $line;
+          chomp $line;
+          warn $bindir.'/'.$script." has no standard shebang. Should be: #!/usr/bin/env perl" if $line ne '#!/usr/bin/env perl';
+      }
+     }
 #    next if ($output =~/On branch master\s*\nYour branch is up-to-date.+nothing to commit\, working tree clean/ms);#/m);
     say $output;
 }
