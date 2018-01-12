@@ -22,7 +22,7 @@ BEGIN {
 }
 use lib "$homedir/lib";
 
-use Nx::SQL::Script qw(ask);
+use SH::Script qw(ask);
 
 # use File::Slurp qw(read_file write_file);
 

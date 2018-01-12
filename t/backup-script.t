@@ -1,9 +1,23 @@
 use Test::More;
 use Test::Script;
 use FindBin;
+
+#
+# PREPARe TESTS
+#
+my $logdir = $FindBin::Bin. "/../t/logs";
+if (! -e $logdir && ! -d $logdir) {
+	mkdir($logdir);
+}
 $ENV{CONFIG_DIR} = 't/etc';
- script_compiles('bin/backup.pl');
- script_runs(['bin/backup.pl', 'test.tc']);
+
+
+#
+# MAIN
+#
+
+script_compiles('bin/backup.pl');
+script_runs(['bin/backup.pl', 'test.tc']);
 ok(-f "/tmp/backupdisk1/$FindBin::Bin/fromdir/test.txt",'File is copied');
 ok(-f "/tmp/backupdisk1/$FindBin::Bin/fromdir/katalog/filikatalog.txt",'File in catalog is copied');
 

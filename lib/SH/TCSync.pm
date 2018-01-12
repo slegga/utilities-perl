@@ -70,8 +70,8 @@ use lib "$homedir/lib";
 my $configfile = ($ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/SH-TCSync.yml';
 my $config = YAML::LoadFile($configfile);
 
-use Nx::SQL::ArrayCompare qw(compare_arrays);
-use Nx::SQL::Script qw(ask);
+use SH::ArrayCompare qw(compare_arrays);
+use SH::Script qw(ask);
 
 my $passworddir = $config->{passworddir};
 my $trueprog    = $config->{truecrypt};
