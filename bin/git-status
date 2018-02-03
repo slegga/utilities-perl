@@ -1,11 +1,9 @@
 #!/usr/bin/env perl
-use warnings;
-use strict;
+use Mojo::Base -strict;
 use autodie;
-use Carp;
 use FindBin;
 use Git::Repository;
-use feature 'say';
+use Carp;
 
 my $gitdir = "$FindBin::Bin/../..";
 opendir (my $dh , $gitdir);
@@ -23,7 +21,7 @@ while (my $item = readdir $dh) {
 #        $r->run( 'pull' );
 #To slow make a new script				print `prove -l -Q -m`;
         next;
-      
+
     } elsif ($output =~/Your branch is behind.+nothing to commit\, working tree clean/ms) {
       $r->run( 'pull' );
       next;
