@@ -1,0 +1,4 @@
+---
+
+'t/data/source':
+  - 't/data/destination'
