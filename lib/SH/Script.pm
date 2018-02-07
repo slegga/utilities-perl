@@ -284,10 +284,5 @@ sub readprivconfig {
     return YAML::Syck::Load(do { local $/; <$FH> }); # slurp content
 }
 
-=head1 AUTHOR
-
-Stein Hammer - C<stein.hammer@telenor.com>
-
-=cut
 
 1;

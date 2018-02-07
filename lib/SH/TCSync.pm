@@ -196,7 +196,7 @@ sub tcsync {
 
     my $db_fnames_ar = \@db_fnames;
     my $pc_fnames_ar = \@pc_fnames;
-    ( $dbfiles_only, $commonfiles, $pcfiles_only ) = compare_arrays( 'a', $db_fnames_ar, $pc_fnames_ar );
+    ( $dbfiles_only, $commonfiles, $pcfiles_only ) = SH::ArrayCompare::compare_arrays( 'a', $db_fnames_ar, $pc_fnames_ar );
     if (@$dbfiles_only) {
         print "Dropbox only\n" . Dumper $dbfiles_only;
     }
