@@ -5,6 +5,7 @@ use FindBin;
 use File::Finder;
 use File::Copy 'copy';
 use YAML;
+use Basename;
 use lib "$FindBin::Bin/../lib";
 use SH::Script qw/options_and_usage/;
 
@@ -84,12 +85,14 @@ for my $source_dir (keys %$config) {
     # file find all files in source. Next if status done else copy
         my @all_files = File::Finder->type('f')->in("$source_dir");
         my %done_files = map{$_,1} @{$done->{$source_dir} };
-        my @candidates = grep {$done_files{$_} != 1 } @all_files;
+        my @candidates = grep {! exists $done_files{$_} && $done_files{$_} != 1 } @all_files;
         for my $cpfile(@candidates) {
-            copy("$source_dir/$cpfile", "$destination/$cpfile");
+            $cpfile = basename($cpfile);
+            say "copy($source_dir/$cpfile, $destination/$cpfile)";
+            copy("$source_dir/$cpfile", "$destination/$cpfile") or die "Ikke suksess";
             # when success copied a file write to done file
             push @{$done->{$source_dir} }, $cpfile;
-            DumpFile($done_file, $done);
+            YAML::DumpFile($done_file, $done);
             say "$cpfile has been copied";
         }
     }
