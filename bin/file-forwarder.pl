@@ -4,8 +4,8 @@ use autodie;
 use FindBin;
 use File::Finder;
 use File::Copy 'copy';
+use File::Basename;
 use YAML;
-use Basename;
 use lib "$FindBin::Bin/../lib";
 use SH::Script qw/options_and_usage/;
 
