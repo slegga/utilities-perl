@@ -72,10 +72,13 @@ my $done_file = $homedir.'/etc/file-forwarder.done.yml';
 my $config = YAML::LoadFile($cfg_file);
 
 # Read done file
+if (! -e $done_file) {
+    qx(touch $done_file);
+}
 my $done = YAML::LoadFile($done_file);
 
 # Main loop
-warn ref $config;
+# warn ref $config;
 for my $source_dir (keys %$config) {
     my $destinations = $config->{$source_dir};
     for my $destination (@$destinations) {
@@ -85,7 +88,7 @@ for my $source_dir (keys %$config) {
     # file find all files in source. Next if status done else copy
         my @all_files = File::Finder->type('f')->in("$source_dir");
         my %done_files = map{$_,1} @{$done->{$source_dir} };
-        my @candidates = grep {! exists $done_files{$_} && $done_files{$_} != 1 } @all_files;
+        my @candidates = grep {! exists $done_files{$_} || $done_files{$_} != 1 } @all_files;
         for my $cpfile(@candidates) {
             $cpfile = basename($cpfile);
             say "copy($source_dir/$cpfile, $destination/$cpfile)";
@@ -98,3 +101,4 @@ for my $source_dir (keys %$config) {
     }
 }
 say "Finished!";
+1;
