@@ -77,12 +77,13 @@ if (! -e $done_file ) {
 my $config = YAML::LoadFile($cfg_file);
 
 # Read done file
+if (! -e $done_file) {
+    qx(touch $done_file);
+}
 my $done = YAML::LoadFile($done_file);
 
 # Main loop
-
-#warn ref $config;
-
+# warn ref $config;
 for my $source_dir (keys %$config) {
     my $source = path($source_dir);
     die "Source directory: $source_dir does not exists" if ! -d $source_dir;
@@ -106,7 +107,7 @@ for my $source_dir (keys %$config) {
         #my @all_files = File::Finder->type('f')->in("$source_dir");
         my @all_files =map{substr $_,length($source_dir)} $source->list_tree->each;
         my %done_files = map{$_,1} @{$done->{$source_dir}};
-        my @candidates =  grep {! exists $done_files{$_} || $done_files{$_} != 1 } @all_files;
+        my @candidates = grep {! exists $done_files{$_} || $done_files{$_} != 1 } @all_files;
         for my $cpfile(@candidates) {
             # my $basecpfile = basename($cpfile);
 #            die $cpfile.'     '.$basecpfile;
@@ -132,3 +133,4 @@ for my $source_dir (keys %$config) {
     }
 }
 say "Finished!";
+1;
