@@ -7,7 +7,10 @@ use Data::Dumper;
 use File::Finder;
 use File::Copy 'copy';
 use File::Basename;
+use Encode;
 use YAML;
+use utf8;
+use utf8::all;
 use lib "$FindBin::Bin/../lib";
 use SH::Script qw/options_and_usage/;
 
@@ -74,6 +77,7 @@ if (! -e $done_file ) {
     `touch $done_file`;
 }
 # Read configuration file
+say "Read config file ".$cfg_file;
 my $config = YAML::LoadFile($cfg_file);
 
 # Read done file
@@ -105,15 +109,15 @@ for my $source_dir (keys %$config) {
         }
     # file find all files in source. Next if status done else copy
         #my @all_files = File::Finder->type('f')->in("$source_dir");
-        my @all_files =map{substr $_,length($source_dir)} $source->list_tree->each;
+        my @all_files =map{substr $_,length($source_dir)} map {decode('UTF8',$_, Encode::FB_CROAK)} $source->list_tree->each;
         my %done_files = map{$_,1} @{$done->{$source_dir}};
         my @candidates = grep {! exists $done_files{$_} || $done_files{$_} != 1 } @all_files;
         for my $cpfile(@candidates) {
             # my $basecpfile = basename($cpfile);
 #            die $cpfile.'     '.$basecpfile;
-            say "RARE GREIER NÅR IKKE DETTE ER DIRECTORY test $source_dir$cpfile". -d "$source_dir$cpfile";
+            #say "$source_dir$cpfile -d:".-d("$source_dir$cpfile");
+            #say "RARE GREIER NÅR IKKE DETTE ER DIRECTORY test $source_dir$cpfile". -d "$source_dir$cpfile";
             if ( -d "$source_dir$cpfile" ) {
-                die "DIR";
                 if (! -d "$destination$cpfile") {
                     mkdir "$destination$cpfile" ||die "mkdir $!$@";
                 }
@@ -123,7 +127,7 @@ for my $source_dir (keys %$config) {
                 say "$destination$cpfile exists. Do notthing"
             } else {
                 say "copy($source_dir$cpfile, $destination$cpfile)";
-                copy("$source_dir$cpfile", "$destination$cpfile") or die "copy Ikke suksess $!$@";
+                copy("$source_dir$cpfile", "$destination$cpfile") or die "copy ERROR: $! $@";
                 say "$cpfile has been copied";
             }
             # when success copied a file write to done file
