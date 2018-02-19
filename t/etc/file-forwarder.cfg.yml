@@ -1,4 +1,4 @@
 ---
 
 't/data/source':
-  - 't/data/destination'
+    't/data/destination': 1
