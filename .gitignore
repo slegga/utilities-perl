@@ -17,5 +17,6 @@ nytprof.out
 /pm_to_blib
 *.o
 *.bs
+*.swp
 /_eumm/
 t/logs/FilBackupLog.txt
