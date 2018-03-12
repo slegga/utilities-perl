@@ -10,7 +10,6 @@ use File::Basename;
 use Encode;
 use YAML;
 use utf8;
-use utf8::all;
 use lib "$FindBin::Bin/../lib";
 use SH::Script qw/options_and_usage/;
 
