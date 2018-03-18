@@ -28,6 +28,7 @@ use IPC::System::Simple qw(system);
 use File::Basename;
 use File::Find;
 use File::Compare;
+use Carp 'confess';
 use File::Copy qw(move copy);
 use FindBin;
 use List::MoreUtils qw(uniq any);
@@ -143,21 +144,23 @@ Sync between local files and tc file for distribution of common files
 sub tcsync {
 
     #
-    #   copy files from nx-mysql
+    #   copy files if master user and import files to the rest.
     #
-    if ( $^O ne 'MSWin32' && getpwuid($<) eq 't527081' ) {
-        `rsync dev-prod1:/local/net/experimental/t527081/git/nx-mysql/lib/Nx/SQL/Script.pm $passworddir->[0]/lib/Nx/SQL/.`;
-        `rsync dev-prod1:/local/net/experimental/t527081/git/nx-mysql/lib/Nx/SQL/ArrayCompare.pm $passworddir->[0]/lib/Nx/SQL/.`;
-        `rsync dev-prod1:/local/net/experimental/t527081/git/nx-mysql/lib/Nx/SQL/Logf.pm $passworddir->[0]/lib/Nx/SQL/.`;
-        `rsync dev-prod1:/local/net/experimental/t527081/git/nx-mysql/lib/Nx/SQL/Utils.pm $passworddir->[0]/lib/Nx/SQL/.`;
-        `rsync dev-prod1:/local/net/experimental/t527081/git/nx-mysql/lib/Nx/SQL/ScriptTest.pm $passworddir->[0]/lib/Nx/SQL/.`;
-        `rsync dev-prod1:/local/net/experimental/t527081/git/nx-mysql/lib/Nx/SQL/ResultSet.pm $passworddir->[0]/lib/Nx/SQL/.`;
-        `rsync dev-prod1:/local/net/experimental/t527081/git/nx-mysql/lib/Nx/SQL/Dot.pm $passworddir->[0]/lib/Nx/SQL/.`;
-        `rsync dev-prod1:/local/net/experimental/t527081/git/nx-mysql/script/systest.pl $passworddir->[0]/bin`;
-        `rsync dev-prod1:/local/net/experimental/t527081/git/nx-mysql/script/spellchecker $passworddir->[0]/bin`;
-        `rsync dev-prod1:/local/net/experimental/t527081/data/systests/0* $passworddir->[0]/data/systests`;
-        `rsync dev-prod1:/home/t/t527081/.personaldictionary.txt /home/t527081/.`;
-        `rsync dev-prod1:/home/t/t527081/.perltidyrc /home/t527081/.`;
+    if ( $^O ne 'MSWin32' && getpwuid($<) eq $config->{master_user} ) {
+        for my $source($config->{master_sources}) {
+            if ($source =~ /\/lib\// ) {
+                my $lib_dir = $source;
+                $lib_dir =~ s/.+\/lib\///;
+                `rsync $source $passworddir->[0]/lib/$lib_dir`;
+            } elsif ($source =~/\/script\// ) {
+                my $lib_dir = $source;
+                $lib_dir =~ s/.+\/script\///;
+                `rsync $source $passworddir->[0]/bin/$lib_dir`
+            } else {
+                confess("Only sync lib or bin files not $source");
+            }
+
+        }
     }
     #
     #   Sync with veracrypt
@@ -173,12 +176,14 @@ sub tcsync {
 
     find( \&_wanted_tcsync, $passworddir->[0] . '/bin', $passworddir->[0] . '/lib', $passworddir->[0] . '/t', $passworddir->[0] . '/data' );
     %$db_files_hr = %$files_hr;
+    $db_files_hr->{'/etc/SH-TCSync.yml'} = $passworddir->[0].'/etc/SH-TCSync.yml' if (-f $passworddir->[0].'/etc/SH-TCSync.yml');
 
     $files_hr = $pc_files_hr;                                                  #ugly work around passing arguments
     $basedir  = $homedir;                                                      #ugly work around passing arguments
     find( { wanted => \&_wanted_tcsync, follow_fast => 1 }, $homedir . '/bin', $homedir . '/lib', $homedir . '/t',  $homedir . '/data');
     %$pc_files_hr = %$files_hr;
-
+    $pc_files_hr->{'/etc/SH-TCSync.yml'} = $ENV{HOME}.'/etc/SH-TCSync.yml' if (-f $ENV{HOME}.'/etc/SH-TCSync.yml');
+    
     my ( $dbfiles_only, $commonfiles, $pcfiles_only );
 
     my @db_fnames = keys %$db_files_hr;

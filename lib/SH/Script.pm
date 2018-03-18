@@ -268,7 +268,7 @@ sub _ask_stdin {
 
 =head2 readprivconfig
 
-Return a hash object for the users .nxsqlscript.yml located in users home catalog. Method created because ease moving all perl script to nx-mysql/script from none git administrated catalogs.
+Return a hash object for the users .nxsqlscript.yml located in users home catalog. Method created because ease moving all perl script to git-catalog/script from none git administrated catalogs.
 
 Takes no input.
 
