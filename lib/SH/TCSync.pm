@@ -22,14 +22,14 @@ Remove duplicated files if any.
 use Carp;
 use Data::Dumper;
 use autodie;
-use strict;
-use warnings;
-use YAML;
+use Mojo::Base -strict;
+use YAML::Tiny;
 use IPC::System::Simple qw(system);
 use File::Basename;
 use File::Find;
 use File::Compare;
 use File::Copy qw(move copy);
+use FindBin;
 use List::MoreUtils qw(uniq any);
 use utf8;
 use Exporter 'import';
@@ -48,29 +48,21 @@ my $basedir;
 my $files_hr;
 
 BEGIN {
+    push @INC, "$FindBin::Bin/../lib";
     if ( $^O eq 'MSWin32' ) {
         $homedir     = 'c:\privat';
-#         $passworddir = [ 'X:', 'Z:' ];
-#         $keyfiledir  = 'C:\etc';                                              #move file on old PC.
-#         $trueprog    = '"C:\Program Files\TrueCrypt\TrueCrypt.exe"';
-#         $tcoptions   = "/q  /k $keyfiledir\\Stein-gammelt.jpg /v %s /l %s";
-#         $dirsep      = '\\';
-#         $clear       = 'cls';
     } else {
         $homedir     = $ENV{HOME};
-#         $trueprog    = '/usr/bin/veracrypt';
-#         $passworddir = [ '/media/veracrypt8', '/media/veracrypt9' ];
-#         $keyfiledir  = $homedir . '/etc';
-#         $tcoptions   = "-t  -k $keyfiledir/Stein-gammelt.jpg --protect-hidden=no --pim=0 %s %s";
-#         $dirsep      = '/';
-#         $clear       = 'clear';
     }
 }
-use lib "$homedir/lib";
+
 my $configfile = ($ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/SH-TCSync.yml';
 my $config = YAML::LoadFile($configfile);
 
-use SH::ArrayCompare qw(compare_arrays);
+use SH::ArrayCompare;
+say $SH::ArrayCompare::VERSION;
+SH::ArrayCompare::compare_arrays('a', ['a','b'], ['b','c']);
+
 use SH::Script qw(ask);
 
 my $passworddir = $config->{passworddir};
@@ -361,7 +353,7 @@ sub _clean_old_pwdfiles {
                 $filebody[$k] = \@tmp;
                 close $fh;
             }
-            my ( $onlyold, undef, $onlynew ) = compare_arrays( 'a', $filebody[0], $filebody[1] );
+            my ( $onlyold, undef, $onlynew ) =SH::ArrayCompare::compare_arrays( 'a', $filebody[0], $filebody[1] );
             @$onlyold = grep {/\w/} uniq @$onlyold;
             print "\nONLY IN OLD " . $duplicatedfiles[ $i + 0 ] . ":\n";
             print join( "\n", @$onlyold );
@@ -423,7 +415,7 @@ sub _clean_old_pwdfiles {
                 $filebody[$k] = \@tmp;
                 close $fh;
             }
-            my ( $onlyold, undef, $onlynew ) = compare_arrays( 'a', $filebody[0], $filebody[1] );
+            my ( $onlyold, undef, $onlynew ) =SH::ArrayCompare::compare_arrays( 'a', $filebody[0], $filebody[1] );
             @$onlyold = grep {/\w/} uniq @$onlyold;
             print "\nONLY IN OLD " . $duplicatedfiles[ $i + 0 ] . ":\n";
             print join( "", @$onlyold );
@@ -547,7 +539,7 @@ sub calculate_likeness_score {
     my @oldchar    = sort split //, $oldstring;
     my @newchar    = sort split //, $newstring;
     my $lengthdiff = abs( length($oldstring) - length($newstring) );
-    my ( $olduniq, $both, $newuniq ) = compare_arrays( 'a', \@oldchar, \@newchar );
+    my ( $olduniq, $both, $newuniq ) =SH::ArrayCompare::compare_arrays( 'a', \@oldchar, \@newchar );
     my $score = @$both / ( @$olduniq + @$both + @$newuniq );
     $score = int( 100 * ( $score + 0.005 ) );
     return $score;

@@ -19,8 +19,9 @@ BEGIN {
     } else {
         $homedir = $ENV{HOME};
     }
+    push @INC, "$homedir/lib";
 }
-use lib "$homedir/lib";
+
 
 use SH::Script qw(ask);
 
@@ -684,4 +685,3 @@ sub fetch_reset {
 Stein Hammer
 
 =cut
-

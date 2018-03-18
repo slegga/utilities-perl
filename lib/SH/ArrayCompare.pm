@@ -9,6 +9,7 @@ use Exporter 'import';
 our @EXPORT_OK =
     qw(compare_arrays compare_arrays_unsorted get_unmatched get_unmatched_unsorted data_query data_test_where data_select);
 
+our $VERSION=0.43;
 =encoding utf8
 
 =head1 NAME
