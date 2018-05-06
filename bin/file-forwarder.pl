@@ -8,7 +8,7 @@ use File::Finder;
 use File::Copy 'copy';
 use File::Basename;
 use Encode;
-use YAML;
+use YAML::Tiny;
 use utf8;
 use lib "$FindBin::Bin/../lib";
 use SH::Script qw/options_and_usage/;
@@ -77,13 +77,13 @@ if (! -e $done_file ) {
 }
 # Read configuration file
 say "Read config file ".$cfg_file;
-my $config = YAML::LoadFile($cfg_file);
+my $config = YAML::Tiny::LoadFile($cfg_file);
 
 # Read done file
 if (! -e $done_file) {
     qx(touch $done_file);
 }
-my $done = YAML::LoadFile($done_file);
+my $done = YAML::Tiny::LoadFile($done_file);
 
 # Main loop
 # warn ref $config;
@@ -131,7 +131,7 @@ for my $source_dir (keys %$config) {
             }
             # when success copied a file write to done file
             push @{$done->{$source_dir} }, $cpfile;
-            YAML::DumpFile($done_file, $done);
+            YAML::Tiny::DumpFile($done_file, $done);
         }
     }
 }

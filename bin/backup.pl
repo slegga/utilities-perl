@@ -2,7 +2,7 @@
 
 use warnings;
 use strict;
-use YAML;
+use YAML::Tiny;
 use File::Copy;
 use File::Path qw(make_path);
 use autodie;
@@ -29,7 +29,7 @@ use File::Find;
 ####################################
 print "Starter backup prosessen.\n";
 my $configfile = ($ENV{SUDO_USER} ? '/home/'.$ENV{SUDO_USER}.'/etc' : $ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/backup-pl.yml';
-my $config = YAML::LoadFile($configfile); 
+my $config = YAML::Tiny::LoadFile($configfile); 
 
 my @catalogsForBackup = ();
 my ($BACKUPDISK,$PROJECT_HOME,$CONFIG,$FILLOG,$debug,$nocopy,$test,@backupFiles,@backupDisks);
