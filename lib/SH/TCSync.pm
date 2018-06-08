@@ -58,7 +58,7 @@ BEGIN {
 }
 
 my $configfile = ($ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/SH-TCSync.yml';
-my $config = YAML::LoadFile($configfile);
+my $config = YAML::Tiny::LoadFile($configfile);
 
 use SH::ArrayCompare;
 say $SH::ArrayCompare::VERSION;
@@ -183,7 +183,7 @@ sub tcsync {
     find( { wanted => \&_wanted_tcsync, follow_fast => 1 }, $homedir . '/bin', $homedir . '/lib', $homedir . '/t',  $homedir . '/data');
     %$pc_files_hr = %$files_hr;
     $pc_files_hr->{'/etc/SH-TCSync.yml'} = $ENV{HOME}.'/etc/SH-TCSync.yml' if (-f $ENV{HOME}.'/etc/SH-TCSync.yml');
-    
+
     my ( $dbfiles_only, $commonfiles, $pcfiles_only );
 
     my @db_fnames = keys %$db_files_hr;
