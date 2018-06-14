@@ -147,7 +147,7 @@ sub tcsync {
     #   copy files if master user and import files to the rest.
     #
     if ( $^O ne 'MSWin32' && getpwuid($<) eq $config->{master_user} ) {
-        for my $source($config->{master_sources}) {
+        for my $source(@{$config->{master_sources}}) {
             if ($source =~ /\/lib\// ) {
                 my $lib_dir = $source;
                 $lib_dir =~ s/.+\/lib\///;
