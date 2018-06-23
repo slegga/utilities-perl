@@ -72,7 +72,7 @@ my $dirsep      = $config->{dirsep};
 my $tcoptions   = $config->{tcoptions};
 
 my @igoredfiles = ('.kate-swp');
-my $dropbox='/usr/bin/dropbox';
+my $dropbox=$ENV{HOME}.'/bin/dropbox.py';
 #
 #   SUBROUTINES
 #
