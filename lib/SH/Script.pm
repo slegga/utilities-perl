@@ -268,7 +268,7 @@ sub _ask_stdin {
 
 =head2 readprivconfig
 
-Return a hash object for the users .nxsqlscript.yml located in users home catalog. Method created because ease moving all perl script to git-catalog/script from none git administrated catalogs.
+Return a hash object for the users .perl-script.yml located in users home catalog. Method created because ease moving all perl script to git-catalog/script from none git administrated catalogs.
 
 Takes no input.
 
@@ -278,7 +278,7 @@ sub readprivconfig {
 
     confess "No HOME catalog detected!" if ! $homedir;
     confess "Cant find home catalog $homedir" if ! -d $homedir;
-    my $cfile = $homedir.$dirsep.'.nxsqlscript.yml';
+    my $cfile = $homedir.$dirsep.'.perl-script.yml';
     confess "Cant find or read the file $cfile" if (! -r $cfile);
     open my $FH, '<', $cfile or die "Failed to read $cfile: $!";
     return YAML::Syck::Load(do { local $/; <$FH> }); # slurp content

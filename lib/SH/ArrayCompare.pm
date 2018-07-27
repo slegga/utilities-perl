@@ -14,7 +14,7 @@ our $VERSION=0.43;
 
 =head1 NAME
 
-Nx::SQL::File.pm- A class for exporting/importing/comparing data between file/perl/db.
+SH::ArrayCompare - A class for exporting/importing/comparing data between file/perl/db.
 
 =head1 VERSION
 
@@ -23,7 +23,7 @@ Nx::SQL::File.pm- A class for exporting/importing/comparing data between file/pe
 =head1 SYNOPSIS
 
     use Data::Dumper;
-    use Nx::SQL::ArrayCompare;
+    use SH::ArrayCompare;
 
     $from = [
                 {
@@ -41,7 +41,7 @@ Nx::SQL::File.pm- A class for exporting/importing/comparing data between file/pe
 
     # {'utsIdPrefiks' => qr/^IP$/} is also valid
 
-    print Dumper Nx::SQL::ArrayCompare::data_query($from,$iterate,$input);
+    print Dumper SH::ArrayCompare::data_query($from,$iterate,$input);
 
     #$VAR1 = [
     #          {
@@ -49,13 +49,15 @@ Nx::SQL::File.pm- A class for exporting/importing/comparing data between file/pe
     #          }
     #        ];
 
-    print  Nx::SQL::ArrayCompare::data_select($from,[0,'utsIdVerdi']),"\n\n"
+    print  SH::ArrayCompare::data_select($from,[0,'utsIdVerdi']),"\n\n"
 
     # N01GGAAB
 
 =head1 DESCRIPTION
 
-A package mainly for common subroutines for the nx-staticdata toolkit.
+This module is deprecated
+
+A package mainly for common subroutines
 Contains methods for table data from
 
 =head1 METHODS
@@ -313,7 +315,6 @@ sub get_unmatched($$$) {
 
 =head2 get_unmatched_unsorted
 
-    same as Nx::SQL::Base->get_unmatched
     but much slower and keep position in A
     set theory: calculates A\B
     input: A_arrref, B_arrref
@@ -420,7 +421,6 @@ Returns a reference to a complex datastructure
 
 Have a look
 
-See also Nx::Utils::PerlDataFind->data_find
 
 =cut
 

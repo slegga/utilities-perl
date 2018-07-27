@@ -11,9 +11,11 @@ if ($ENV{USER} =~ /t52/) {
 	for my $f ($files->each) {
 	    next if $f=~/ggp\-base\/lib\/Jython/;
 	    next if $f =~/look\-for\-wrong\-data\.t/;
+	    ok($f!~/\/nx\-/,$f.' ok name');
 	    my $cont = $f->slurp;
-	    ok($cont!~/t52/,$f.' ok');
-	    ok($cont!~/nx\-m/,$f.' ok');
+	    ok($cont!~/t52/m,$f.' ok t52');
+	    ok($cont!~/[^i]nx\-/m,$f.' ok nx');
+	    ok($cont!~/Nx\:\:/m,$f.' ok Nx');
 	}
 }
 done_testing;
