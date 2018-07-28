@@ -2,8 +2,8 @@ package SH::Test::Pod;
 use Mojo::Base -strict;
 use autodie;
 use Test::Pod;
+use Pod::Simple;
 use Pod::Simple::Text;
-# use Test::Pod::Coverage;
 use YAML::Tiny;
 use Pod::Simple::SimpleTree;
 use FindBin;
@@ -155,7 +155,9 @@ sub check_scripts_pod {
         pod_file_ok( $scriptpath, "POD syntax: $scriptpath" );
         $cfg->{master} = undef;
         next if ! _is_cfg_active($cfg, 'script_pod', 'headers_required', 'spell_check');
-
+        my $parser = Pod::Simple::Text->new;
+		next if ! $parser->parse_file($scriptpath)->content_seen &&
+			!_is_cfg_active($cfg, 'pod_required');
         if ( _is_cfg_active($cfg, 'script_pod' ,'headers_required')) {
             _nms_check_pod($cfg, undef, $scriptpath, "POD content: $scriptpath" );
         }
