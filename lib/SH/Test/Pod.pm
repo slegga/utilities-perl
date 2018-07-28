@@ -79,6 +79,7 @@ Example data:
     synopsis_compile: 1
     name_module_name: 1
     spell_check: 1
+    pod_required: 1
  script_pod:
     headers_requiredi:
         - NAME
@@ -86,7 +87,7 @@ Example data:
         - AUTHOR
     headers_order_force: 1
     spell_check: 1
-
+    pod_required: 1
 
 =head3 keys
 
