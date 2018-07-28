@@ -10,6 +10,16 @@ use feature 'say';
 use Git::Repository;
 use Term::ANSIColor;
 
+=head1 NAME
+
+prove-all
+
+=head1 DESCRIPTION
+
+Check if git is in sync and test all repos
+
+=cut
+
 
 my $gitdir = "$FindBin::Bin/../..";
 opendir (my $dh , $gitdir);

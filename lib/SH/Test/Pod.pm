@@ -12,6 +12,7 @@ use List::MoreUtils qw /any uniq/;
 use Clone 'clone';
 use File::Find;
 use Pod::Simple::Search;
+use Mojo::File qw/path/;
 use Data::Dumper;
 use Carp qw /carp/;
 use Pod::Spell;
@@ -19,6 +20,7 @@ use Pod::Coverage;
 
 use Term::ANSIColor;
 use Test::Builder::Module;
+use Carp::Always;
 our @ISA    = qw(Test::Builder::Module Exporter);
 our @EXPORT = qw(check_modules_pod check_scripts_pod);
 
@@ -363,6 +365,11 @@ sub _is_cfg_active {
     }
     return 0;
 }
+
+# _all_module_name_path_hash_ref
+# TODO: Instead of using Pod::Simple::Search use Mojo::File. Right now only files with POD in it is returned.
+# I want all files in lib/ that end with .pm
+
 sub _all_module_name_path_hash_ref {
     my $cfg = shift;
     # warn  "$FindBin::Bin/../lib";
@@ -380,16 +387,20 @@ sub _all_module_name_path_hash_ref {
 sub _all_scriptpaths_array_ref {
     my $cfg = shift;
     # warn  "$FindBin::Bin/../lib";
-    my $name2path = Pod::Simple::Search->new->inc(0)->survey("$FindBin::Bin/../bin", "$FindBin::Bin/../script");
-    if (exists $cfg->{skip}) {
-        for my $red(@{$cfg->{user}->{script_pod}->{skip}}) {
-            if ( first {$red eq $_} grep {$_} keys %$name2path) {
-                delete $name2path->{$red};
-            }
-        }
+    my @paths;
+    for my $basepath("$FindBin::Bin/../bin","$FindBin::Bin/../script") {
+	    push @paths,path($basepath)->list_tree->grep(
+	    sub{ defined $_[0]
+#	    !exists $cfg->{skip}
+#	    || !grep {$_[0] =~/$_$/} @{$cfg->{user}->{script_pod}->{skip}}
+	    })->each;
     }
-    my @scriptpaths = values %$name2path;
-    return \@scriptpaths;
+    my $return;
+    for my $f(@paths) {
+        push @$return,$f->to_string;
+    }
+
+    return $return;
 }
 
 

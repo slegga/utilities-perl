@@ -7,6 +7,16 @@ use FindBin;
 use Git::Repository;
 use feature 'say';
 
+=head1 NAME
+
+git-test
+
+=head1 DESCRIPTION
+
+Test all repos
+
+=cut
+
 my $gitdir = "$FindBin::Bin/../..";
 opendir (my $dh , $gitdir);
 while (my $item = readdir $dh) {
@@ -21,7 +31,7 @@ while (my $item = readdir $dh) {
     for my $subdir (qw/bin script/) {
       my $bindir = "$gitdir/$item/$subdir";
       next if ! -d $bindir;
-      opendir (my $dhh, $bindir); 
+      opendir (my $dhh, $bindir);
       while (my $script = readdir $dhh)    {
           next if $script =~/\.(ptkdb|sh)$/;
           my $fh;

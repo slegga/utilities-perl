@@ -9,6 +9,17 @@ use autodie;
 use Carp;
 use FindBin;
 use File::Find;
+
+=head1 NAME
+
+backup.pl
+
+=head1 DESCRIPTION
+
+Main backup script
+
+=cut
+
 # Sist oppdaterte skal ligge på $HOME/bin
 # Andre kopier skal ikke fore komme kun på backup disker.
 
@@ -29,7 +40,7 @@ use File::Find;
 ####################################
 print "Starter backup prosessen.\n";
 my $configfile = ($ENV{SUDO_USER} ? '/home/'.$ENV{SUDO_USER}.'/etc' : $ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/backup-pl.yml';
-my $config = YAML::Tiny::LoadFile($configfile); 
+my $config = YAML::Tiny::LoadFile($configfile);
 
 my @catalogsForBackup = ();
 my ($BACKUPDISK,$PROJECT_HOME,$CONFIG,$FILLOG,$debug,$nocopy,$test,@backupFiles,@backupDisks);

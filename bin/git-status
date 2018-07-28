@@ -5,6 +5,17 @@ use FindBin;
 use Git::Repository;
 use Carp;
 
+=head1 NAME
+
+git-status
+
+=head1 DESCRIPTION
+
+Run git status in evry repo. Output a compact report.
+
+=cut
+
+
 my $gitdir = "$FindBin::Bin/../..";
 opendir (my $dh , $gitdir);
 while (my $item = readdir $dh) {
