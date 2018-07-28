@@ -157,7 +157,7 @@ sub check_scripts_pod {
         next if ! _is_cfg_active($cfg, 'script_pod', 'headers_required', 'spell_check');
         my $parser = Pod::Simple::Text->new;
 		next if ! $parser->parse_file($scriptpath)->content_seen &&
-			!_is_cfg_active($cfg, 'pod_required');
+			!_is_cfg_active($cfg, 'script_pod', 'pod_required');
         if ( _is_cfg_active($cfg, 'script_pod' ,'headers_required')) {
             _nms_check_pod($cfg, undef, $scriptpath, "POD content: $scriptpath" );
         }
@@ -362,7 +362,7 @@ sub _is_cfg_active {
     die "Missing keys" if ! @_;
     for my $key (@_) {
         return 1 if (exists $cfg->{repo}->{$key} && $cfg->{repo}->{$key});
-        next if $cfg->{master} eq 'repo';
+        next if exists $cfg->{master} && defined $cfg->{master} && $cfg->{master} eq 'repo';
         return 1 if (exists $cfg->{user}->{$realm}->{$key} && $cfg->{user}->{$realm}->{$key});
     }
     return 0;
