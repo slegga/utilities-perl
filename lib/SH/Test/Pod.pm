@@ -456,8 +456,10 @@ sub _nms_check_pod {
 
     my $personal_name;
     if (! exists $in_cfg->{user} || ! exists $in_cfg->{user}->{name}) {
-	    $personal_name = qr/$in_cfg->{user}->{name}/;
    	   	$in_cfg->{master} = 'repo' if exists $in_cfg->{'repo'};
+    } else {
+  	    $personal_name = qr/$in_cfg->{user}->{name}/;
+
     }
 
     my $cfg;
