@@ -412,6 +412,9 @@ sub _nms_check_pod {
     my $modulename = shift;
     my $podfile = shift;
     my $name = shift;
+    if (! exists $in_cfg->{repo} || ! exists $in_cfg->{user}) {
+    	 _return_test($name);
+    }
     my $pod_hr_raw = Pod::Simple::SimpleTree->new->parse_file($podfile)->root;
     # remove fluff
     shift @$pod_hr_raw;
@@ -450,9 +453,13 @@ sub _nms_check_pod {
             die "Expected array got $item";
         }
     }
-    die "Missing user object in confile " if ! exists $in_cfg->{user};
-    die "Missing name in config file" if ! exists $in_cfg->{user}->{name};
-    my $personal_name = qr/$in_cfg->{user}->{name}/;
+
+    my $personal_name;
+    if (! exists $in_cfg->{user} || ! exists $in_cfg->{user}->{name}) {
+	    $personal_name = qr/$in_cfg->{user}->{name}/;
+   	   	$in_cfg->{master} = 'repo' if exists $in_cfg->{'repo'};
+    }
+
     my $cfg;
     if ( (! exists $in_cfg->{master} || ! defined $in_cfg->{master})
         && exists $pod_hr->{'AUTHOR'} && $pod_hr->{'AUTHOR'} =~ /$personal_name/i ) {
