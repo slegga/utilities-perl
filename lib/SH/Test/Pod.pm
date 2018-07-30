@@ -412,8 +412,10 @@ sub _nms_check_pod {
     my $modulename = shift;
     my $podfile = shift;
     my $name = shift;
-    if (! exists $in_cfg->{repo} || ! exists $in_cfg->{user}) {
-    	 _return_test($name);
+    if (! exists $in_cfg->{repo} ) {
+ 	   	_print_fail("Missing repo config file for test-pod.");
+	   	_return_test($name);
+	   	return;
     }
     my $pod_hr_raw = Pod::Simple::SimpleTree->new->parse_file($podfile)->root;
     # remove fluff
@@ -456,10 +458,10 @@ sub _nms_check_pod {
 
     my $personal_name;
     if (! exists $in_cfg->{user} || ! exists $in_cfg->{user}->{name}) {
-   	   	$in_cfg->{master} = 'repo' if exists $in_cfg->{'repo'};
+   	   	$in_cfg->{master} = 'repo';
+		$personal_name = qr/fdgsdfti4ø5jtgkfgjø45tjø43øktlø4l3/;
     } else {
   	    $personal_name = qr/$in_cfg->{user}->{name}/;
-
     }
 
     my $cfg;
