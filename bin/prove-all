@@ -28,24 +28,24 @@ while (my $item = readdir $dh) {
     my $wd = "$gitdir/$item";
     next if ! -d $wd;
     next if ! -d "$wd/.git";
-    next if $item eq 'mt7601';
-		print color('blue');
+    next if ! -d "$wd/lib" && ! -d "$wd/t";
+	print color('blue');
     say "$wd";
-		print color('reset');
+	print color('reset');
     my $r = Git::Repository->new( work_tree => $wd );
     $r->run( 'remote','update');
     my $output = $r->run( 'status' );
     if ($output =~/On branch master\s*\nYour branch is up[-\s]to[-\s]date.+nothing to commit\, working tree clean/ms) {
         $r->run( 'pull' );
-				chdir $wd;
-                my $success = 'Result: PASS';
-                my $prove   = `prove -l -Q -m`;
+		chdir $wd;
+		my $success = 'Result: PASS';
+		my $prove   = `prove -l -Q -m`;
 
-                if ($prove =~ /$success/) {
-                    say $success;
-                } else {
-                    say $prove;
-                }
+		if ($prove =~ /$success/) {
+		    say $success;
+		} else {
+		    say $prove;
+		}
         next;
 
     }
