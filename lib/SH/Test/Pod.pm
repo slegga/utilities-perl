@@ -2,8 +2,8 @@ package SH::Test::Pod;
 use Mojo::Base -strict;
 use autodie;
 use Test::Pod;
-use Pod::Simple;
 use Pod::Simple::Text;
+# use Test::Pod::Coverage;
 use YAML::Tiny;
 use Pod::Simple::SimpleTree;
 use FindBin;
@@ -20,7 +20,6 @@ use Pod::Coverage;
 
 use Term::ANSIColor;
 use Test::Builder::Module;
-use Carp::Always;
 our @ISA    = qw(Test::Builder::Module Exporter);
 our @EXPORT = qw(check_modules_pod check_scripts_pod);
 
@@ -45,7 +44,7 @@ This module will be under construction for a while
   headers_order => 'force',
   synopsis_compile => 1,
   spell_check => 1,
-  skip => [Bla::Bla],
+  skip => [SH::Utils::SQLMVTable],
   });
 
   check_scripts_pod({
@@ -56,18 +55,18 @@ This module will be under construction for a while
 =head1 DESCRIPTION
 
 A module for testing pod. Setup required headings in the pod. And control if Synopsis compiles. Highly configurable.
-You can make your own configuration, just make a file named .basic-test-pod.yml. This file must be a YAML file.
+You can make your own configuration, just make a file named .nx-test.yml. This file must be a YAML file.
 
 The test will merge the configuration if personal and the test configuration differ (to a more strict test configuration.)
 
 =head2 configuration file
 
-Filename ~/.basic-test-pod.yml
+Filename ~/.nx-test.yml
 
 Example data:
 
  ---
- name: Stein Hammer
+ name: Slegga
  module_pod:
     headers_required:
         - NAME
@@ -298,7 +297,7 @@ sub _get_config {
     my $tmpuser = clone $repo_config;
     my $return = {repo => $tmprepo, user => $tmpuser};
 
-    my $ownyml = "$ENV{HOME}/.perl-test.yml";
+    my $ownyml = "$ENV{HOME}/.nx-test.yml";
     if (-f $ownyml) {
         open my $FH, '<', $ownyml or die "Failed to read $ownyml: $!$@";
         my $personal = YAML::Tiny::Load(
@@ -455,7 +454,6 @@ sub _nms_check_pod {
             die "Expected array got $item";
         }
     }
-
     my $personal_name;
     if (! exists $in_cfg->{user} || ! exists $in_cfg->{user}->{name}) {
    	   	$in_cfg->{master} = 'repo';
@@ -571,7 +569,7 @@ For perl policy for POD documentation: L<https://perldoc.perl.org/perlpodstyle.h
 
 =head1 AUTHOR
 
-Stein Hammer
+Slegga
 
 =cut
 

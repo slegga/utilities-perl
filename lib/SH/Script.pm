@@ -30,7 +30,7 @@ SH::Script - A part of Steins personal developer suite
 
 =head1 SYNOPSIS
 
-    use SH::Script;
+    use SH::Script qw/options_and_usage/;
     use Data::Dumper;
     my @ARGV_COPY = @ARGV;
     my ( $opts, $usage, $argv ) =
@@ -44,6 +44,8 @@ SH::Script - A part of Steins personal developer suite
     usage();
 
 =head1 DESCRIPTION
+
+An alternative to SH::Script and Applify
 
 The main method is options_and_usage
 Make it easy to document input parameters. And script --help will show
@@ -284,5 +286,15 @@ sub readprivconfig {
     return YAML::Syck::Load(do { local $/; <$FH> }); # slurp content
 }
 
+=head1 SEE ALSO
+
+ SH::Script
+ Applify
+
+=head1 AUTHOR
+
+Slegga - C<steihamm@gmail.com>
+
+=cut
 
 1;
