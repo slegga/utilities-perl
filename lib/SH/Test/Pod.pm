@@ -55,13 +55,13 @@ This module will be under construction for a while
 =head1 DESCRIPTION
 
 A module for testing pod. Setup required headings in the pod. And control if Synopsis compiles. Highly configurable.
-You can make your own configuration, just make a file named .nx-test.yml. This file must be a YAML file.
+You can make your own configuration, just make a file named .basic-test-pod.yml. This file must be a YAML file.
 
 The test will merge the configuration if personal and the test configuration differ (to a more strict test configuration.)
 
 =head2 configuration file
 
-Filename ~/.nx-test.yml
+Filename ~/.basic-test-pod.yml
 
 Example data:
 
@@ -297,7 +297,7 @@ sub _get_config {
     my $tmpuser = clone $repo_config;
     my $return = {repo => $tmprepo, user => $tmpuser};
 
-    my $ownyml = "$ENV{HOME}/.nx-test.yml";
+    my $ownyml = "$ENV{HOME}/.basic-test-pod.yml";
     if (-f $ownyml) {
         open my $FH, '<', $ownyml or die "Failed to read $ownyml: $!$@";
         my $personal = YAML::Tiny::Load(
@@ -405,6 +405,17 @@ sub _all_scriptpaths_array_ref {
     return $return;
 }
 
+sub _req_get_text {
+	my $poditem = shift;
+	if (ref $poditem eq 'ARRAY') {
+		die "Not enough elements" . Dumper $poditem if $#$poditem<2;
+		return _req_get_text($poditem->[2]);
+	} elsif(ref $poditem) {
+		warn Dumper $poditem;
+		...;
+	}
+	return $poditem;
+}
 
 sub _nms_check_pod {
     my $in_cfg = shift;
@@ -436,12 +447,13 @@ sub _nms_check_pod {
             }
             else {
                 if (ref $item->[2]) {
-                    if (ref $item->[2]->[2]) {
-                        warn Dumper $item->[2]->[2];
-                        warn $pod_hr;
-                        die "Got $item->[2]->[2] expected string";
-                    }
-                    $pod_hr->{$head1} .= $item->[2]->[2];
+
+#                    if (ref $item->[2]->[2]) {
+#                        warn Dumper $item->[2]->[2];
+#                        warn $pod_hr;
+#                        die "Got $item->[2]->[2] expected string";
+#                    }
+                    $pod_hr->{$head1} .= _req_get_text($item->[2]);
                 } elsif (!defined $head1) {
                     _print_fail("$podfile: First text in POD must be a =head1");
 
