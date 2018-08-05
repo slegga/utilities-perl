@@ -1,6 +1,12 @@
 package SH::PrettyPrint;
 use Mojo::Base -strict;
 
+=head1 NAME
+
+SH::PrettyPrint
+
+=cut
+
 sub print_arrays {
     my $aar =shift;
     #   die "Expect array ref this is ". ref $ahr if (ref $ahr ne 'ARRAY' );

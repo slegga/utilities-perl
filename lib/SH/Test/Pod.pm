@@ -375,7 +375,13 @@ sub _is_cfg_active {
 sub _all_module_name_path_hash_ref {
     my $cfg = shift;
     # warn  "$FindBin::Bin/../lib";
-    my $name2path = Pod::Simple::Search->new->inc(0)->survey("$FindBin::Bin/../lib");
+    my @paths;
+    @paths = path("$FindBin::Bin/../lib")->list_tree->each;
+    my $name2path={};
+    for my $p(@paths) {
+    	$name2path->{_path2name("$p")}= "$p";
+    }
+#    my $name2path = Pod::Simple::Search->new->inc(0)->survey("$FindBin::Bin/../lib");
     if (exists $cfg->{skip}) {
         for my $red(@{$cfg->{user}->{module_pod}->{skip}}) {
             if ( first {$red eq $_} grep {$_} keys %$name2path) {
@@ -384,6 +390,15 @@ sub _all_module_name_path_hash_ref {
         }
     }
     return $name2path;
+}
+
+sub _path2name {
+	my $path = shift;
+	$path =~ s/.*\/lib\///;
+	$path =~ s/\.pm$//;
+	$path =~ s/\//::/;
+	return $path;
+
 }
 
 sub _all_scriptpaths_array_ref {
