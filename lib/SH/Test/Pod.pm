@@ -118,11 +118,14 @@ sub check_modules_pod {
     my $cfg = _get_config($repo_cfg);
     my $modules;
     $modules = _all_module_name_path_hash_ref($cfg);
+    my $parser = Pod::Simple::Text->new;
     while (my ($modulename, $podfile) = each %$modules) {
         next if ! $podfile;
         pod_file_ok( $podfile, "POD syntax: $podfile" );
         $cfg->{master} = undef;
         next if ! _is_cfg_active($cfg, 'script_pod', 'headers_required', 'spell_check');
+		next if ! $parser->parse_file($podfile)->content_seen &&
+			!_is_cfg_active($cfg, 'module_pod', 'pod_required');
 
         if ( _is_cfg_active($cfg, 'script_pod', 'headers_required')) {
             _nms_check_pod($cfg, $modulename, $podfile, "POD content: $podfile" );
@@ -150,12 +153,13 @@ sub check_scripts_pod {
     my $cfg = _get_config($repo_cfg);
     my $scripts;
     $scripts = _all_scriptpaths_array_ref($cfg);
-    for my $scriptpath(@$scripts) {
+    my $parser = Pod::Simple::Text->new;
+        for my $scriptpath(@$scripts) {
         next if ! $scriptpath;
+        next if $scriptpath =~ /\.sh$/;
         pod_file_ok( $scriptpath, "POD syntax: $scriptpath" );
         $cfg->{master} = undef;
         next if ! _is_cfg_active($cfg, 'script_pod', 'headers_required', 'spell_check');
-        my $parser = Pod::Simple::Text->new;
 		next if ! $parser->parse_file($scriptpath)->content_seen &&
 			!_is_cfg_active($cfg, 'script_pod', 'pod_required');
         if ( _is_cfg_active($cfg, 'script_pod' ,'headers_required')) {
