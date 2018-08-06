@@ -17,6 +17,7 @@ use Data::Dumper;
 use Carp qw /carp/;
 use Pod::Spell;
 use Pod::Coverage;
+use Pod::Simple;
 
 use Term::ANSIColor;
 use Test::Builder::Module;
@@ -118,21 +119,24 @@ sub check_modules_pod {
     my $cfg = _get_config($repo_cfg);
     my $modules;
     $modules = _all_module_name_path_hash_ref($cfg);
-    my $parser = Pod::Simple::Text->new;
     while (my ($modulename, $podfile) = each %$modules) {
         next if ! $podfile;
+		if (!_is_cfg_active($cfg, 'module_pod', 'pod_required'))	{
+		    my $parser = Pod::Simple->new;
+		    $parser->complain_stderr(1);
+			if(! $parser->parse_file($podfile)->content_seen ) {
+				next;
+			}
+		}
+
         pod_file_ok( $podfile, "POD syntax: $podfile" );
         $cfg->{master} = undef;
-        next if ! _is_cfg_active($cfg, 'script_pod', 'headers_required', 'spell_check');
-		next if ! $parser->parse_file($podfile)->content_seen &&
-			!_is_cfg_active($cfg, 'module_pod', 'pod_required');
-
-        if ( _is_cfg_active($cfg, 'script_pod', 'headers_required')) {
+        if ( _is_cfg_active($cfg, 'module_pod', 'headers_required')) {
             _nms_check_pod($cfg, $modulename, $podfile, "POD content: $podfile" );
         }
         # warn $cfg->{master};
 
-        if ( _is_cfg_active($cfg, 'script_pod', 'spell_check')) {
+        if ( _is_cfg_active($cfg, 'module_pod', 'spell_check')) {
             _nms_spell_check($cfg, $modulename, $podfile, "POD spelling for $podfile" );
         }
     }
@@ -153,15 +157,23 @@ sub check_scripts_pod {
     my $cfg = _get_config($repo_cfg);
     my $scripts;
     $scripts = _all_scriptpaths_array_ref($cfg);
-    my $parser = Pod::Simple::Text->new;
-        for my $scriptpath(@$scripts) {
+    my $parser = Pod::Simple->new();
+    $parser->complain_stderr(1);
+
+    for my $scriptpath(@$scripts) {
         next if ! $scriptpath;
         next if $scriptpath =~ /\.sh$/;
+		if (!_is_cfg_active($cfg, 'script_pod', 'pod_required'))	{
+   		    my $parser = Pod::Simple->new;
+   		    $parser->complain_stderr(1);
+   			if(! $parser->parse_file($scriptpath)->content_seen ) {
+   				next;
+   			}
+   		}
         pod_file_ok( $scriptpath, "POD syntax: $scriptpath" );
         $cfg->{master} = undef;
         next if ! _is_cfg_active($cfg, 'script_pod', 'headers_required', 'spell_check');
-		next if ! $parser->parse_file($scriptpath)->content_seen &&
-			!_is_cfg_active($cfg, 'script_pod', 'pod_required');
+#        my $parser = Pod::Simple::Text->new;
         if ( _is_cfg_active($cfg, 'script_pod' ,'headers_required')) {
             _nms_check_pod($cfg, undef, $scriptpath, "POD content: $scriptpath" );
         }
@@ -380,14 +392,14 @@ sub _all_module_name_path_hash_ref {
     my $cfg = shift;
     # warn  "$FindBin::Bin/../lib";
     my @paths;
-    @paths = path("$FindBin::Bin/../lib")->list_tree->each;
+    @paths = path("$FindBin::Bin/../lib")->list_tree->grep (qr/^((?!\/auto\/).)*$/)->each;
     my $name2path={};
     for my $p(@paths) {
     	$name2path->{_path2name("$p")}= "$p";
     }
 #    my $name2path = Pod::Simple::Search->new->inc(0)->survey("$FindBin::Bin/../lib");
-    if (exists $cfg->{skip}) {
-        for my $red(@{$cfg->{user}->{module_pod}->{skip}}) {
+    if (exists $cfg->{module_pod}->{skip}) {
+        for my $red(@{$cfg->{module_pod}->{skip}}) {
             if ( first {$red eq $_} grep {$_} keys %$name2path) {
                 delete $name2path->{$red};
             }
@@ -400,7 +412,7 @@ sub _path2name {
 	my $path = shift;
 	$path =~ s/.*\/lib\///;
 	$path =~ s/\.pm$//;
-	$path =~ s/\//::/;
+	$path =~ s/\//::/g;
 	return $path;
 
 }
