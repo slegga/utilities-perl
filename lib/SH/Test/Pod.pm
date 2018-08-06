@@ -162,7 +162,7 @@ sub check_scripts_pod {
 
     for my $scriptpath(@$scripts) {
         next if ! $scriptpath;
-        next if $scriptpath =~ /\.sh$/;
+        next if $scriptpath =~ /\.(sh|ptkdb|sql)$/i;
 		if (!_is_cfg_active($cfg, 'script_pod', 'pod_required'))	{
    		    my $parser = Pod::Simple->new;
    		    $parser->complain_stderr(1);
