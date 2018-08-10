@@ -15,7 +15,7 @@ Run git status in evry repo. Output a compact report.
 
 =cut
 
-
+my $silence = !! grep {'--silence' eq $_} @ARGV;
 my $gitdir = "$FindBin::Bin/../..";
 opendir (my $dh , $gitdir);
 while (my $item = readdir $dh) {
@@ -24,7 +24,7 @@ while (my $item = readdir $dh) {
     next if ! -d $wd;
     next if ! -d "$wd/.git";
     next if $item eq 'mt7601';
-    say "$wd";
+    say "$wd" if ! $silence;
     my $r = Git::Repository->new( work_tree => $wd );
     $r->run( 'remote','update');
     my $output = $r->run( 'status' );
@@ -41,7 +41,7 @@ while (my $item = readdir $dh) {
     $output =~ s/Your branch is up to date with \'origin\/master\'\.//;
     $output =~ s/nothing to commit, working tree clean//;
     $output =~ s/\n//gm;
-    say $output;
+    say $output if ! $silence;
 #    die "git repo is unclean.";
 }
 closedir $dh;
