@@ -37,8 +37,8 @@ SH::ScriptX - Development of a lite version of Applify
     }
     1;
 
-# perl script/test-nx-mojo-script.pl --name tittentei
-# perl script/test-nx-mojo-script.pl --help
+# perl script/test-scriptx.pl --name tittentei
+# perl script/test-scriptx.pl --help
 
 =head1 DESCRIPTION
 

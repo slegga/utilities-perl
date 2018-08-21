@@ -14,7 +14,7 @@ use Mojo::Base 'SH::ScriptX';
 
 =encoding utf8
 
-test-nx-mojo-script.pl
+test-scriptx.pl
 
 =head1 SYNOPSIS
 
