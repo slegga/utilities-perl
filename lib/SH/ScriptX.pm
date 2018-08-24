@@ -6,9 +6,6 @@ use Pod::Text::Termcap;
 use File::Basename;
 use Mojo::Base -base;
 use Mojo::Util;
-use Data::Printer;
-use Carp::Always;
-use Data::Dumper;
 use Encode::Locale qw(decode_argv);
 
 =encoding utf8
@@ -87,7 +84,6 @@ This method is a overbuilding og Getopt::Long::Descriptive. Check for options no
 =cut
 
 sub option {
-	warn "option runned";
     my $declare = shift;
     my $description = shift;
     my $caller =caller;
@@ -101,8 +97,8 @@ sub option {
     else {
         die"Ekstra arguments hash to be like key =>'value',key =>'value': " . join(', ',@_);
     }
-    say "declare: " . $declare;
-    p $description;
+#    say "declare: " . $declare;
+#    p $description;
     my $name = $declare;
     $name =~ s/\W.*//;
     no strict 'refs';
@@ -120,27 +116,16 @@ This method show help if in arguments.
 =cut
 
 sub with_options {
-    #my @ARGV_COPY = @ARGV;
     @ARGV = map{ Encode::decode($Encode::Locale::ENCODING_LOCALE, $_) } @ARGV;
     my $self = shift;
-#    my $class = ref $self;
     my $caller = caller;
-#    p $class;
     my %options;
-    # extract values
-    p $_options;
     my @options_spec = map{$_->[0]} (@{$_options}, $self->_default_options);
-    say "with_options self:";
-    say ref $self;
-    say "with_options options_spec:";
-    p @options_spec;
     unless ( Getopt::Long::Parser->new()->getoptions(\%options, @options_spec ) ) {
-#        $self->_exit(1);
 		die "Something is wrong"
     }
 
 	if ($options{help}) {
-		say "Print help";
 		$self->usage;
 		exit(1);
 	}
@@ -170,13 +155,8 @@ If verbose flag is on then print the pod also.
 
 sub usage {
 	my $self = shift;
-#    my $podfile=shift;
- #   my $usage = shift;
-#    my $verbose=shift;
 #    print BOLD $usage->text;
-#    exit if ( !$podfile);
     my $parser=Pod::Text::Termcap->new(sentence => 0, width => 120 );
-    say "Script $0";
     say $self->_gen_usage;
     $parser->parse_from_filehandle($0);
     exit;
