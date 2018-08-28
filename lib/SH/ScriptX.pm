@@ -7,7 +7,7 @@ use File::Basename;
 use Mojo::Base -base;
 use Mojo::Util;
 use Encode::Locale qw(decode_argv);
-#use Getopt::Long qw(:config permute );
+
 =encoding utf8
 
 =head1 NAME
@@ -63,8 +63,8 @@ Show an example of a test to show where script as module really shines.
 
 =cut
 
-our $_options_values = {};
-our $_options=[]; # needed by  exported option sub
+our $_options_values = {}; #needed by exported option
+my $_options=[];
 my @_extra_options=();
 
 =head1 EXPORTED FUNCTIONS
@@ -135,6 +135,7 @@ sub with_options {
     $_options_values = \%options;
 
 	@_extra_options = @ARGV;
+
     no strict 'refs';
     no warnings 'redefine';
 #	my $class = ref $self;
@@ -208,10 +209,6 @@ sub _gen_usage {
 
 	return $return."\n\n";
 }
-
-#sub _process {
-#	push @_extra_options, shift;
-#}
 
 =head1 SEE ALSO
 
