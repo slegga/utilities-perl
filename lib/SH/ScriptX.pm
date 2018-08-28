@@ -186,9 +186,11 @@ sub import {
     my ($class, %args) = @_;
     my $caller = caller;
 	Mojo::Util::monkey_patch($caller, 'option', \&option );
-	binmode(STDIN,  ":encoding(console_in)");
-	binmode(STDOUT, ":encoding(console_out)");
-	binmode(STDERR, ":encoding(console_out)");
+	if (-t ) {
+		binmode(STDIN,  ":encoding(console_in)");
+		binmode(STDOUT, ":encoding(console_out)");
+		binmode(STDERR, ":encoding(console_out)");
+	}
 }
 
 
