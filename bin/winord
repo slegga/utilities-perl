@@ -26,16 +26,11 @@ Order windows in KDE
 
 =cut
 
-has permsize => sub{ {
-    0=>[4,4],
-	1=>[1,1],
-	2=>[2,1],
-	4=>[2,2],
-	8=>[4,2],
-	16=>[4,4],
-} };
-
-has totsquares => 0;
+has x_min => 0;
+has y_min => 0;
+has x_max => 0;
+has y_max => 0;
+has windows  => sub{ {} };
 
 option "info!", "Show windows info";
 
@@ -51,172 +46,111 @@ And calculate the number of base squares occupied
 
 =cut
 
-sub calc_win_size {
+sub get_info {
 	my $self = shift;
-	die "Not my self" if ! ref $self;
-    my $wintsize = shift;
-    my @sides    = @{ $self->permsize->{$wintsize} };
-    return $sides[0] * $sides[1];
+	die "I am not my self" if ! ref $self;
+	my $resraw = `wmctrl -d|grep '*'`;
+	my ($x_res,$y_res) = ($resraw=~/WA\:.+?(\d+)x(\d+)/);
+	$self->x_min(0);
+	$self->y_min(0);
+	$self->x_max($x_res);
+	$self->y_max($y_res - 36); #40 to much #20 to little
+
+#$y_res -= (36); # remove statusbar size
+	my @wmctrl = map{[split(/\s+/,$_,8)]} split(/\n/,`wmctrl -Gl`);
+#	@wmctrl = map {(split(/\s+/,$_,8))[7]} @wmctrl;
+#	print join("\n", $x_res,$y_res,@wmctrl);
+#	print "\n";
+	my %win;
+	for my $r (@wmctrl) {
+		next if $r->[1] == -1;
+		next if $r->[1] != 0; #only work on primary screen
+		$win{$r->[7]} = {x_pos=>$r->[2], y_pos=>$r->[3]};
+	}
+#	my %win = map{'name',$_} @wmctrl;
+	$self->windows(\%win);
+	return $self;
 }
 
-sub squares_to_size {
+sub init_resize {
 	my $self = shift;
-	die "Not my self" if ! ref $self;
-    my $squares = shift;
-    return int $self->totsquares / $squares;
+	my %win = %{$self->windows()};
+	my $num_win = keys %win;
+	for my $key(keys %win) {
+		$win{$key}{x_size} = int( ( $self->x_max - $self->x_min )/sqrt($num_win));
+		$win{$key}{y_size} = int( ( $self->y_max - $self->y_min )/sqrt($num_win));
+	}
+	$self->windows(\%win);
+	return $self;
 }
 
+sub init_replace {
+	my $self = shift;
+	my %win = %{$self->windows()};
+#	my $num_win = keys %win;
+	my $i=1;
+	for my $key(sort keys %win) {
+		if ($i ==1) {
+			$win{$key}{x_pos} = $self->x_min;
+			$win{$key}{y_pos} = $self->y_min;
+		} elsif($i==2) {
+			$win{$key}{x_pos} = $self->x_max - $win{$key}{x_size};
+			$win{$key}{y_pos} = $self->y_max - $win{$key}{y_size};
+		} elsif($i==3) {
+			$win{$key}{x_pos} = $self->x_min;
+			$win{$key}{y_pos} = $self->y_max - $win{$key}{y_size};
+		} elsif($i==4) {
+			$win{$key}{x_pos} = $self->x_max - $win{$key}{x_size};
+			$win{$key}{y_pos} = $self->y_min;
+		}
+		$i++;
+	}
+	$self->windows(\%win);
+
+	return $self;
+}
+
+sub do_resize {
+	my $self = shift;
+	while (my ($key,$value) = each %{$self->windows}) {
+		my $resize;
+		if (exists $value->{minimize} && $value->{minimize})	 {
+	        $resize = 'wmctrl -F "' . $key . '" -b add,hidden -b remove,sticky';
+		} else {
+		    $resize =
+		      'wmctrl -r "'
+		        . $key
+		         . '" -b remove,maximized_vert,maximized_horz -e 0,'
+		         . $value->{x_pos} . ','
+		         . $value->{y_pos} . ','
+		         . $value->{x_size} . ','
+		         . $value->{y_size};
+			say $resize;
+		}
+		`$resize`;
+	}
+}
 
 sub main {
 	my $self = shift;
-	my $resraw = `wmctrl -d|grep '*'`;
-	my ($x_res,$y_res) = ($resraw=~/WA\:.+?(\d+)x(\d+)/);
-#$y_res -= (36); # remove statusbar size
-	my @wmctrl = split(/\n/,`wmctrl -Gl|grep -e'\\w  0 ' |sort -nk3 -nk4`);
-	@wmctrl = map {(split(/\s+/,$_,8))[7]} @wmctrl;
-	print join("\n", $x_res,$y_res,@wmctrl);
-	print "\n";
-
-	my %winsize;
-	my $x_squares=4;
-	my $y_squares=4;
-	my @squares=();
-	# unknown will use the rest of space
-	my $totsquares = $x_squares * $y_squares;
-	my $freesquares= $totsquares;
-
-
-	for my $i(0 .. ($x_squares -1)) {
-	    for my $j (0 .. ($y_squares -1)) {
-	        $squares[$i][$j] = 0;
-	    }
-	}
-	$winsize{'Mozilla Firefox'}=4;# 4 = 1/4 of screen
-	$winsize{'Kate'}=4;
-	$winsize{'KOrganizer'}=-1; #-1 = minimized
-	$winsize{'Amarok'}=-1; #-1 = minimized
+	$self->get_info();
+	# read yaml cofig
+#	$winsize{'Mozilla Firefox'}=4;# 4 = 1/4 of screen
+#	$winsize{'Kate'}=4;
+#	$winsize{'KOrganizer'}=-1; #-1 = minimized
+#	$winsize{'Amarok'}=-1; #-1 = minimized
 	#go thru all windows and set tmp size
-	my %allwindows;
-	for my $win ( keys %winsize ) {
-	    my $idx = first_index { $_ =~ /$win/ } @wmctrl;
-	    if ( $idx > -1 ) {
-	        $allwindows{ $wmctrl[$idx] } = $winsize{$win};
-	        if ( $allwindows{ $wmctrl[$idx] } > 0 ) {
-	            $freesquares -= $self->calc_win_size( $allwindows{ $wmctrl[$idx] } );
-	        }    #remove part from total
-	    }
-	}
-	warn "\$totsquares $totsquares";
 
-	# WORK WITH UNMARKED WINDOWS
-
-	# Find unmarked windows
-
-	my $numunmarked = 0;
-	for my $value (@wmctrl) {
-	    if ( !defined $allwindows{$value} ) {
-	        $numunmarked++;
-	    }
-	}
-
-	if ( $numunmarked == 0 ) {
-	    if ( $x_squares * $y_squares >= $freesquares * 2 ) {
-	        for my $value (@wmctrl) {
-	            $freesquares -= $self->calc_win_size( $allwindows{$value} );
-	            $allwindows{$value} /= 2;
-	        }
-	    }
-	} else {
-	    my $unsize = int( $freesquares / $numunmarked );
-	    if ( $unsize == 0 ) {
-	        for my $value (@wmctrl) {
-	            $freesquares += calc_win_size( $allwindows{$value} );
-	            $allwindows{$value} *= 2;
-	        }
-	        $unsize = int( $freesquares / $numunmarked );
-	    }
-	    if ( none {$unsize} keys %{$self->permsize} ) {
-	        confess "\$unsize=$unsize. I do not know what to do";
-	    }
-	    my $uswinsize = $self->squares_to_size($unsize);
-	    for my $value (@wmctrl) {
-	        if ( !defined $allwindows{$value} ) {
-	            $allwindows{$value} = $uswinsize;
-	            $freesquares -= $unsize;
-	        }
-	    }
-
-	}
-	warn "\$freesquares = $freesquares";
+	$self->init_resize();
+	$self->init_replace();
 
 
-	# ORDER
-
-	# place biggest first
-	my @winorder = @wmctrl;
-
-	# sort {$allwindows{$a} <=> $allwindows{$b}}
-
-	my %sizegroup;
-	for my $wname (@winorder) {
-	    push @{ $sizegroup{ $allwindows{$wname} } }, $wname;
-	}
-
-	@winorder = map { @{ $sizegroup{$_} } } sort keys %sizegroup;
-
-	# DO WORK
-
-	print Dumper @winorder;
-
-	for my $key (@winorder) {
-	    my $resize;
-	    if ( $allwindows{$key} == -1 ) {
-	        $resize = 'wmctrl -F "' . $key . '" -b add,hidden -b remove,sticky';
-	    } elsif (ref $self->permsize->{ $allwindows{$key} } eq 'ARRAY' && $self->permsize->{ $allwindows{$key} }[0]) {
-
-	        my $x_size = $x_res / $self->permsize->{ $allwindows{$key} }[0];
-	        my $y_size = $y_res / $self->permsize->{ $allwindows{$key} }[1];
-	        my ( $x_pos, $y_pos );
-	    POSITION:
-	        for my $i ( 0 .. 3 ) {
-	            for my $j ( 0 .. 3 ) {
-	                if ( ! $squares[$i][$j] ) {
-	                    $x_pos = int( $i * $x_res / $x_squares );
-	                    $y_pos = int( $j * $y_res / $y_squares );
-	                    for my $k ( $i .. ( $i + $x_squares / $self->permsize->{ $allwindows{$key} }[0] - 1 ) ) {
-	                        for my $l ( $j .. ( $j + $y_squares / $self->permsize->{ $allwindows{$key} }[1] - 1 ) ) {
-	                            $squares[$k][$l] = $key;
-	                        }
-	                    }
-	                    last POSITION;
-	                }
-	            }
-	        }
-	        if (!defined $x_pos) {
-	        	p @squares;
-		        confess "$key \$x_pos is undef";
-		    }
-	        $resize =
-	              'wmctrl -r "'
-	            . $key
-	            . '" -b remove,maximized_vert,maximized_horz -e 0,'
-	            . $x_pos . ','
-	            . $y_pos . ','
-	            . int( $x_size - 8 ) . ','
-	            . int( $y_size - 28 );
-	    }
-	    else {
-	    	p %allwindows;
-	    	die "Odd number $key, ".$allwindows{$key} # $allwindows{$key} # $key # ".ref $self->permsize->{ $allwindows{$key} }
-	    }
-	    print $resize. "\n";
-	    `$resize`;
-	}
-	print Dumper %allwindows;
+	$self->do_resize();
 }
 
 __PACKAGE__->new->with_options->main();
 
+1;
 
 =head1 AUTHOR
 
