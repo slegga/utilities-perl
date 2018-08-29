@@ -149,7 +149,7 @@ sub do_resize {
 			    $resize =
 			      'wmctrl -r "'
 			        . $key
-			         . '" -b remove,above,fullscreen,sticky,maximized_vert,maximized_horz -e'. $i .','
+			         . '" -b remove,above,fullscreen,sticky,maximized_vert,maximized_horz -e '. $i .','
 			         . $value->{x_pos} . ','
 			         . $value->{y_pos} . ','
 			         . $value->{x_size} . ','
