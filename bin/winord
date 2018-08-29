@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+
 use strict;
 use warnings;
 use autodie;
@@ -30,7 +31,7 @@ has x_min => 0;
 has y_min => 0;
 has x_max => 0;
 has y_max => 0;
-has windows  => sub{ {} };
+has windows  => sub{ [] }; # ->[screen]->{windowname}->{attribute}
 
 option "info!", "Show windows info";
 
@@ -61,73 +62,101 @@ sub get_info {
 #	@wmctrl = map {(split(/\s+/,$_,8))[7]} @wmctrl;
 #	print join("\n", $x_res,$y_res,@wmctrl);
 #	print "\n";
-	my %win;
+	my @win;
 	for my $r (@wmctrl) {
 		next if $r->[1] == -1;
-		next if $r->[1] != 0; #only work on primary screen
-		$win{$r->[7]} = {x_pos=>$r->[2], y_pos=>$r->[3]};
+#		next if $r->[1] != 0; #only work on primary screen
+		$win[$r->[1]]{$r->[7]} = {x_pos=>$r->[2], y_pos=>$r->[3]};
 	}
 #	my %win = map{'name',$_} @wmctrl;
-	$self->windows(\%win);
+	$self->windows(\@win);
 	return $self;
 }
 
 sub init_resize {
 	my $self = shift;
-	my %win = %{$self->windows()};
-	my $num_win = keys %win;
-	for my $key(keys %win) {
-		$win{$key}{x_size} = int( ( $self->x_max - $self->x_min )/sqrt($num_win));
-		$win{$key}{y_size} = int( ( $self->y_max - $self->y_min )/sqrt($num_win));
+	my @screens;
+	for my $screen(@{$self->windows()}) {
+		my %win = %$screen;
+		my $num_win = keys %win;
+		for my $key(keys %win) {
+			$win{$key}{x_size} = int( ( $self->x_max - $self->x_min )/sqrt($num_win));
+			$win{$key}{y_size} = int( ( $self->y_max - $self->y_min )/sqrt($num_win));
+		}
+		push @screens,\%win;
 	}
-	$self->windows(\%win);
+	$self->windows(\@screens);
 	return $self;
 }
 
 sub init_replace {
 	my $self = shift;
-	my %win = %{$self->windows()};
-#	my $num_win = keys %win;
-	my $i=1;
-	for my $key(sort keys %win) {
-		if ($i ==1) {
-			$win{$key}{x_pos} = $self->x_min;
-			$win{$key}{y_pos} = $self->y_min;
-		} elsif($i==2) {
-			$win{$key}{x_pos} = $self->x_max - $win{$key}{x_size};
-			$win{$key}{y_pos} = $self->y_max - $win{$key}{y_size};
-		} elsif($i==3) {
-			$win{$key}{x_pos} = $self->x_min;
-			$win{$key}{y_pos} = $self->y_max - $win{$key}{y_size};
-		} elsif($i==4) {
-			$win{$key}{x_pos} = $self->x_max - $win{$key}{x_size};
-			$win{$key}{y_pos} = $self->y_min;
+	my @screens;
+	for my $screen(@{$self->windows()}) {
+		my %win = %$screen;
+		my $num_win = keys %win;
+		my $i=1;
+		for my $key(sort keys %win) {
+			if ($i ==1) {
+				$win{$key}{x_pos} = $self->x_min;
+				$win{$key}{y_pos} = $self->y_min;
+			} elsif($i==2) {
+				$win{$key}{x_pos} = $self->x_max - $win{$key}{x_size};
+				$win{$key}{y_pos} = $self->y_max - $win{$key}{y_size};
+			} elsif($i==3) {
+				$win{$key}{x_pos} = $self->x_min;
+				$win{$key}{y_pos} = $self->y_max - $win{$key}{y_size};
+			} elsif($i==4) {
+				$win{$key}{x_pos} = $self->x_max - $win{$key}{x_size};
+				$win{$key}{y_pos} = $self->y_min;
+			} elsif($i==5) {
+				$win{$key}{x_pos} = int(($self->x_max - $win{$key}{x_size}) / 2);
+				$win{$key}{y_pos} = $self->y_min;
+			} elsif($i==6) {
+				$win{$key}{x_pos} = int(($self->x_max - $win{$key}{x_size}) /2);
+				$win{$key}{y_pos} = $self->y_max - $win{$key}{y_size};
+			} elsif($i==7) {
+				$win{$key}{x_pos} = $self->x_min;
+				$win{$key}{y_pos} = int(($self->y_max - $win{$key}{y_size}) / 2);
+			} elsif($i==8) {
+				$win{$key}{x_pos} = $self->x_max - $win{$key}{x_size};
+				$win{$key}{y_pos} = int(($self->y_max - $win{$key}{y_size}) /2);
+			} elsif($i==9) {
+				$win{$key}{x_pos} = int(($self->x_max - $win{$key}{x_size}) / 2);
+				$win{$key}{y_pos} = int(($self->y_max - $win{$key}{y_size}) / 2);
+			}
+
+			$i++;
+
 		}
-		$i++;
+		push @screens, \%win;
 	}
-	$self->windows(\%win);
+	$self->windows(\@screens);
 
 	return $self;
 }
 
 sub do_resize {
 	my $self = shift;
-	while (my ($key,$value) = each %{$self->windows}) {
-		my $resize;
-		if (exists $value->{minimize} && $value->{minimize})	 {
-	        $resize = 'wmctrl -F "' . $key . '" -b add,hidden -b remove,sticky';
-		} else {
-		    $resize =
-		      'wmctrl -r "'
-		        . $key
-		         . '" -b remove,maximized_vert,maximized_horz -e 0,'
-		         . $value->{x_pos} . ','
-		         . $value->{y_pos} . ','
-		         . $value->{x_size} . ','
-		         . $value->{y_size};
-			say $resize;
+	for my $screen(@{$self->windows()}) {
+		my %win = %$screen;
+		while (my ($key,$value) = each %win) {
+			my $resize;
+			if (exists $value->{minimize} && $value->{minimize})	 {
+		        $resize = 'wmctrl -F "' . $key . '" -b add,hidden -b remove,sticky';
+			} else {
+			    $resize =
+			      'wmctrl -r "'
+			        . $key
+			         . '" -b remove,above,fullscreen,sticky,maximized_vert,maximized_horz -e 0,'
+			         . $value->{x_pos} . ','
+			         . $value->{y_pos} . ','
+			         . $value->{x_size} . ','
+			         . $value->{y_size};
+				say $resize;
+			}
+			`$resize`;
 		}
-		`$resize`;
 	}
 }
 
