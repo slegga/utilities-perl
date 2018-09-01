@@ -144,10 +144,10 @@ sub do_resize {
 		while (my ($key,$value) = each %win) {
 			my $resize;
 			if (exists $value->{minimize} && $value->{minimize})	 {
-		        $resize = 'wmctrl -F "' . $key . '" -b add,hidden -b remove,sticky';
+		        $resize = 'wmctrl -Fr "' . $key . '" -b add,hidden -b remove,sticky';
 			} else {
 			    $resize =
-			      'wmctrl -r "'
+			      'wmctrl -Fr "'
 			        . $key
 			         . '" -b remove,above,fullscreen,sticky,maximized_vert,maximized_horz -e '. $i .','
 			         . $value->{x_pos} . ','
