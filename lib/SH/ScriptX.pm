@@ -25,7 +25,7 @@ SH::ScriptX - Development of a lite version of Applify
     option 'name=s', 'from emailadress', {validation => qr'[\w\.\@]+'};
     print '__PACKAGE__ is:' . __PACKAGE__. "\n";
 
-    __PACKAGE__->new->with_options->main();
+    __PACKAGE__->new->with_options->main if ! caller;;
 
     sub main {
         my $self = shift;
@@ -134,7 +134,8 @@ sub with_options {
 
     $_options_values = \%options;
 
-	@_extra_options = @ARGV;
+	@_extra_options = @ARGV if @ARGV;
+    #push @_extra_options = <> if <>;
 
     no strict 'refs';
     no warnings 'redefine';
