@@ -190,7 +190,26 @@ This method exists mainly because of testing
 
 sub arguments {
     my $self = shift;
-    ...;
+    if (@_>1) {
+    	if (@_ % 2 == 0 ) {
+    		%$_options_values = @_;
+    	}
+    } elsif (@_ ==1 ) {
+    	if (ref $_[0] eq 'HASH') {
+            $_options_values = $_[0];
+        } else {
+    	    my $commandline = "cmd " . shift;
+    	    if (require Parser::Commandline) {
+                ...;
+    	    } else {
+                # TODO split /\s/
+                ...;
+    	    }
+        }
+	} elsif (@_==0) {
+	} else {
+		die "Wrong arguments @_";
+	}
     # Find module to read commandline
     return $self;
 }
