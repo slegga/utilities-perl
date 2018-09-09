@@ -182,6 +182,18 @@ sub import {
 	}
 }
 
+=head2 arguments
+
+This method exists mainly because of testing
+
+=cut
+
+sub arguments {
+    my $self = shift;
+    ...;
+    # Find module to read commandline
+    return $self;
+}
 
 # _getoptionname
 #
