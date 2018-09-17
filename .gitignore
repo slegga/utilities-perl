@@ -18,5 +18,6 @@ nytprof.out
 *.o
 *.bs
 *.swp
+*.ptkdb
 /_eumm/
 t/logs/FilBackupLog.txt
