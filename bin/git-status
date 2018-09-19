@@ -4,6 +4,7 @@ use autodie;
 use FindBin;
 use Git::Repository;
 use Carp;
+use Term::ANSIColor;
 
 =head1 NAME
 
@@ -41,7 +42,10 @@ while (my $item = readdir $dh) {
     $output =~ s/Your branch is up to date with \'origin\/master\'\.//;
     $output =~ s/nothing to commit, working tree clean//;
     $output =~ s/\n//gm;
-    say $output if ! $silence;
-#    die "git repo is unclean.";
+    if (! $silence) {
+    	print color('red');
+	    say $output;
+	    print color('reset');
+	}
 }
 closedir $dh;
