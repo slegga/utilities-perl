@@ -111,14 +111,15 @@ sub option {
 =head2 with_options
 
 Should be called right after new.
-
 This method show help if in arguments.
+If extra arguments is allowed call this methoed like $self->with_options({extra=>1}).
 
 =cut
 
 sub with_options {
     @ARGV = map{ Encode::decode($Encode::Locale::ENCODING_LOCALE, $_) } @ARGV;
     my $self = shift;
+    my $options = shift;
     my $caller = caller;
     my %options;
     my @options_spec = map{$_->[0]} (@{$_options}, $self->_default_options);
@@ -135,11 +136,14 @@ sub with_options {
     $_options_values = \%options;
 
 	@_extra_options = @ARGV if @ARGV;
-    #push @_extra_options = <> if <>;
+	
+	if (!defined $options || ! exists $options->{extra} || ! $options->{extra} ) {
+        say "Expected arguments from commandline ". join(', ', @_extra_options);
+        $self->usage;
+	}
 
     no strict 'refs';
     no warnings 'redefine';
-#	my $class = ref $self;
     for my $o (@{$_options}) {
         my $name = _getoptionname($o);
 #        *{"$class::$name"} = sub {$_[0]->_options_values->{$_[1]}};
@@ -149,6 +153,12 @@ sub with_options {
     }
     return $self;
 }
+
+=head2 extra_options
+
+Return unexpected arguments from commandline.
+
+=cut
 
 sub extra_options {
 	my $self = shift;

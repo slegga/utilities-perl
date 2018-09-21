@@ -5,6 +5,12 @@ use Mojo::Base -strict;
 
 SH::PrettyPrint
 
+=head1 FUNCTIONS
+
+=head2 print_arrays
+
+Print arrays with tab as separator
+
 =cut
 
 sub print_arrays {
@@ -14,6 +20,16 @@ sub print_arrays {
         say join("\t", @$r);
     }
 }
+
+=head2 print_hashes
+
+Print hashes pretty.
+
+Takes: array ref of hashes ref
+
+Print this with header and rows.
+
+=cut
 
 sub print_hashes {
 	my $ahr = shift;
@@ -49,6 +65,7 @@ sub print_hashes {
 	}
 
 }
+
 
 1;
 
