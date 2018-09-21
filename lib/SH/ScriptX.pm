@@ -134,12 +134,13 @@ sub with_options {
 	}
 
     $_options_values = \%options;
+	if (@ARGV) {
+		@_extra_options = @ARGV;
 
-	@_extra_options = @ARGV if @ARGV;
-	
-	if (!defined $options || ! exists $options->{extra} || ! $options->{extra} ) {
-        say "Expected arguments from commandline ". join(', ', @_extra_options);
-        $self->usage;
+		if (! defined $options || ! exists $options->{extra} || ! $options->{extra} ) {
+	        say "Unexpected arguments from commandline ". join(', ', @_extra_options);
+	        $self->usage;
+		}
 	}
 
     no strict 'refs';
