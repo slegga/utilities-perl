@@ -71,16 +71,14 @@ my @_extra_options=();
 
 =head2 option
 
-args: podfile \@ARGV, $usage_desc, @option_spec, \%arg
-podfile:        usually $0
-\@ARGV:         input from shell
-$usage_desc:    "%c %o"
-@option_spec:   array of array ref. Inner array: ["option|flag", "option description", options]
-\%arg:          input for describe_options method, in addition to return_uncatched_arguments => 1 for leaving unhandled arguments in @ARGV
+TODO: Deside what is best.
+Unsure if do like Applify or Getopt::Long::Descriptive or 'option', 'type','description'
 
-Input types: s=string i=integer, none=Boolean
+Go for Getopt::Long::Descriptive this may change.
 
-This method is a overbuilding og Getopt::Long::Descriptive. Check for options not read. Remove error message when putting an --help when there is a required option.
+=head3 synopsis
+
+option infile => string => "File for storing configuration bla bla" => {default=>'blabla.yml'}
 
 =cut
 
@@ -147,7 +145,6 @@ sub with_options {
     no warnings 'redefine';
     for my $o (@{$_options}) {
         my $name = _getoptionname($o);
-#        *{"$class::$name"} = sub {$_[0]->_options_values->{$_[1]}};
 		die "\$name undefined ".join Dumper $o if ! $name;
 		Mojo::Util::monkey_patch($caller, $name, sub { return $_options_values->{$name} });
 
@@ -246,7 +243,21 @@ sub _gen_usage {
 	my $return = sprintf"$script %s\n\n",(@$_options ? '[OPTIONS]' : '');
 	for my $o (@$_options) {
 		my ($def,$desc,$other) =@$o;
-		$return .= sprintf("          %-15s    %-80s\n", $def, $desc);
+        my ($name,$type) = split (/\b/,$def,2);
+        if ($type eq '=s') {
+            $type = '<STRING>';
+        } elsif ($type eq '=i') {
+            $type = '<INTEGER>';
+        } elsif ($type eq '=o') {
+            $type = '<OTHER>';
+        } elsif ($type eq '=f') {
+            $type = '<FLOAT>';
+        } elsif ($type eq '!' || $type eq '+') {
+            $type ='';
+        } else {
+            die "Unknown option first argument $def";
+        }
+		$return .= sprintf("         --%-15s    %-80s\n", "$name $type" , $desc);
 
 	}
 
