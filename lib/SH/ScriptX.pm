@@ -240,7 +240,7 @@ sub _default_options {
 sub _gen_usage {
 	my $script = basename($0);
 
-	my $return = sprintf"$script %s\n\n",(@$_options ? '[OPTIONS]' : '');
+	my $return = "\n" . sprintf"$script %s\n\n",(@$_options ? '[OPTIONS]' : '');
 	for my $o (@$_options) {
 		my ($def,$desc,$other) =@$o;
         my ($name,$type) = split (/\b/,$def,2);
