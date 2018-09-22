@@ -255,7 +255,7 @@ sub _gen_usage {
         } elsif ($type eq '!' || $type eq '+') {
             $type ='';
         } else {
-            die "Unknown option first argument $def";
+            die "Unknown option '$def'";
         }
 		$return .= sprintf("         --%-15s    %-80s\n", "$name $type" , $desc);
 
