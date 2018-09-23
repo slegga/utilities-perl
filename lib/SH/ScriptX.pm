@@ -140,6 +140,14 @@ sub with_options {
 	        $self->usage;
 		}
 	}
+	
+	# set value equal default if missing
+	for my $o(@$_options) {
+        next if ! exists $o->[2]->{default};
+        my $name = _getoptionname($o);
+        next if defined $_options_values->{$name};
+        $_options_values->{$name} = $o->[2]->{default}
+	}
 
     no strict 'refs';
     no warnings 'redefine';
