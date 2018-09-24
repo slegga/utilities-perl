@@ -7,6 +7,7 @@ use File::Basename;
 use Mojo::Base -base;
 use Mojo::Util;
 use Encode::Locale qw(decode_argv);
+# use Data::Printer;
 
 =encoding utf8
 
@@ -126,6 +127,17 @@ If extra arguments is allowed call this methoed like $self->with_options({extra=
 sub with_options {
     @ARGV = map{ Encode::decode($Encode::Locale::ENCODING_LOCALE, $_) } @ARGV;
     my $self = shift;
+    my @caller = caller(1);
+	if (@caller && $caller[0] eq 'main') {
+
+	    return $self->gracefull_exit
+	}
+#	elsif (!@caller) {
+#		warn "NO: ".(caller(0))[0];
+#	} else {
+#		warn "CALLER1: ".$caller[1];
+#	}
+
     my $options = shift;
     my %options;
     my @options_spec = map{$_->[0]} (@{$_options}, $self->_default_options);
@@ -141,7 +153,7 @@ sub with_options {
 	@$self{keys %options} = values %options;
 
 	if ($self->{help}) {
-		$self->usage;
+		return $self->usage;
 	}
 
 
@@ -150,7 +162,7 @@ sub with_options {
 
 		if (! defined $options || ! exists $options->{extra} || ! $options->{extra} ) {
 	        say "Unexpected arguments from commandline ". join(', ', @_extra_options);
-	        $self->usage;
+	        return $self->usage;
 		}
 	}
 
@@ -163,7 +175,7 @@ sub with_options {
         }
         if ( $o->[2]->{required} && ! defined $self->{$name}) {
             say "Argument $name is required";
-            $self->usage;
+            return $self->usage;
         }
 	}
 
@@ -212,7 +224,7 @@ sub usage {
     my $parser=Pod::Text::Termcap->new(sentence => 0, width => 120 );
     say $self->_gen_usage;
     $parser->parse_from_filehandle($0);
-    $self->gracefull_exit;
+    return $self->gracefull_exit;
 }
 
 =head2 gracefull_exit
@@ -227,8 +239,10 @@ sub gracefull_exit {
 	#...;
 #	exit; # to let script run as normal for so long.
 	my $return = bless {},'EXITOBJECT';
-	*EXITOBJECT::AUTOLOAD=sub{};
-	*self= $return;
+#	*EXITOBJECT::AUTOLOAD=sub{};
+	Mojo::Util::monkey_patch ('EXITOBJECT',AUTOLOAD => sub {});
+#	p $return;
+	return $return;
 }
 
 sub import {
@@ -293,7 +307,7 @@ sub _default_options {
 
 sub _gen_usage {
 	my $script;
-	$script = basename((caller(2))[1]);
+	$script = basename($0);
 
 	my $return = "\n" . sprintf"$script %s\n\n",(@$_options ? '[OPTIONS]' : '');
 	for my $o (@$_options) {
