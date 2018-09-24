@@ -134,12 +134,17 @@ sub with_options {
 		die "Something is wrong"
     }
 
-	if ($options{help}) {
-		$self->usage;
-		exit(1);
-	}
+#	if ($options{help}) {
+#		$self->usage;
+#		exit(1);
+#	}
 	@$self{keys %options} = values %options;
-#    $_options_values = \%options;
+
+	if ($self->{help}) {
+		$self->usage;
+	}
+
+
 	if (@ARGV) {
 		@_extra_options = @ARGV;
 
@@ -207,7 +212,23 @@ sub usage {
     my $parser=Pod::Text::Termcap->new(sentence => 0, width => 120 );
     say $self->_gen_usage;
     $parser->parse_from_filehandle($0);
-    exit;
+    $self->gracefull_exit;
+}
+
+=head2 gracefull_exit
+
+Exit in a way that can work as object.
+
+=cut
+
+sub gracefull_exit {
+	my $self = shift;
+	# remove $self and put in a dummy that takes all methods and return.
+	#...;
+#	exit; # to let script run as normal for so long.
+	my $return = bless {},'EXITOBJECT';
+	*EXITOBJECT::AUTOLOAD=sub{};
+	*self= $return;
 }
 
 sub import {
@@ -271,7 +292,8 @@ sub _default_options {
 }
 
 sub _gen_usage {
-	my $script = basename($0);
+	my $script;
+	$script = basename((caller(2))[1]);
 
 	my $return = "\n" . sprintf"$script %s\n\n",(@$_options ? '[OPTIONS]' : '');
 	for my $o (@$_options) {

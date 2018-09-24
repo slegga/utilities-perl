@@ -19,6 +19,16 @@ $pc
 EOF
 #	TESTING->import;
 	print $script."\n";
-	TESTING->new->with_options->arguments('--help')->main
+	open(my $oldout, ">&STDOUT")     or die "Can't dup STDOUT: $!";
+	close STDOUT;
+	my $help;
+	open STDOUT, '>', \$help;
+	TESTING->new(help=>1)->with_options->main;
+	close STDOUT;
+	open(STDOUT, ">&", $oldout) or die "Can't dup \$oldout: $!";
+	warn $help;
+	my $b = $script->basename;
+	ok($help=~/$b/m, $b.' ok');
 }
+
 done_testing;
