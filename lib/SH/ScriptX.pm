@@ -75,6 +75,15 @@ TODO: Deside what is best.
 Unsure if do like Applify or Getopt::Long::Descriptive or 'option', 'type','description'
 
 Go for Getopt::Long::Descriptive this may change.
+Valid keys in third argument is:
+
+=over 1
+
+=item default = default value
+
+=item required: Fail if not set
+
+=back
 
 =head3 synopsis
 
@@ -143,12 +152,26 @@ sub with_options {
 	
 	# set value equal default if missing
 	for my $o(@$_options) {
-        next if ! exists $o->[2]->{default};
+        my $name = _getoptionname($o);
+        next if defined $_options_values->{$name};
+        if ( exists $o->[2]->{default}) {
+            $_options_values->{$name} = $o->[2]->{default}
+        } 
+        if ( $o->[2]->{required} && ! defined $_options_values->{$name}) {
+            say "Argument $name is required";
+            $self->usage;
+        }
+	}
+
+	# Handle required
+	for my $o(@$_options) {
+        next if ! exists $o->[2]->{required};
         my $name = _getoptionname($o);
         next if defined $_options_values->{$name};
         $_options_values->{$name} = $o->[2]->{default}
 	}
 
+	
     no strict 'refs';
     no warnings 'redefine';
     for my $o (@{$_options}) {
@@ -251,6 +274,8 @@ sub _gen_usage {
 	my $return = "\n" . sprintf"$script %s\n\n",(@$_options ? '[OPTIONS]' : '');
 	for my $o (@$_options) {
 		my ($def,$desc,$other) =@$o;
+		next if $other->{hidden};
+		next if $desc eq 'hidden';
         my ($name,$type) = split (/\b/,$def,2);
         if ($type eq '=s') {
             $type = '<STRING>';
