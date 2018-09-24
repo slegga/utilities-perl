@@ -63,7 +63,7 @@ Show an example of a test to show where script as module really shines.
 
 =cut
 
-our $_options_values = {}; #needed by exported option
+#our $_options_values = {}; #needed by exported option
 my $_options=[];
 my @_extra_options=();
 
@@ -127,7 +127,6 @@ sub with_options {
     @ARGV = map{ Encode::decode($Encode::Locale::ENCODING_LOCALE, $_) } @ARGV;
     my $self = shift;
     my $options = shift;
-    my $caller = caller;
     my %options;
     my @options_spec = map{$_->[0]} (@{$_options}, $self->_default_options);
     my $glp = Getopt::Long::Parser->new(config => [qw(no_auto_help no_auto_version pass_through)]);
@@ -139,8 +138,8 @@ sub with_options {
 		$self->usage;
 		exit(1);
 	}
-
-    $_options_values = \%options;
+	@$self{keys %options} = values %options;
+#    $_options_values = \%options;
 	if (@ARGV) {
 		@_extra_options = @ARGV;
 
@@ -149,15 +148,15 @@ sub with_options {
 	        $self->usage;
 		}
 	}
-	
+
 	# set value equal default if missing
 	for my $o(@$_options) {
         my $name = _getoptionname($o);
-        next if defined $_options_values->{$name};
+        next if defined $self->{$name};
         if ( exists $o->[2]->{default}) {
-            $_options_values->{$name} = $o->[2]->{default}
-        } 
-        if ( $o->[2]->{required} && ! defined $_options_values->{$name}) {
+            $self->{$name} = $o->[2]->{default}
+        }
+        if ( $o->[2]->{required} && ! defined $self->{$name}) {
             say "Argument $name is required";
             $self->usage;
         }
@@ -167,17 +166,17 @@ sub with_options {
 	for my $o(@$_options) {
         next if ! exists $o->[2]->{required};
         my $name = _getoptionname($o);
-        next if defined $_options_values->{$name};
-        $_options_values->{$name} = $o->[2]->{default}
+        next if defined $self->{$name};
+        $self->{$name} = $o->[2]->{default}
 	}
 
-	
+
     no strict 'refs';
     no warnings 'redefine';
     for my $o (@{$_options}) {
         my $name = _getoptionname($o);
 		die "\$name undefined ".join Dumper $o if ! $name;
-		Mojo::Util::monkey_patch($caller, $name, sub { return $_options_values->{$name} });
+		Mojo::Util::monkey_patch(ref $self, $name, sub { return $self->{$name} });
 
     }
     return $self;
@@ -232,23 +231,26 @@ sub arguments {
     my $self = shift;
     if (@_>1) {
     	if (@_ % 2 == 0 ) {
-    		%$_options_values = @_;
+    		my %opts = {@_};
+    		@$self{ keys %opts } = values %opts;
     	}
     } elsif (@_ ==1 ) {
     	if (ref $_[0] eq 'HASH') {
-            $_options_values = $_[0];
+    		my %opts = %{ $_[0] };
+            @$self{keys %opts} = values %opts;
         } else {
     	    my $commandline = "cmd " . shift;
-    	    if (require Parser::Commandline) {
+    	    if ( eval "require Parse::CommandLine;1;") {
                 ...;
     	    } else {
-                # TODO split /\s/
+                my @args = split( /\s\-\-?/, shift);
                 ...;
     	    }
         }
 	} elsif (@_==0) {
+		warn "Nothing to do";
 	} else {
-		die "Wrong arguments @_";
+		die "Wrong arguments " . join(", ",@_);
 	}
     # Find module to read commandline
     return $self;
