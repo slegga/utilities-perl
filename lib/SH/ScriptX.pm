@@ -115,6 +115,7 @@ sub option {
 
 =head1 METHODS
 
+
 =head2 with_options
 
 Should be called right after new.
@@ -124,9 +125,19 @@ If extra arguments is allowed call this methoed like $self->with_options({extra=
 =cut
 
 sub with_options {
-    @ARGV = map{ Encode::decode($Encode::Locale::ENCODING_LOCALE, $_) } @ARGV;
     my $self = shift;
-    my $options = shift;
+    die "OPTIONS NOT READ" if @_;
+    warn "Method with_options is deprecated ".caller();
+    return $self;
+}
+
+sub new {
+    @ARGV = map{ Encode::decode($Encode::Locale::ENCODING_LOCALE, $_) } @ARGV;
+    my $class = shift;
+    my %data = @_;
+    my $options = delete $data{options_cfg};
+    my $self = $class->SUPER::new(%data);
+
     my %options;
     my @options_spec = map{$_->[0]} (@{$_options}, $self->_default_options);
     my $glp = Getopt::Long::Parser->new(config => [qw(no_auto_help no_auto_version pass_through)]);

@@ -67,7 +67,7 @@ option   'homedir=s', 'Set alternative home dir for using non default configurat
 #
 
 
-__PACKAGE__->new->with_options->main;
+__PACKAGE__->new->main;
 sub main {
 	my $self = shift;
 	my $homedir = $self->homedir || $ENV{HOME};

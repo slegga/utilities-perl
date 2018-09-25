@@ -48,6 +48,6 @@ sub main {
 #    say "stdin: $stdin";
 }
 
-__PACKAGE__->new->with_options->main() if ! caller;
+__PACKAGE__->new->main();
 
 1;
