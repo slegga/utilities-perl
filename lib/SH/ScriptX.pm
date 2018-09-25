@@ -7,6 +7,7 @@ use File::Basename;
 use Mojo::Base -base;
 use Mojo::Util;
 use Encode::Locale qw(decode_argv);
+# use Data::Printer;
 
 =encoding utf8
 
@@ -131,12 +132,24 @@ sub with_options {
     return $self;
 }
 
+=head2 new
+
+Takes key,value,key, value
+New object. Special argument is options_cfg. This will set option config.
+
+=head3 usage
+
+__PACKAGE__->new(options_cfg => { extra => 1 }, homedir=>'/tmp')->main;
+
+=cut
+
 sub new {
     @ARGV = map{ Encode::decode($Encode::Locale::ENCODING_LOCALE, $_) } @ARGV;
     my $class = shift;
     my %data = @_;
-    my $options = delete $data{options_cfg};
+    my $options_cfg = delete $data{options_cfg};
     my $self = $class->SUPER::new(%data);
+
 
     my %options;
     my @options_spec = map{$_->[0]} (@{$_options}, $self->_default_options);
@@ -152,16 +165,16 @@ sub new {
 	@$self{keys %options} = values %options;
 
 	if ($self->{help}) {
-		$self->usage;
+		return $self->usage;
 	}
 
 
 	if (@ARGV) {
 		@_extra_options = @ARGV;
 
-		if (! defined $options || ! exists $options->{extra} || ! $options->{extra} ) {
+		if (! defined $options_cfg || ! exists $options_cfg->{extra} || ! $options_cfg->{extra} ) {
 	        say "Unexpected arguments from commandline ". join(', ', @_extra_options);
-	        $self->usage;
+	        return $self->usage;
 		}
 	}
 
@@ -174,17 +187,19 @@ sub new {
         }
         if ( $o->[2]->{required} && ! defined $self->{$name}) {
             say "Argument $name is required";
-            $self->usage;
+            return $self->usage;
         }
 	}
 
-	# Handle required
-	for my $o(@$_options) {
-        next if ! exists $o->[2]->{required};
-        my $name = _getoptionname($o);
-        next if defined $self->{$name};
-        $self->{$name} = $o->[2]->{default}
-	}
+    # Quit if used as a module and __PACKAGE__->new->main is executed
+    my @caller = caller(1);
+    if (@caller && $caller[0] eq 'main') {
+        return $self->gracefull_exit;
+    # } elsif (! @caller) {
+    #     warn "NO ".(caller(0))[0];
+    # } else {
+    #     warn "CALLER ".$caller[1];
+    }
 
 
     no strict 'refs';
@@ -195,6 +210,7 @@ sub new {
 		Mojo::Util::monkey_patch(ref $self, $name, sub { return $self->{$name} });
 
     }
+
     return $self;
 }
 
@@ -223,7 +239,7 @@ sub usage {
     my $parser=Pod::Text::Termcap->new(sentence => 0, width => 120 );
     say $self->_gen_usage;
     $parser->parse_from_filehandle($0);
-    $self->gracefull_exit;
+    return $self->gracefull_exit;
 }
 
 =head2 gracefull_exit
@@ -238,8 +254,10 @@ sub gracefull_exit {
 	#...;
 #	exit; # to let script run as normal for so long.
 	my $return = bless {},'EXITOBJECT';
-	*EXITOBJECT::AUTOLOAD=sub{};
-	*self= $return;
+#	*EXITOBJECT::AUTOLOAD=sub{};
+	Mojo::Util::monkey_patch ('EXITOBJECT',AUTOLOAD => sub {shift});
+#	p $return;
+	return $return;
 }
 
 sub import {
@@ -304,7 +322,7 @@ sub _default_options {
 
 sub _gen_usage {
 	my $script;
-	$script = basename((caller(2))[1]);
+	$script = basename($0);
 
 	my $return = "\n" . sprintf"$script %s\n\n",(@$_options ? '[OPTIONS]' : '');
 	for my $o (@$_options) {

@@ -95,7 +95,6 @@ sub main {
 	    my $destinations = $config->{$source_dir};
 	    for my $destination (keys %$destinations) {
 	        my $dest_cfg = $destinations->{$destination};
-	        # my $dest_path = ref $destination
 	        if (! -d $destination) {
 	            if (!ref $dest_cfg || !exists $dest_cfg->{mount_cmd} ) {
 	                die "Destination: $destination is not a directory.";
