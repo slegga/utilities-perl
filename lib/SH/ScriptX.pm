@@ -193,13 +193,16 @@ sub new {
 
     # Quit if used as a module and __PACKAGE__->new->main is executed
     my @caller = caller(1);
-    if (@caller && $caller[0] eq 'main' || $caller[0] eq 'Test::ScriptX') {
-        return $self->gracefull_exit;
+    if (scalar @caller ) {
+    	if( exists $caller[0] && defined $caller[0] && ($caller[0] eq 'main' || $caller[0] eq 'Test::ScriptX') ) {
+	        return $self->gracefull_exit;
+	    }
+    }
+
     # } elsif (! @caller) {
     #     warn "NO ".(caller(0))[0];
     # } else {
     #     warn "CALLER ".$caller[1];
-    }
 
 
     no strict 'refs';

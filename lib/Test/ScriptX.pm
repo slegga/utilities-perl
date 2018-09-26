@@ -49,12 +49,12 @@ has success           => '';
 =head2 new
 
  First argument is script name location
- Second argument is main sub to becalled
  The rest if any is key => value of default option and script variables.
+ main_sub key set another main sub than main.
 
 =head3 Synopsis
 
-my $t
+my $t = Test::ScriptX->new('bin/script-to-be-tested.pl',main_sub=>'app', email_obj=>$mock);
 
 =cut
 
@@ -79,6 +79,14 @@ EOF
     #SCRIPTX::TESTING->import;
     return $self->_test('is',$@,'',"eval of object " .$self->scriptname );
 }
+
+=head2 run
+
+Run script object with given key => value input.
+Store stdout and stderr out put and retrun value if any.
+
+
+=cut
 
 sub run {
     my  $self = shift;
@@ -106,6 +114,12 @@ sub run {
 		# open(STDOUT, ">&", $oldout) or die "Can't dup \$oldout: $!";
 }
 
+=head2 stderr_ok
+
+Check that script does not write to stderr
+
+=cut
+
 sub stderr_ok {
     my ($self,$desc) = @_;
     #	my $b = $script->basename;
@@ -113,6 +127,12 @@ sub stderr_ok {
 
     return $self->_test('is',$self->cached_stderr,'');
 }
+
+=head2  stdout_like
+
+Check stdout for similar match.
+
+=cut
 
 sub stdout_like {
   my ($self, $regex, $desc) = @_;
