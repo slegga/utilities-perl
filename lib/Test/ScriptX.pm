@@ -1,0 +1,130 @@
+package Test::ScriptX;
+use Mojo::Base -base;
+use Test::More();
+
+use Mojo::Util qw(decode encode);
+use FindBin;
+use Mojo::File 'path';
+use Capture::Tiny ':all';
+
+=head1 NAME
+
+Test::ScriptX - Test module for script based on SH::ScriptX
+
+=head1 SYNOPSIS
+
+ use Test::ScriptX;
+ use Mock::Quickly;
+ my $mock = Mock::Quickly->new;
+ {
+     my $t = Test::ScriptX->new('bin/script-to-be-tested.pl','main', email_obj=>$mock);
+     $t->run(help=>1)->stderr_ok()->stdout_like( qr{basename(0)} );
+ }
+
+=head1 DESCRIPTION
+
+Test module created after the spirit of Test::Mojo
+
+THe greatest benefit of using SH::Script is the easy way to test script.
+
+=head1 ATTRIBUTES
+
+=head2 testobject
+
+Place to store the script object which is tested.
+
+=cut
+
+has testobject        => sub {{}};
+has cached_stdout     => '';
+has cached_stderr     => '';
+has cached_return     => '';
+has scriptname        => '';
+has main_sub          => 'main';
+has attributes        => sub{{}};
+has success           => '';
+
+=head1 METHODS
+
+=head2 new
+
+ First argument is script name location
+ Second argument is main sub to becalled
+ The rest if any is key => value of default option and script variables.
+
+=head3 Synopsis
+
+my $t
+
+=cut
+
+sub new {
+    my ($class, $scriptname) = (shift,shift);
+    $scriptname = path($scriptname);
+    my $attributes={};
+    $attributes = \%{@_} if (@_);
+    my $self = $class->SUPER::new( scriptname => $scriptname, attributes => $attributes );
+
+#    $self->scriptname(path shift);
+#    $self->attributes(\%{@_}); # convert to hash_ref
+    my $pc = $self->scriptname->slurp;
+    die $self->scriptname . " does not use SH::ScriptX" if ($pc !~ /use \w\w\:\:ScriptX\;/);
+#    script_runs(["$script", '--help']);
+    $pc =~ s/^sub /no warnings 'redefine';sub /m;
+    eval <<EOF or die "eval $! $@";
+package SCRIPTX::TESTING;
+no warnings 'redefine';
+$pc
+EOF
+    #SCRIPTX::TESTING->import;
+    return $self->_test('is',$@,'',"eval of object " .$self->scriptname );
+}
+
+sub run {
+    my  $self = shift;
+	{
+        my $mainsub = $self->main_sub;
+
+        my %data =();
+        %data = @_ if  @_;
+        my %attr = %{$self->attributes};
+        %attr = (%attr,%data);
+        #$self->testobject()
+        my ($stdout, $stderr, @result) = capture {
+            SCRIPTX::TESTING->new(%attr)->$mainsub;
+        };
+        $self->cached_stdout($stdout);
+        $self->cached_stderr($stderr);
+        $self->cached_return(join("\n",@result));
+    }
+    return $self;
+		# open(my $oldout, ">&STDOUT")     or die "Can't dup STDOUT: $!";
+		# close STDOUT;
+		# open STDOUT, '>', \$help;
+		# TESTING->new(%{ $self->attributes })->$mainsub;
+		# close STDOUT;
+		# open(STDOUT, ">&", $oldout) or die "Can't dup \$oldout: $!";
+}
+
+sub stderr_ok {
+    my ($self,$desc) = @_;
+    #	my $b = $script->basename;
+    #	ok($help=~/$testscriptname/m, $b.' ok');
+
+    return $self->_test('is',$self->cached_stderr,'');
+}
+
+sub stdout_like {
+  my ($self, $regex, $desc) = @_;
+  return $self->_test('like', $self->cached_stdout,
+    $regex, _desc($desc, qq{stdout like "$regex"}));
+}
+
+sub _desc { encode 'UTF-8', shift || shift }
+
+sub _test {
+  my ($self, $name, @args) = @_;
+  local $Test::Builder::Level = $Test::Builder::Level + 1;
+  return $self->success(!!Test::More->can($name)->(@args));
+}
+1;

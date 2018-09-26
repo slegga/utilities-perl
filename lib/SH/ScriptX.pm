@@ -193,7 +193,7 @@ sub new {
 
     # Quit if used as a module and __PACKAGE__->new->main is executed
     my @caller = caller(1);
-    if (@caller && $caller[0] eq 'main') {
+    if (@caller && $caller[0] eq 'main' || $caller[0] eq 'Test::ScriptX') {
         return $self->gracefull_exit;
     # } elsif (! @caller) {
     #     warn "NO ".(caller(0))[0];
