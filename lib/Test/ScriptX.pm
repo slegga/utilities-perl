@@ -71,7 +71,7 @@ sub new {
     die $self->scriptname . " does not use SH::ScriptX" if ($pc !~ /use \w\w\:\:ScriptX\;/);
 #    script_runs(["$script", '--help']);
     $pc =~ s/^sub /no warnings 'redefine';sub /m;
-    eval <<EOF or die "eval $! $@";
+    eval <<EOF or die "eval ".($@||$self->scriptname .' do not return true. Set __PACKAGE__->new->main as the last statment in script');
 package SCRIPTX::TESTING;
 no warnings 'redefine';
 $pc
