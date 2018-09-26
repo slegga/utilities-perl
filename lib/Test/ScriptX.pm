@@ -62,7 +62,7 @@ sub new {
     my ($class, $scriptname) = (shift,shift);
     $scriptname = path($scriptname);
     my $attributes={};
-    $attributes = \%{@_} if (@_);
+    $attributes = {@_} if (@_);
     my $self = $class->SUPER::new( scriptname => $scriptname, attributes => $attributes );
 
 #    $self->scriptname(path shift);
