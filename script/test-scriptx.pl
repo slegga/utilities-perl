@@ -6,9 +6,6 @@ use 5.016;
 use Data::Dumper;
 # Call SH::ScriptX->import
 use SH::ScriptX;
-
-# Call SH::ScriptX->import
-use SH::ScriptX;
 #Define the script object.
 use Mojo::Base 'SH::ScriptX';
 
