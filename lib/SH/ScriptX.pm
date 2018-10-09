@@ -37,6 +37,7 @@ SH::ScriptX - Development of a lite version of Applify
 
 # perl script/test-scriptx.pl --name tittentei
 # perl script/test-scriptx.pl --help
+# perl script/test-scriptx.pl --usage
 
 =head1 DESCRIPTION
 
@@ -158,14 +159,14 @@ sub new {
 		die "Something is wrong"
     }
 
-#	if ($options{help}) {
-#		$self->usage;
-#		exit(1);
-#	}
 	@$self{keys %options} = values %options;
 
 	if ($self->{help}) {
-		return $self->usage;
+		return $self->usage(1);
+	}
+
+	if ($self->{usage}) {
+		return $self->usage(0);
 	}
 
 
@@ -231,18 +232,21 @@ sub extra_options {
 =head2 usage
 
 args: $podfile, verboseflag
-Print out help message and exit.
+Print out'usage', help message and exit.
 If verbose flag is on then print the pod also.
 
 =cut
 
 sub usage {
 	my $self = shift;
+	my $verbose = shift;
 #    print BOLD $usage->text;
-    my $parser=Pod::Text::Termcap->new(sentence => 0, width => 120 );
     say $self->_gen_usage;
-    $parser->parse_from_filehandle($0);
-    return $self->gracefull_exit;
+    if ($verbose) {
+        my $parser=Pod::Text::Termcap->new(sentence => 0, width => 120 ); 
+	    $parser->parse_from_filehandle($0);
+    }
+   	return $self->gracefull_exit;
 }
 
 =head2 gracefull_exit
@@ -320,7 +324,7 @@ sub _getoptionname {
 }
 
 sub _default_options {
-    return (['help','This help text'],['version','Show version']);
+    return (['help!','This help text'],['usage!','Short usage'],['version!','Show version']);
 }
 
 sub _gen_usage {
@@ -328,7 +332,7 @@ sub _gen_usage {
 	$script = basename($0);
 
 	my $return = "\n" . sprintf"$script %s\n\n",(@$_options ? '[OPTIONS]' : '');
-	for my $o (@$_options) {
+	for my $o (@$_options,_default_options()) {
 		my ($def,$desc,$other) =@$o;
 		next if $other->{hidden};
 		next if $desc eq 'hidden';
