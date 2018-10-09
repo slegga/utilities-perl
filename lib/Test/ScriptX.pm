@@ -103,7 +103,7 @@ sub run {
         };
         $self->cached_stdout($stdout);
         $self->cached_stderr($stderr);
-        $self->cached_return(join("\n",@result));
+        $self->cached_return(join("\n",map{ defined } @result)) if @result;
     }
     return $self;
 		# open(my $oldout, ">&STDOUT")     or die "Can't dup STDOUT: $!";
