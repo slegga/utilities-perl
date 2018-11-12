@@ -97,10 +97,10 @@ sub init_replace {
 		my %win = %$screen;
 		my $num_win = keys %win;
 		if ($num_win == 2) {
-			
+
 		}
 		my $i=1;
-		
+
 		for my $key(sort keys %win) {
 			if ($i ==1) {
 				$win{$key}{x_pos} = $self->x_min;
@@ -180,27 +180,71 @@ sub main {
 	for my $screen(@{$self->windows()}) {
 		my %win = %$screen;
 		my $num_win = keys %win;
-		if ($num_win == 2) {			
+		if ($num_win == 2) {
 			my $i=0;
 			for my $key(sort keys %win) {
-			
+
 				if ($i == 0) {
 					$win{$key}{x_pos} = $self->x_min;
 					$win{$key}{y_pos} = $self->y_min;
 				} elsif ($i == 1) {
 					$win{$key}{x_pos} = int(($self->x_min + $self->x_max)/2);
 					$win{$key}{y_pos} = $self->y_min;
-										
+
 				}
 				$win{$key}{x_size} = int( ( $self->x_max - $self->x_min )/$num_win);
 				$win{$key}{y_size} = ( $self->y_max - $self->y_min );
 				$i++;
-			}					
+			}
+		} elsif ($num_win == 3) {
+			my $i=0;
+			for my $key(sort keys %win) {
+
+				if ($i == 0) {
+					$win{$key}{x_pos} = $self->x_min;
+					$win{$key}{y_pos} = $self->y_min;
+				} elsif ($i == 1) {
+					$win{$key}{x_pos} = int(($self->x_min + $self->x_max)/3);
+					$win{$key}{y_pos} = $self->y_min;
+
+				} elsif ($i == 2) {
+					$win{$key}{x_pos} = 2 * int(($self->x_min + $self->x_max)/3);
+					$win{$key}{y_pos} = $self->y_min;
+
+				}
+				$win{$key}{x_size} = int( ( $self->x_max - $self->x_min )/$num_win);
+				$win{$key}{y_size} = ( $self->y_max - $self->y_min );
+				$i++;
+			}
+		} elsif ($num_win == 3) {
+			my $i=0;
+			for my $key(sort keys %win) {
+
+				if ($i == 0) {
+					$win{$key}{x_pos} = $self->x_min;
+					$win{$key}{y_pos} = $self->y_min;
+				} elsif ($i == 1) {
+					$win{$key}{x_pos} = int(($self->x_min + $self->x_max)/2);
+					$win{$key}{y_pos} = $self->y_min;
+
+				} elsif ($i == 2) {
+					$win{$key}{x_pos} = 2 * int(($self->x_min + $self->x_max)/2);
+					$win{$key}{y_pos} = $self->y_min;
+
+				} elsif ($i == 3) {
+					$win{$key}{x_pos} = 2 * int(($self->x_min + $self->x_max)/2);
+					$win{$key}{y_pos} = $self->y_min;
+
+				}
+				$win{$key}{x_size} = 2 * int( ( $self->x_max - $self->x_min )/$num_win);
+				$win{$key}{y_size} = 2 * int( ( $self->y_max - $self->y_min )/$num_win);
+				$i++;
+			}
 		} else {
 			$self->init_resize();
 			$self->init_replace();
 		}
-		
+
 	}
 	$self->do_resize();
 }
