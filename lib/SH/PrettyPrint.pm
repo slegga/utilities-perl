@@ -59,7 +59,7 @@ sub print_hashes {
 	for my $row( @$ahr ) {
 		for my $key (@keys) {
 			my $out = "%".-$size{$key}."s ";
-			printf $out,$row->{$key};
+			printf $out,($row->{$key}//'');
 		}
 		print "\n";
 	}
