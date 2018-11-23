@@ -20,20 +20,18 @@ SH::ScriptX - Development of a lite version of Applify
     use SH::ScriptX; # call SH::ScriptX->import
     use Mojo::Base 'SH::ScriptX';
 
-    SH::ScriptX->import;
-
     has info => 'blabla';
     option 'name=s', 'from emailadress', {validation => qr'[\w\.\@]+'};
     print '__PACKAGE__ is:' . __PACKAGE__. "\n";
 
-    __PACKAGE__->new->with_options->main if ! caller;;
 
     sub main {
         my $self = shift;
         say "Hi ".$self->name;
         say "Info ".$self->info;
     }
-    1;
+
+    __PACKAGE__->new->main if ! caller;;
 
 # perl script/test-scriptx.pl --name tittentei
 # perl script/test-scriptx.pl --help
@@ -243,7 +241,7 @@ sub usage {
 #    print BOLD $usage->text;
     say $self->_gen_usage;
     if ($verbose) {
-        my $parser=Pod::Text::Termcap->new(sentence => 0, width => 120 ); 
+        my $parser=Pod::Text::Termcap->new(sentence => 0, width => 120 );
 	    $parser->parse_from_filehandle($0);
     }
    	return $self->gracefull_exit;
