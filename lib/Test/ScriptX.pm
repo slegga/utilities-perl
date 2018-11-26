@@ -68,7 +68,7 @@ sub new {
 #    $self->scriptname(path shift);
 #    $self->attributes(\%{@_}); # convert to hash_ref
     my $pc = $self->scriptname->slurp;
-    die $self->scriptname . " does not use SH::ScriptX" if ($pc !~ /use \w\w\:\:ScriptX\;/);
+    die $self->scriptname . " does not use ::ScriptX" if ($pc !~ /use \w\w\:\:ScriptX\;/);
 #    script_runs(["$script", '--help']);
     $pc =~ s/^sub /no warnings 'redefine';sub /m;
     eval <<EOF or die "eval ".($@||$self->scriptname .' do not return true. Set __PACKAGE__->new->main as the last statment in script');
@@ -124,6 +124,20 @@ sub stderr_ok {
     my ($self,$desc) = @_;
     #	my $b = $script->basename;
     #	ok($help=~/$testscriptname/m, $b.' ok');
+
+    return $self->_test('is',$self->cached_stderr,'');
+}
+
+=head2 stderr_like
+
+Check that script does not write to stderr
+
+=cut
+
+sub stderr_like {
+    my ($self, $regex, $desc) = @_;
+    return $self->_test('like', $self->cached_stderr,
+      $regex, _desc($desc, qq{stdout like "$regex"}));
 
     return $self->_test('is',$self->cached_stderr,'');
 }

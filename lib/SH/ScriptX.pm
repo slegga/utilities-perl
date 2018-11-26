@@ -31,7 +31,7 @@ SH::ScriptX - Development of a lite version of Applify
         say "Info ".$self->info;
     }
 
-    __PACKAGE__->new->main if ! caller;;
+    __PACKAGE__->new->main;
 
 # perl script/test-scriptx.pl --name tittentei
 # perl script/test-scriptx.pl --help
@@ -193,7 +193,7 @@ sub new {
     # Quit if used as a module and __PACKAGE__->new->main is executed
     my @caller = caller(1);
     if (scalar @caller ) {
-    	if( exists $caller[0] && defined $caller[0] && ($caller[0] eq 'main' || $caller[0] eq 'Test::ScriptX') ) {
+    	if( exists $caller[0] && defined $caller[0] && ($caller[0] eq 'main' || $caller[0] =~ '(SH\:\:)?Test\:\:ScriptX') ) {
 	        return $self->gracefull_exit;
 	    }
     }
@@ -265,15 +265,15 @@ sub gracefull_exit {
 	return $return;
 }
 
-sub import {
-    my ($class, %args) = @_;
-    my $caller = caller;
-	Mojo::Util::monkey_patch($caller, 'option', \&option );
-	if (-t ) {
-		#binmode(STDIN,  ":encoding(console_in)");
-		binmode(STDOUT, ":encoding(console_out)");
-		binmode(STDERR, ":encoding(console_out)");
-	}
+ sub import {
+     my ($class, %args) = @_;
+     my $caller = caller;
+ 	Mojo::Util::monkey_patch($caller, 'option', \&option );
+ 	if (-t ) {
+ 		#binmode(STDIN,  ":encoding(console_in)");
+ 		binmode(STDOUT, ":encoding(console_out)");
+ 		binmode(STDERR, ":encoding(console_out)");
+ 	}
 }
 
 =head2 arguments
