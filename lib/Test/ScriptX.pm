@@ -27,6 +27,8 @@ Test module created after the spirit of Test::Mojo
 
 THe greatest benefit of using SH::Script is the easy way to test script.
 
+Also support script with->roles. Look for string '__PACKAGE__->with_roles(...)' where ... is a list of strings.
+
 =head1 ATTRIBUTES
 
 =head2 testobject
@@ -43,6 +45,7 @@ has scriptname        => '';
 has main_sub          => 'main';
 has attributes        => sub{{}};
 has success           => '';
+has 'roles';
 
 =head1 METHODS
 
@@ -77,6 +80,10 @@ no warnings 'redefine';
 $pc
 EOF
     #SCRIPTX::TESTING->import;
+    if ($pc =~/\_\_PACKAGE\_\_\-\>with\_roles\(([^\)]+)/) {
+        $self->roles( [ eval $1 ] );
+    }
+
     return $self->_test('is',$@,'',"eval of object " .$self->scriptname );
 }
 
@@ -99,7 +106,12 @@ sub run {
         %attr = (%attr,%data);
         #$self->testobject()
         my ($stdout, $stderr, @result) = capture {
-            SCRIPTX::TESTING->new(%attr)->$mainsub;
+            my $class;
+        	if (! $self->roles ) {
+	            SCRIPTX::TESTING->new(%attr)->$mainsub;
+	        } else {
+	        	SCRIPTX::TESTING->with_roles(@{ $self->roles })->new(%attr)->$mainsub;
+	        }
         };
         $self->cached_stdout($stdout);
         $self->cached_stderr($stderr);
