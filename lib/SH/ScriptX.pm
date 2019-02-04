@@ -17,6 +17,10 @@ SH::ScriptX - Development of a lite version of Applify
 
 =head1 SYNOPSIS
 
+    #!/usr/bin/env perl
+    use FindBin;
+    use lib "$FindBin::Bin/../../utilities-perl/lib";
+    use SH::UseLib;
     use SH::ScriptX; # call SH::ScriptX->import
     use Mojo::Base 'SH::ScriptX';
 
