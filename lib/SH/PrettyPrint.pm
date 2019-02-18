@@ -104,40 +104,71 @@ sub data_to_json_pretty {
     # reqursive tra
     my $return ='';
     my $indent=0;
-    $return = _req_value_hash($key_tree, $data_r);
+    $return = _req_value_hash($key_tree, $data_r,$opts,0);
 	return $return;
 }
 
 sub _req_value_hash {
-	my ($key_tree, $data_r, $indent) = @_;
+	my ($key_tree, $data_r, $opts, $indent) = @_;
 	$indent//=0;
 	my $return='';
 	my $i =-1;
+	$return .= "{\n";
+	$indent++;
     for my $k(@$key_tree) {
+    	$return .= ",\n" if $i != -1;
     	$i++;
+
    		my $value = $data_r->{$k};
     	if (ref $k eq 'HASH') {
     		die "hash is not allowed in key tree";
     	} elsif (ref $k eq 'ARRAY' ) {
-    		$indent++;
+#    		$indent++;
     		if (@$k == 2) {
-	    		$return .= ($return ?",\n":'' ) ."\"$k->[0]\": {\n". (" " x $indent) ._req_value_hash($k->[1], $data_r->{$k->[0]},$indent)."\n}";
+    			#This is a hash
+	    		$return .= (($opts->{indent_text}//"\t") x $indent) ."\"$k->[0]\": " ._req_value_hash($k->[1], $data_r->{$k->[0]},$opts,$indent);
+	    	} elsif  (@$k == 3) {
+	    		#This is an array
+	    		$return .= (($opts->{indent_text}//"\t") x $indent) ."\"$k->[0]\": " ._req_value_array($k->[2], $data_r->{$k->[0]},$opts, $indent);
 	    	} else {
-	    		...;
+	    		die "error";
 	    	}
     	} else {
     		if (ref $value eq 'HASH') {
-	    		$return .= ($return ?",\n":'' ) . (" " x $indent) . "\"$k\": " . _req_value_hash($key_tree->[$i], $value, $indent);
+	    		$return .= (($opts->{indent_text}//"\t") x $indent) . "\"$k\": " . _req_value_hash($key_tree->[$i], $value, $opts,$indent);
 	    	} elsif (ref $value eq 'ARRAY') {
-	    		...;
+	    		$return .= (($opts->{indent_text}//"\t") x $indent) . "\"$k\": " . _req_value_array($value, $opts,$indent);
 	    	} else {
-    	 		$return .= ($return ?",\n":'' ) . (" " x $indent) . "\"$k\": \"$value\"";
+    	 		$return .= (($opts->{indent_text}//"\t") x $indent) . "\"$k\": \"$value\"";
 	    	}
     	}
 
     }
+
+    $indent--;
+    $return .= "\n".(($opts->{indent_text}//"\t") x $indent) . "}";
     return $return;
 }
+
+sub _req_value_array {
+	my $data_r = shift;
+	my $opts = shift;
+	my $indent = shift;
+	my $return="[\n";
+	$indent++;
+	my $f = 0;
+	for my $i(@$data_r) {
+		$return .= ",\n" if $f;
+		if (ref $i eq '') {
+			$return .= (($opts->{indent_text}//"\t") x $indent) . "\"$i\"";
+		} else {
+			...;
+		}
+		$f=1;
+	}
+	$indent--;
+	$return.="\n".(($opts->{indent_text}//"\t") x $indent) . "]";
+};
 
 sub _req_key_hash {
     my ($data_r,$opts,$indent) =@_;
@@ -167,8 +198,13 @@ sub __req_key_hash {
 	        my $value = _req_key_hash($data_r, $opts,$indent);
 	        $input = [$key, $value];
 	} elsif (ref $data_r eq 'ARRAY') {
-	    my $value = $data_r->{$key};
-	    $input=[$key, undef, $value];
+		if (grep {ref $_} @$data_r) {
+			# TODO requrcive loop look for hash if no hash only $input=$key
+		    my $value = $data_r;
+		    $input=[$key, undef, $value];
+		} else {
+			$input=$key;
+		}
 	} else {
 	    $input = $key;
 	}
