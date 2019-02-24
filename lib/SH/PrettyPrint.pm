@@ -84,14 +84,17 @@ indent =>{tab/space}
 sub data_to_json_pretty {
     my $data_r = shift or die;
     my $opts = shift;
-    my $key_tree =[]; #i.e ['key1','key2',['key3',['key4','key5']]
-    if (! ref $opts) {
+    my $opts_new = clone $opts;
+    $opts_new->{indent_text} //= "\t";
+    my $return ='';
+        if (! ref $opts) {
         return JSON->new->utf8->space_after->pretty(1)->encode($data_r);
     }
     my @path;
     if (ref $data_r eq 'HASH') {
         if (exists $opts->{order} && ref $opts->{order} eq 'ARRAY') {
-            $key_tree = _req_key_hash($data_r,$opts);
+    		$return = _req_value_hash($data_r,$opts_new,0);
+            #            $key_tree = _req_key_hash($data_r,$opts_new);
         } else {
             ...;
         }
@@ -102,20 +105,19 @@ sub data_to_json_pretty {
     }
 #	print Dumper $key_tree;
     # reqursive tra
-    my $return ='';
     my $indent=0;
-    $return = _req_value_hash($key_tree, $data_r,$opts,0);
 	return $return;
 }
 
 sub _req_value_hash {
-	my ($key_tree, $data_r, $opts, $indent) = @_;
+	my ($data_r, $opts, $indent) = @_;
 	$indent//=0;
 	my $return='';
 	my $i =-1;
 	$return .= "{\n";
 	$indent++;
-    for my $k(@$key_tree) {
+	my $key_order = _req_key_order($data_r,$opts);
+    for my $k(@$key_order) {
     	$return .= ",\n" if $i != -1;
     	$i++;
 
@@ -126,27 +128,27 @@ sub _req_value_hash {
 #    		$indent++;
     		if (@$k == 2) {
     			#This is a hash
-	    		$return .= (($opts->{indent_text}//"\t") x $indent) ."\"$k->[0]\": " ._req_value_hash($k->[1], $data_r->{$k->[0]},$opts,$indent);
+	    		$return .= ($opts->{indent_text} x $indent) ."\"$k->[0]\": " ._req_value_hash($k->[1], $data_r->{$k->[0]},$opts,$indent);
 	    	} elsif  (@$k == 3) {
 	    		#This is an array
-	    		$return .= (($opts->{indent_text}//"\t") x $indent) ."\"$k->[0]\": " ._req_value_array($k->[2], $data_r->{$k->[0]},$opts, $indent);
+	    		$return .= ($opts->{indent_text} x $indent) ."\"$k->[0]\": " ._req_value_array($k->[2], $data_r->{$k->[0]},$opts, $indent);
 	    	} else {
 	    		die "error";
 	    	}
     	} else {
     		if (ref $value eq 'HASH') {
-	    		$return .= (($opts->{indent_text}//"\t") x $indent) . "\"$k\": " . _req_value_hash($key_tree->[$i], $value, $opts,$indent);
+	    		$return .= ($opts->{indent_text} x $indent) . "\"$k\": " . _req_value_hash($value, $opts,$indent);
 	    	} elsif (ref $value eq 'ARRAY') {
-	    		$return .= (($opts->{indent_text}//"\t") x $indent) . "\"$k\": " . _req_value_array($value, $opts,$indent);
+	    		$return .= ($opts->{indent_text} x $indent) . "\"$k\": " . _req_value_array($value, $opts,$indent);
 	    	} else {
-    	 		$return .= (($opts->{indent_text}//"\t") x $indent) . "\"$k\": \"$value\"";
+    	 		$return .= ($opts->{indent_text} x $indent) . "\"$k\": \"$value\"";
 	    	}
     	}
 
     }
 
     $indent--;
-    $return .= "\n".(($opts->{indent_text}//"\t") x $indent) . "}";
+    $return .= "\n".($opts->{indent_text} x $indent) . "}";
     return $return;
 }
 
@@ -160,18 +162,23 @@ sub _req_value_array {
 	for my $i(@$data_r) {
 		$return .= ",\n" if $f;
 		if (ref $i eq '') {
-			$return .= (($opts->{indent_text}//"\t") x $indent) . "\"$i\"";
-		} else {
+			$return .= ($opts->{indent_text} x $indent) . "\"$i\"";
+		} elsif(ref $i eq 'HASH') {
+			$return .= ($opts->{indent_text} x $indent) . _req_value_hash($i,$opts,$indent);
+		} elsif(ref $i eq 'ARRAY') {
 			...;
+		} else {
+			die "Unknown type ".ref $i;
 		}
 		$f=1;
 	}
 	$indent--;
-	$return.="\n".(($opts->{indent_text}//"\t") x $indent) . "]";
+	$return.="\n".($opts->{indent_text} x $indent) . "]";
 };
 
-sub _req_key_hash {
+sub _req_key_order {
     my ($data_r,$opts,$indent) =@_;
+    confess Dumper $data_r if ref $data_r ne 'HASH';
     my @keys = keys %$data_r;
     my @o = grep {defined} @{ $opts->{order} };
     my @out=();
@@ -179,36 +186,13 @@ sub _req_key_hash {
         my $plc = first_index { $_ eq $i } grep{$_} @keys;
         if ( $plc > -1 ) {
 			my $key = splice(@keys, $plc, 1);
-          	push @out, __req_key_hash($key, $data_r->{$key}, $opts,$indent);
+          	push @out, $key;
         }
     }
-    for my $key (@keys) {
-	    push @out, __req_key_hash($key, $data_r->{$key}, $opts);
+    for my $key (sort @keys) {
+	    push @out, $key;
 	}
 	return  \@out;
-}
-
-sub __req_key_hash {
-	my $key = shift;
-	my $data_r = shift;
-	my $opts = shift;
-	my $indent = shift;
-	my $input;
-	if ( ref $data_r eq 'HASH' ) {
-	        my $value = _req_key_hash($data_r, $opts,$indent);
-	        $input = [$key, $value];
-	} elsif (ref $data_r eq 'ARRAY') {
-		if (grep {ref $_} @$data_r) {
-			# TODO requrcive loop look for hash if no hash only $input=$key
-		    my $value = $data_r;
-		    $input=[$key, undef, $value];
-		} else {
-			$input=$key;
-		}
-	} else {
-	    $input = $key;
-	}
-	return $input;
 }
 
 sub _set_array_item {
