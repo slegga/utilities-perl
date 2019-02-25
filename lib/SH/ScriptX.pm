@@ -17,10 +17,6 @@ SH::ScriptX - Development of a lite version of Applify
 
 =head1 SYNOPSIS
 
-    #!/usr/bin/env perl
-    use FindBin;
-    use lib "$FindBin::Bin/../../utilities-perl/lib";
-    use SH::UseLib;
     use SH::ScriptX; # call SH::ScriptX->import
     use Mojo::Base 'SH::ScriptX';
 
@@ -47,7 +43,6 @@ Warning this module is experimental. Funtionality may sudently change.
 
 This is an alternative to Applify and SH::Script
 
-The main method is with_options. Shall be called like in the synopsis right after new.
 This module makes it easy to document input parameters. And script --help will show
 all of the documentation.
 
@@ -122,9 +117,7 @@ sub option {
 
 =head2 with_options
 
-Should be called right after new.
-This method show help if in arguments.
-If extra arguments is allowed call this methoed like $self->with_options({extra=>1}).
+Deprecated.
 
 =cut
 

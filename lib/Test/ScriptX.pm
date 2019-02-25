@@ -74,14 +74,14 @@ sub new {
     die $self->scriptname . " does not use ::ScriptX" if ($pc !~ /use \w\w\:\:ScriptX\;/);
 #    script_runs(["$script", '--help']);
     $pc =~ s/^sub /no warnings 'redefine';sub /m;
-    eval <<EOF or die "eval ".($@||$self->scriptname .' do not return true. Set __PACKAGE__->new->main as the last statment in script');
+    eval <<EOF or die "eval ".($@||$self->scriptname .' do not return true. Set __PACKAGE__->new->main as the last statment in script');##no critic
 package SCRIPTX::TESTING;
 no warnings 'redefine';
 $pc
 EOF
     #SCRIPTX::TESTING->import;
     if ($pc =~/\_\_PACKAGE\_\_\-\>with\_roles\(([^\)]+)/) {
-        $self->roles( [ eval $1 ] );
+        $self->roles( [ eval $1 ] );##no critic
     }
 
     return $self->_test('is',$@,'',"eval of object " .$self->scriptname );
