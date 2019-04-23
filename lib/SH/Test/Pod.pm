@@ -223,7 +223,7 @@ sub spellcheck {
         my @tmp = <$pdfh>;
         push @ownwordlist, @tmp;
         close $pdfh;
-        map {chomp $_} @ownwordlist;
+        @ownwordlist = map {my $x = $_; chomp $x;$x} @ownwordlist;
         warn "Empty list " if ! @ownwordlist;
     }
 
@@ -233,8 +233,8 @@ sub spellcheck {
         my @tmp = <$pdfh>;
         push @ownwordlist, @tmp;
         close $pdfh;
-        map {chomp $_} (@ownwordlist);
-    }
+        @ownwordlist = map {my $x = $_; chomp $x;$x} @ownwordlist;
+        }
 
     # global dict
     if (-r '/local/net/etc/.dictionary.txt') {
@@ -242,7 +242,7 @@ sub spellcheck {
         my @tmp = <$pdfh>;
         push @ownwordlist, @tmp;
         close $pdfh;
-        map {chomp $_} (@ownwordlist);
+        @ownwordlist = map {my $x = $_; chomp $x;$x} @ownwordlist;
     }
 
 

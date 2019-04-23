@@ -108,7 +108,7 @@ sub option {
 #    p $description;
     my $name = $declare;
     $name =~ s/\W.*//;
-    no strict 'refs';
+    no strict 'refs'; ## no critic
     push @$_options, [$declare,$description,\%args];
 }
 
@@ -201,7 +201,7 @@ sub new {
     #     warn "CALLER ".$caller[1];
 
 
-    no strict 'refs';
+    no strict 'refs'; ## no critic
     no warnings 'redefine';
     for my $o (@{$_options}) {
         my $name = _getoptionname($o);
