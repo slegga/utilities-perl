@@ -6,6 +6,7 @@ use Pod::Text::Termcap;
 use File::Basename;
 use Mojo::Base -base;
 use Mojo::Util;
+use IO::Interactive; #::is_interactive()
 use Encode::Locale qw(decode_argv);
 # use Data::Printer;
 
@@ -266,7 +267,7 @@ sub gracefull_exit {
      my ($class, %args) = @_;
      my $caller = caller;
  	Mojo::Util::monkey_patch($caller, 'option', \&option );
- 	if (-t ) {
+ 	if (IO::Interactive::is_interactive() ) {
  		#binmode(STDIN,  ":encoding(console_in)");
  		binmode(STDOUT, ":encoding(console_out)");
  		binmode(STDERR, ":encoding(console_out)");
@@ -292,7 +293,7 @@ sub arguments {
             @$self{keys %opts} = values %opts;
         } else {
     	    my $commandline = "cmd " . shift;
-    	    if ( eval "require Parse::CommandLine;1;") {
+    	    if ( eval {require Parse::CommandLine;1;}) {
                 ...;
     	    } else {
                 my @args = split( /\s\-\-?/, shift);
