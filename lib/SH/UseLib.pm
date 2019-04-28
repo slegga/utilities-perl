@@ -1,6 +1,5 @@
 package SH::UseLib;
 use Mojo::Base -strict;
-use FindBin;
 use Mojo::File;
 
 #our @INC;
@@ -14,7 +13,7 @@ sub import {
  #   warn $git;
     for my $dir($git->list({dir => 1})->each ) {
         my $lib = $dir->child('lib');
-        if ( -e $lib ) {
+        if ( -d $lib ) {
             push @INC, "$lib"; #must not use unshift. Get a strange errormessage.
         }
     }
@@ -31,7 +30,8 @@ SH::UseLib - Find all the lib catalog and put it in @INC
 
 =head1 SYNOPSIS
 
- use lib '../../utilities-perl/lib';
+ use FindBin::Bin;
+ use lib "$FindBin::Bin/../../utilities-perl/lib";
  use SH::UseLib;
 
 =head1 DESCRIPTION
