@@ -2,10 +2,10 @@
 use Mojo::File 'path';
 use Test::More;
 use FindBin;
-use Test::ScriptX;
 use Carp::Always;
-use lib "$FindBin::Bin/../bin";
-use lib "$FindBin::Bin/../script";
+use lib "$FindBin::Bin/../../utilities-perl/lib";
+use SH::UseLib;
+use Test::ScriptX;
 no warnings 'redefine';
 my $testscriptname = path($0)->basename;
 for my $script (glob('script/*'),glob('bin/*')) { #$FindBin::Bin . '/../

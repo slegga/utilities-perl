@@ -6,8 +6,9 @@ use Pod::Text::Termcap;
 use File::Basename;
 use Mojo::Base -base;
 use Mojo::Util;
-use IO::Interactive; #::is_interactive()
 use Encode::Locale qw(decode_argv);
+use IO::Interactive;
+
 # use Data::Printer;
 
 =encoding utf8
@@ -30,6 +31,7 @@ SH::ScriptX - Development of a lite version of Applify
         my $self = shift;
         say "Hi ".$self->name;
         say "Info ".$self->info;
+        return $self->gracefull_exit;
     }
 
     __PACKAGE__->new->main;
@@ -111,6 +113,7 @@ sub option {
     $name =~ s/\W.*//;
     no strict 'refs'; ## no critic
     push @$_options, [$declare,$description,\%args];
+    use strict 'refs';
 }
 
 =head1 METHODS
@@ -202,15 +205,16 @@ sub new {
     #     warn "CALLER ".$caller[1];
 
 
-    no strict 'refs'; ## no critic
-    no warnings 'redefine';
+    no strict 'refs';	## no critic
+    no warnings 'redefine';## no critic
     for my $o (@{$_options}) {
         my $name = _getoptionname($o);
 		die "\$name undefined ".join Dumper $o if ! $name;
 		Mojo::Util::monkey_patch(ref $self, $name, sub { return $self->{$name} });
 
     }
-
+	use strict 'refs';
+	use warnings 'redefine';
     return $self;
 }
 
@@ -247,7 +251,11 @@ sub usage {
 
 =head2 gracefull_exit
 
+    return $self->gracefull_exit;
+
 Exit in a way that can work as object.
+Use this method instead og exit to stop script. Exit is hard for Test::ScriptX to catch.
+Use in combination with return or else there will be no exit.
 
 =cut
 
@@ -267,7 +275,7 @@ sub gracefull_exit {
      my ($class, %args) = @_;
      my $caller = caller;
  	Mojo::Util::monkey_patch($caller, 'option', \&option );
- 	if (IO::Interactive::is_interactive() ) {
+ 	if (IO::Interactive::is_interactive ) {
  		#binmode(STDIN,  ":encoding(console_in)");
  		binmode(STDOUT, ":encoding(console_out)");
  		binmode(STDERR, ":encoding(console_out)");

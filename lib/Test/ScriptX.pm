@@ -149,7 +149,7 @@ Check that script does not write to stderr
 sub stderr_like {
     my ($self, $regex, $desc) = @_;
     return $self->_test('like', $self->cached_stderr,
-      $regex, _desc($desc, qq{stdout like "$regex"}));
+      $regex, _desc($desc, qq{stderr like "$regex"}));
 
     return $self->_test('is',$self->cached_stderr,'');
 }
