@@ -20,29 +20,48 @@ The template should make it easy to start coding.
 
 Do not make files but print instead.
 
+=head2 force
+
+Over write existing files. Nice when developing new templates.
+
 =cut
 
 has 'dryrun';
+has 'force';
+
 
 =head1 METHODS
 
+=head2 name
+
+Friendly name of the module. Used by the plugin parameter.
+This must be replaced in child object.
 =cut
 
-=head2 help_text
-
-Text which is printet with the pluginshelp option.
-
-=cut
 
 sub name {
     my $self = shift;
     die "Missing name for module ". ref $self;
 }
 
+=head2 help_text
+
+Text which is printet with the pluginshelp option.
+This must be replaced in child object.
+
+=cut
+
 sub help_text {
     my $self = shift;
     die "Missing help_text for module ". ref $self;
 }
+
+=head2 generate
+
+Called when script will generate files.
+This must be replaced in child object.
+
+=cut
 
 sub generate {
     my $self = shift;
@@ -77,11 +96,11 @@ sub generate_file {
     my $mt = Mojo::Template->new(vars=>1);
     my $out = $mt->render( $input->{ts}, $input->{parameters} );
     my $pa =path( $input->{path} );
-    if (! -d "$pa") {
+    if (!$self->force && ! -d "$pa") {
         die "Path $pa must exists from current path. Bail out!";
     }
     my $fi = $pa->child($input->{filename});
-    if (-e $fi) {
+    if (! $self->force && -e "$fi") {
         die "$fi exists! Bail out!";
     }
     if ($self->dryrun) {
@@ -92,6 +111,24 @@ sub generate_file {
 
 
 }
+
+=head2 required_variables
+
+This metods should return a 2-parameter array of array. [['param','desc'],[p2,'d2']]
+This must be set in child object.
+
+=cut
+
+sub required_variables {
+    my $self = shift;
+    die "Missing required_variables in ". ref $self;
+}
+
+=head2 get_missing_param
+
+Look for missing parameters. Ask user if found missing  required parameter.
+
+=cut
 
 sub get_missing_param {
     my $self = shift;

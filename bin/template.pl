@@ -6,6 +6,8 @@ use SH::UseLib;
 use SH::ScriptX;
 use Mojo::Base 'SH::ScriptX';
 use Mojo::Loader qw(data_section find_modules load_class);
+use utf8;
+use open ':locale';
 
 =head1 NAME
 
@@ -41,11 +43,23 @@ option 'helpplugins!', 'Show help text for all templates.';
 option 'plugin=s',     'Generate files based on given template';
 option 'name=s',       'Filename with out extention.';
 option 'dryrun!',      'Do no changes.';
+option 'force!',       'Overwrite existing files. Nice when developing templates';
 
 #,{return_uncatched_arguments => 1});
  sub main {
     my $self = shift;
     my @e = $self->extra_options;
+    if (@e) {
+        while (@e) {
+            my ($key, $value) =(shift(@e), shift(@e));
+            if ($key =~ /^\-\-\w+$/) {
+                $key =~ s/^\-\-//;
+                $self->{$key} = $value;
+            } else {
+                die "Invalid key $key. Must start with --";
+            }
+        }
+    }
     # Find modules in a namespace
     if ($self->helpplugins) {
         say 'The following value for plugin is valid:';
@@ -57,7 +71,7 @@ option 'dryrun!',      'Do no changes.';
             }
 
             say '';
-            my $o = $module->new(dryrun=>$self->dryrun);
+            my $o = $module->new(dryrun=>$self->dryrun, force=>$self->force);
             say $o->name;
             say '=' x length($o->name);
             say $o->help_text;
@@ -74,7 +88,7 @@ option 'dryrun!',      'Do no changes.';
               die ref $e ? "Exception: $e" : "Not found $module! $e";
             }
         }
-        if (my ($plugin) = grep {$pl eq $_->name} map {$_->new(dryrun=>$self->dryrun)} @allplugins) {
+        if (my ($plugin) = grep {$pl eq $_->name} map {$_->new(dryrun=>$self->dryrun, force=>$self->force)} @allplugins) {
             $plugin->generate($self);
         } else {
             say STDERR "Only following plugin names are loaded" .join(', ',);
