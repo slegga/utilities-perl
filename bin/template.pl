@@ -6,6 +6,7 @@ use SH::UseLib;
 use SH::ScriptX;
 use Mojo::Base 'SH::ScriptX';
 use Mojo::Loader qw(data_section find_modules load_class);
+use YAML::Tiny;
 use utf8;
 use open ':locale';
 
@@ -44,11 +45,21 @@ option 'plugin=s',     'Generate files based on given template';
 option 'name=s',       'Filename with out extention.';
 option 'dryrun!',      'Do no changes.';
 option 'force!',       'Overwrite existing files. Nice when developing templates';
+has config =>sub {
+    my $cfg_file = path($ENV{HOME},'.template.pl.yml');
+    if (-r "$cfg_file") {
+        return YAML::Tiny->read( "$cfg_file" )->[0];
+    } else {
+        return {};
+    }
+};
 
 #,{return_uncatched_arguments => 1});
+
  sub main {
     my $self = shift;
     my @e = $self->extra_options;
+
     if (@e) {
         while (@e) {
             my ($key, $value) =(shift(@e), shift(@e));
@@ -60,10 +71,19 @@ option 'force!',       'Overwrite existing files. Nice when developing templates
             }
         }
     }
+
+    my $plugins_prefix = 'SH::CodeTemplates';
+    if (exists $self->config->{plugins_prefix} && $self->config->{plugins_prefix}) {
+        $plugins_prefix = $self->config->{plugins_prefix};
+    }
+    my @plugins = find_modules $plugins_prefix;
+    if (!@plugins) {
+        die "Can not find plugins which start with $plugins_prefix";
+    }
     # Find modules in a namespace
     if ($self->helpplugins) {
         say 'The following value for plugin is valid:';
-        for my $module (find_modules 'SH::CodeTemplates') {
+        for my $module (@plugins) {
             # Load them safely
             # Handle exceptions
             if (my $e = load_class $module) {
@@ -82,8 +102,7 @@ option 'force!',       'Overwrite existing files. Nice when developing templates
     }
     elsif ($self->plugin ) {
         my $pl = $self->plugin;
-        my @allplugins = find_modules 'SH::CodeTemplates';
-        for my $module (@allplugins) {
+        for my $module (@plugins) {
             if (my $e = load_class $module) {
               die ref $e ? "Exception: $e" : "Not found $module! $e";
             }

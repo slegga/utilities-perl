@@ -5,6 +5,7 @@ use Data::Printer;
 use Data::Dumper;
 use MIME::Parser;
 use MIME::Base64;
+
 #use MIME::Charset;
 use MIME::QuotedPrint;
 use Clone 'clone';
@@ -76,18 +77,38 @@ sub msgtext2hash {
                 if ($v =~ /^\=.*\?\=/ || $k eq 'content') {
                     $v =~ s/\=\?iso\-8859\-1\?Q\?(.+)\?\=/decode_qp($1)/ige;
                     $v =~ s/\=\?iso\-8859\-1\?B\?(.+)\?\=/decode_base64($1)/ige;
-                    # if ($v =~/^\=\?iso\-8859\-1\?Q\?/ims) {
-                    #     $v = decode_qp($v);
-                    #     $v =~ s/^\=\?iso\-8859\-1\?Q\?//;
-                    #     $v =~ s/\?\=$//;
-                    #
-                    # }
                     $v =~ s/\=\?UTF-8\?B\?(.+)\?\=/decode('UTF-8',decode_base64($1))/ige;
                     $v =~ s/\=\?UTF-8\?Q\?(.+)\?\=/decode('UTF-8',decode_qp($1))/ige;
                 }
                 return ($v, 'next');
             }
-            return ($v, 'continue');
+            elsif (defined $k
+                && $k eq 'body'
+                && exists $v->{'Content-Transfer-Encoding'}
+                && exists $v->{'Content-Type'}) {
+                if (lc $v->{'Content-Transfer-Encoding'} eq 'quoted-printable') {
+                    $v->{content} = decode_qp($v->{content});
+                }
+                elsif (lc $v->{'Content-Transfer-Encoding'} eq 'base64') {
+                    $v->{content} = decode_base64($v->{content});
+                }
+                elsif (lc $v->{'Content-Transfer-Encoding'} eq '7bit') {
+
+                    # plain ASCII. Do notthing.
+                }
+                else {
+                    warn "Unknown Content-Transfer-Encoding: " . $v->{'Content-Transfer-Encoding'};
+                }
+
+                if (lc $v->{'Content-Type'}->{h}->{charset} eq 'UTF-8') {
+                    $v->{content} = decode('UTF-8', $v->{content});
+                }
+                elsif (lc $v->{'Content-Type'}->{a}->[0] ne 'text/plain') {
+                    warn "Unknown Content-Type: " . Dumper $v->{'Content-Type'};    #$v->{'Content-Type'}->{a}->[0];
+                }
+                return ($v, 'next');    #next tree. Finish handling body hash tree
+            }
+            return ($v, 'continue');    # continue travarse current tree
         }
     );
 
@@ -141,7 +162,7 @@ sub parameterify {
             }
         }
         elsif ($l =~ /^\s+/) {
-            next if !defined $k && $l=~/^\s*$/;
+            next if !defined $k && $l =~ /^\s*$/;
             if (ref $return->{$k} eq 'ARRAY') {
                 $return->{$k}->[$#{$return->{$k}}] .= "\n" . $l;
             }
@@ -260,12 +281,13 @@ Takes a typial From element and extract emailaddress
 sub extract_emailaddress {
     my $self = shift;
     my $from = shift;
-    die "Cant find email address" if ! $from =~/\@/;
-    if ($from =~/\<([\w\.\_\-]+\@[\w\.\_\-]+)>/) {
+    die "Cant find email address" if !$from =~ /\@/;
+    if ($from =~ /\<([\w\.\_\-]+\@[\w\.\_\-]+)>/) {
         return $1;
     }
     return $from;
 }
+
 =head1 AUTHOR
 
 Slegga
