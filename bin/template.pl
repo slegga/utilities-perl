@@ -6,6 +6,7 @@ use SH::UseLib;
 use SH::ScriptX;
 use Mojo::Base 'SH::ScriptX';
 use Mojo::Loader qw(data_section find_modules load_class);
+use Mojo::File 'path';
 use YAML::Tiny;
 use utf8;
 use open ':locale';
