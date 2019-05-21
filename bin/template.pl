@@ -107,7 +107,7 @@ has config =>sub {
               die ref $e ? "Exception: $e" : "Not found $module! $e";
             }
         }
-        if (my ($plugin) = grep {$pl eq $_->name} map {$_->new(dryrun=>$self->dryrun, force=>$self->force)} @allplugins) {
+        if (my ($plugin) = grep {$pl eq $_->name} map {$_->new(dryrun=>$self->dryrun, force=>$self->force)} @plugins) {
             $plugin->generate($self);
         } else {
             say STDERR "Only following plugin names are loaded" .join(', ',);
