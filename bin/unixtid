@@ -1,0 +1,11 @@
+#!/usr/bin/env perl
+use Mojo::Base -strict;
+use DateTime;
+use DateTime::Format::MySQL;
+
+if (@ARGV) {
+	my $dt= DateTime->from_epoch(epoch=>$ARGV[0], time_zone => 'Europe/Paris');
+	say DateTime::Format::MySQL->format_datetime($dt, time_zone => 'Europe/Paris');
+} else {
+	say time;
+}

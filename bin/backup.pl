@@ -168,8 +168,8 @@ sub slett {
 }
 sub getConfigBackupDirs {
 @catalogsForBackup = ();
-	open (FILE, $CONFIG) or croak "Får ikke åpnet $CONFIG \n";
-	while (<FILE>) {
+	open (my $FILE,'<', $CONFIG) or croak "Får ikke åpnet $CONFIG \n";
+	while (<$FILE>) {
 		chomp;
 		if (/^\//) {
 			if (! (-d $_ ||-f $_) ) {
@@ -178,7 +178,7 @@ sub getConfigBackupDirs {
 			push(@catalogsForBackup, $_);
 		}
 	}
-	close (FILE);
+	close ($FILE);
 }
 sub removeProtectedFilesFrom_backupFiles { #@backupFiles
 	for ( my $index = $#backupFiles; $index >= 0; --$index )
@@ -249,11 +249,10 @@ foreach my $i (0..$#backupDisks) {
 system($config->{cryptapp}->{dismount});
 #looper gjennom truecryptdisk-listen. For å sjekke at alt er klart
 my $i=0;
-my $filBackupDisk="@";
 my $hoppOver=0;
 my @kopieringsListe = ();
 
-foreach $filBackupDisk (@backupDisks) {
+foreach my $filBackupDisk (@backupDisks) {
 	$i++;
 	$filBackupDisk=~/([\w\/ .-]+)/;
 	$filBackupDisk=$1;
@@ -318,8 +317,8 @@ foreach $filBackupDisk (@backupDisks) {
 	$hoppOver=0;
 	#Lager kopieringsliste
 	if ($nocopy<1) {
-		open (FILE, $CONFIG) or croak "Får ikke åpnet $CONFIG \n";
-		while (<FILE>) {
+		open (my $FILE,'<', $CONFIG) or croak "Får ikke åpnet $CONFIG \n";
+		while (<$FILE>) {
 			chomp;
 			if (/^kopi\:\s*(.+)$/) {
 				my $flagKatAlt=0;
@@ -339,7 +338,7 @@ foreach $filBackupDisk (@backupDisks) {
 				}
 			}
 		}
-		close (FILE);
+		close ($FILE);
 	}
 }
 #loop ferdig
@@ -348,16 +347,16 @@ if ($sjekk==1) {
 }
 #oppdatering av backupfiler
 print "\n	Starter selve oppdateringen av backupfilene\n";
-open (LOGFILE,"> $FILLOG") or croak "Får ikke åpnet $FILLOG \n";
+open (my $LOGFILE,">", $FILLOG) or croak "Får ikke åpnet $FILLOG \n";
 my @datetime=localtime(time);
-printf LOGFILE "Start time:%d-%d-%d %d:%d\n",$datetime[5]+1900,$datetime[4]+1,@datetime[3,2,1];
+printf $LOGFILE "Start time:%d-%d-%d %d:%d\n",$datetime[5]+1900,$datetime[4]+1,@datetime[3,2,1];
 
 #LOOP hovedloep. Oppdaterer backupfilene. Uten interasjon med bruker
 foreach my $row (0..$#trueCryptDiskList) {
-	$filBackupDisk=$trueCryptDiskList[$row][0];
+	my $filBackupDisk=$trueCryptDiskList[$row][0];
 	$BACKUPDISK=$trueCryptDiskList[$row][1];
 	croak "ERROR:\$BACKUPDISK udefinert. Ved start av hoved loop. $filBackupDisk. Debug info\n" unless defined $BACKUPDISK;
-    printf LOGFILE "\nBackup disk $filBackupDisk - $BACKUPDISK\n";
+    printf $LOGFILE "\nBackup disk $filBackupDisk - $BACKUPDISK\n";
 	# Leser konfig fil
 	$CONFIG="$BACKUPDISK/config-backup.txt";
 	print "DEBUG100:",$filBackupDisk,"\n" if ($debug==1);
@@ -434,8 +433,8 @@ foreach my $row (0..$#trueCryptDiskList) {
 	}
 #LOOP hoved ferdig. truecrypt drev liste Ferdig
 }
-printf LOGFILE "End time:%d-%d-%d %d:%d\n",$datetime[5]+1900,$datetime[4]+1,@datetime[3,2,1];
-close (LOGFILE);
+printf $LOGFILE "End time:%d-%d-%d %d:%d\n",$datetime[5]+1900,$datetime[4]+1,@datetime[3,2,1];
+close ($LOGFILE);
 
 #Av mounter eventuelle truecrypt disker
 chdir($PROJECT_HOME);
@@ -445,10 +444,10 @@ if ($nocopy==1) {
 }
 
 #loop gjennom kopi liste
-foreach $i(0..$#kopieringsListe) {
+foreach my $j(0..$#kopieringsListe) {
 	#kopier disk-fil til destinasjon
-	print "Starter kopiering av ",$kopieringsListe[$i][0]," til ",$kopieringsListe[$i][1],"\n";
-	copy($kopieringsListe[$i][0],$kopieringsListe[$i][1]) or croak "ERROR: Fikk ikke kopiert fra \"$kopieringsListe[$i][0]\" til \"$kopieringsListe[$i][1]\" . $!\n";
+	print "Starter kopiering av ",$kopieringsListe[$j][0]," til ",$kopieringsListe[$j][1],"\n";
+	copy($kopieringsListe[$j][0],$kopieringsListe[$j][1]) or croak "ERROR: Fikk ikke kopiert fra \"$kopieringsListe[$j][0]\" til \"$kopieringsListe[$j][1]\" . $!\n";
 #loopslutt
 }
 #skriv en linje om det gikk bra eller ikke.

@@ -125,6 +125,16 @@ sub required_variables {
     die "Missing required_variables in ". ref $self;
 }
 
+=head2 optional_variables
+
+This metods should return 2 paramater array of array [['param','desc'],[p2,'d2']]
+
+=cut
+
+sub optional_variables {
+    return;
+}
+
 =head2 get_missing_param
 
 Look for missing parameters. Ask user if found missing  required parameter.
