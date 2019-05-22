@@ -94,8 +94,22 @@ has config =>sub {
             say '';
             my $o = $module->new(dryrun=>$self->dryrun, force=>$self->force);
             say $o->name;
-            say '=' x length($o->name);
+            say '-' x length($o->name);
             say $o->help_text;
+            if ($o->required_variables) {
+                say 'Required variables:';
+                say '-------------------';
+                for my $r(@{ $o->required_variables}) {
+                    printf "%-15s - %s\n",@$r;
+                }
+            }
+            if ($o->required_variables) {
+                say 'Optional variables:';
+                say '-------------------';
+                for my $r(@{ $o->optional_variables}) {
+                    printf "%-15s - %s\n",@$r;
+                }
+            }
             # And extract files from the DATA section
             #say data_section($module, 'main');
             say '';
