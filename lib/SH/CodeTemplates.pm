@@ -107,6 +107,7 @@ sub generate_file {
         say $out;
     } else {
         $fi->spurt($out);
+        $fi->chmod(0755);
     }
 
 
