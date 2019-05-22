@@ -1,5 +1,5 @@
-package SH::CodeTemplates::ScriptX;
-use Mojo::Base 'SH::CodeTemplates';
+package SH::Code::Template::ScriptX;
+use Mojo::Base 'SH::Code::Template';
 use Mojo::Template;
 use Mojo::Loader qw(data_section);
 use Data::Dumper;

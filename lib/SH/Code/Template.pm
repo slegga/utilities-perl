@@ -1,4 +1,4 @@
-package SH::CodeTemplates;
+package SH::Code::Template;
 use Mojo::Base -base;
 use Mojo::File 'path';
 use Clone 'clone';

@@ -73,7 +73,7 @@ has config =>sub {
         }
     }
 
-    my $plugins_prefix = 'SH::CodeTemplates';
+    my $plugins_prefix = 'SH::Code::Template';
     if (exists $self->config->{plugins_prefix} && $self->config->{plugins_prefix}) {
         $plugins_prefix = $self->config->{plugins_prefix};
     }
@@ -103,7 +103,7 @@ has config =>sub {
                     printf "%-15s - %s\n",@$r;
                 }
             }
-            if ($o->required_variables) {
+            if ($o->optional_variables) {
                 say 'Optional variables:';
                 say '-------------------';
                 for my $r(@{ $o->optional_variables}) {

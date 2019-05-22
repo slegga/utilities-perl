@@ -20,5 +20,6 @@ nytprof.out
 *.swp
 *.tdy
 *.ptkdb
+.test-script*
 /_eumm/
 t/logs/FilBackupLog.txt
