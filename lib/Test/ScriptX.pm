@@ -46,6 +46,9 @@ has main_sub          => 'main';
 has attributes        => sub{{}};
 has success           => '';
 has 'roles';
+has 'module';
+
+our $module_counter;
 
 =head1 METHODS
 
@@ -73,9 +76,13 @@ sub new {
     my $pc = $self->scriptname->slurp;
     die $self->scriptname . " does not use ::ScriptX" if ($pc !~ /use \w\w\:\:ScriptX\;/);
 #    script_runs(["$script", '--help']);
+	no warnings 'redefine';
     $pc =~ s/^sub /no warnings 'redefine';sub /m;
+    $module_counter ++;
+	$self->module("SCRIPTX::TESTING::C" . $module_counter);
+	my $module = $self->module;
     eval <<EOF or die "eval ".($@||$self->scriptname .' do not return true. Set __PACKAGE__->new->main as the last statment in script');##no critic
-package SCRIPTX::TESTING;
+package $module;
 no warnings 'redefine';
 $pc
 EOF
@@ -104,13 +111,14 @@ sub run {
         %data = @_ if  @_;
         my %attr = %{$self->attributes};
         %attr = (%attr,%data);
+        my $module = $self->module;
         #$self->testobject()
         my ($stdout, $stderr, @result) = capture {
             my $class;
         	if (! $self->roles ) {
-	            SCRIPTX::TESTING->new(%attr)->$mainsub;
+	            $module->new(%attr)->$mainsub;
 	        } else {
-	        	SCRIPTX::TESTING->with_roles(@{ $self->roles })->new(%attr)->$mainsub;
+	        	$module->with_roles(@{ $self->roles })->new(%attr)->$mainsub;
 	        }
         };
         $self->cached_stdout($stdout);
