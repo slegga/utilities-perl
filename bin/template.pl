@@ -17,15 +17,15 @@ template.pl - generate code
 
 =head1 DESCRIPTION
 
-Generate script/modules/object and other code based om plugins and templates
+Generate script/modules/object and other code based on templates as a template. See Code::Template*
 
 This script is ment to be ran at det root of the git repo/project.
 
 Auto load modules in SH/CodeTemplate/Plugins.
 
-Try template.pl --pluginshelp for more info.
+Try template.pl --templateshelp for more info.
 
-Planned plugins:
+Planned templates:
 
 =over 2
 
@@ -41,8 +41,8 @@ Planned plugins:
 
 =cut
 
-option 'helpplugins!', 'Show help text for all templates.';
-option 'plugin=s',     'Generate files based on given template';
+option 'helptemplate!', 'Show help text for all templates.';
+option 'template=s',     'Generate files based on given template';
 option 'name=s',       'Filename with out extention.';
 option 'dryrun!',      'Do no changes.';
 option 'force!',       'Overwrite existing files. Nice when developing templates';
@@ -73,18 +73,18 @@ has config =>sub {
         }
     }
 
-    my $plugins_prefix = 'SH::Code::Template';
-    if (exists $self->config->{plugins_prefix} && $self->config->{plugins_prefix}) {
-        $plugins_prefix = $self->config->{plugins_prefix};
+    my $template_prefix = 'SH::Code::Template';
+    if (exists $self->config->{template_prefix} && $self->config->{template_prefix}) {
+        $template_prefix = $self->config->{template_prefix};
     }
-    my @plugins = find_modules $plugins_prefix;
-    if (!@plugins) {
-        die "Can not find plugins which start with $plugins_prefix";
+    my @templates = find_modules $template_prefix;
+    if (!@templates) {
+        die "Can not find templates which start with $template_prefix";
     }
     # Find modules in a namespace
-    if ($self->helpplugins) {
-        say 'The following value for plugin is valid:';
-        for my $module (@plugins) {
+    if ($self->helptemplate) {
+        say "\nThe following values with dobble underline for template is valid:";
+        for my $module (@templates) {
             # Load them safely
             # Handle exceptions
             if (my $e = load_class $module) {
@@ -94,10 +94,10 @@ has config =>sub {
             say '';
             my $o = $module->new(dryrun=>$self->dryrun, force=>$self->force);
             say $o->name;
-            say '-' x length($o->name);
+            say '=' x length($o->name);
             say $o->help_text;
             if ($o->required_variables) {
-                say 'Required variables:';
+                say "\nRequired variables:";
                 say '-------------------';
                 for my $r(@{ $o->required_variables}) {
                     printf "%-15s - %s\n",@$r;
@@ -115,17 +115,17 @@ has config =>sub {
             say '';
         }
     }
-    elsif ($self->plugin ) {
-        my $pl = $self->plugin;
-        for my $module (@plugins) {
+    elsif ($self->template ) {
+        my $pl = $self->template;
+        for my $module (@templates) {
             if (my $e = load_class $module) {
               die ref $e ? "Exception: $e" : "Not found $module! $e";
             }
         }
-        if (my ($plugin) = grep {$pl eq $_->name} map {$_->new(dryrun=>$self->dryrun, force=>$self->force)} @plugins) {
-            $plugin->generate($self);
+        if (my ($template) = grep {$pl eq $_->name} map {$_->new(dryrun=>$self->dryrun, force=>$self->force)} @templates) {
+            $template->generate($self);
         } else {
-            say STDERR "Only following plugin names are loaded" .join(', ',);
+            say STDERR "Only following template names are loaded" .join(', ',);
             die "Could not find any module with '$pl'";
         }
     }
