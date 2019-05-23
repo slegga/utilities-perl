@@ -2,6 +2,8 @@ package SH::Code::Template;
 use Mojo::Base -base;
 use Mojo::File 'path';
 use Clone 'clone';
+use open ':encoding(UTF-8)';
+use utf8;
 
 =head1 NAME
 
