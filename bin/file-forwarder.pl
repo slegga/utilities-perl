@@ -3,7 +3,6 @@ use Mojo::File 'path';
 use autodie;
 use FindBin;
 use Data::Dumper;
-use File::Finder;
 use File::Copy 'copy';
 use File::Basename;
 use Encode;
