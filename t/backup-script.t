@@ -1,5 +1,4 @@
 use Test::More;
-#use Test::Script;
 use FindBin;
 
 #
@@ -21,7 +20,8 @@ eval "use Test::Script";
 
 SKIP: {
 	skip 'Test::Script is not installed', 4 if $@;
-	script_runs(['bin/backup.pl', 'test.tc']);
+	require Test::Script;
+	Test::Script::script_runs(['bin/backup.pl', 'test.tc']);
 	ok(-f "/tmp/backupdisk1/$FindBin::Bin/fromdir/test.txt",'File is copied');
 	ok(-f "/tmp/backupdisk1/$FindBin::Bin/fromdir/katalog/filikatalog.txt",'File in catalog is copied');
 

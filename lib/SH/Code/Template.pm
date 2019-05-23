@@ -108,7 +108,7 @@ sub generate_file {
     if ($self->dryrun) {
         say $out;
     } else {
-        $fi->spurt($out);
+        $fi->spurt(Enode::encode('UTF-8',$out)); # spurt is hard with utf8
         # $fi->chmod(0755); does not work on Mojolicious 7.70
         chmod(0755, "$fi");
     }
