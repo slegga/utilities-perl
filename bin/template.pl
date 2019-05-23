@@ -104,7 +104,7 @@ has config =>sub {
                 }
             }
             if ($o->optional_variables) {
-                say 'Optional variables:';
+                say "\nOptional variables:";
                 say '-------------------';
                 for my $r(@{ $o->optional_variables}) {
                     printf "%-15s - %s\n",@$r;

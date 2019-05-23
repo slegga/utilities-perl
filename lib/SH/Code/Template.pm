@@ -107,7 +107,8 @@ sub generate_file {
         say $out;
     } else {
         $fi->spurt($out);
-        $fi->chmod(0755);
+        # $fi->chmod(0755); does not work on Mojolicious 7.70
+        chmod(0755, "$fi");
     }
 
 
