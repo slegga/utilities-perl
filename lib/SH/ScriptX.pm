@@ -339,6 +339,7 @@ sub _gen_usage {
 	for my $o (@$_options,_default_options()) {
 		my ($def,$desc,$other) =@$o;
 		next if $other->{hidden};
+		die "Missing description for '$def'. Please enter." if !defined $desc;
 		next if $desc eq 'hidden';
         my ($name,$type) = split (/\b/,$def,2);
         if ($type eq '=s') {
