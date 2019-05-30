@@ -3,6 +3,7 @@ package SH::Email::ToHash;
 use Mojo::Base -base;
 use Data::Printer;
 use Data::Dumper;
+use Mojo::File 'path';
 use MIME::Parser;
 use MIME::Base64;
 
@@ -12,8 +13,14 @@ use Clone 'clone';
 use open OUT => ':encoding(UTF-8)';
 use utf8;
 use Encode;
-has tmpdir => '/tmp';
-has parser => sub { my $x = MIME::Parser->new; $x->output_dir(shift->tmpdir); $x };
+has tmpdir => '/tmp'; # A lot of files will be generated.
+has parser => sub {
+	my $self = shift;
+	my $x = MIME::Parser->new;
+	path($self->tmpdir)->make_path;
+	$x->output_dir($self->tmpdir);
+	$x;
+};
 
 =encoding UTF-8
 
