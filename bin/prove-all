@@ -39,7 +39,7 @@ while (my $item = readdir $dh) {
         $r->run( 'pull' );
 		chdir $wd;
 		my $success = 'Result: PASS';
-		my $prove   = `prove -l -Q -m`;
+		my $prove   = `prove -l -Q`;
 
 		if ($prove =~ /$success/) {
 		    say $success;
