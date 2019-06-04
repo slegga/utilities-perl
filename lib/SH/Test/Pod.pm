@@ -18,6 +18,7 @@ use Carp qw /carp/;
 use Pod::Spell;
 use Pod::Coverage;
 use Pod::Simple;
+use File::Basename;
 
 use Term::ANSIColor;
 use Test::Builder::Module;
@@ -392,14 +393,14 @@ sub _all_module_name_path_hash_ref {
     my $cfg = shift;
     # warn  "$FindBin::Bin/../lib";
     my @paths;
-    @paths = path("$FindBin::Bin/../lib")->list_tree->grep (qr/^((?!\/auto\/).)*$/)->each;
+    @paths = grep {$_ =~ /\.pm$/} path("$FindBin::Bin/../lib")->list_tree->grep (qr/^((?!\/auto\/).)*$/)->each;
     my $name2path={};
     for my $p(@paths) {
     	$name2path->{_path2name("$p")}= "$p";
     }
 #    my $name2path = Pod::Simple::Search->new->inc(0)->survey("$FindBin::Bin/../lib");
-    if (exists $cfg->{module_pod}->{skip}) {
-        for my $red(@{$cfg->{module_pod}->{skip}}) {
+    if (exists $cfg->{user}->{skip}) {
+        for my $red(@{$cfg->{user}->{skip}}) {
             if ( first {$red eq $_} grep {$_} keys %$name2path) {
                 delete $name2path->{$red};
             }
@@ -430,6 +431,7 @@ sub _all_scriptpaths_array_ref {
     }
     my $return;
     for my $f(@paths) {
+        next if exists $cfg->{repo}->{skip} && $cfg->{repo}->{skip} && grep {basename("$f") eq $_} @{ $cfg->{repo}->{skip} };
         push @$return,$f->to_string;
     }
 
@@ -458,6 +460,27 @@ sub _nms_check_pod {
 	   	_return_test($name);
 	   	return;
     }
+
+    # Pod::Simple->parse_file also work after __DATA__ line
+    # So need to do this work around
+    # my $content = path($podfile)->slurp;
+    #my @linesall = split(/\n/, $content);
+    #my @lines;
+    #my $data_flag=0;;
+    #for my $l(@linesall) {
+#        if ($l eq '__DATA__') {
+#            $data_flag=1;
+#            next;
+#        } elsif ($l eq '__END__') {
+#            $data_flag=0;
+#            next;
+#        }
+#        if (! $data_flag) {
+#push @lines, $l;
+#        }
+#    }
+#    push @lines,undef;
+ #   my $pod_hr_raw = Pod::Simple::SimpleTree->new->parse_lines(@lines)->root;
     my $pod_hr_raw = Pod::Simple::SimpleTree->new->parse_file($podfile)->root;
     # remove fluff
     shift @$pod_hr_raw;

@@ -6,9 +6,17 @@ use open ':encoding(UTF-8)';
 use utf8;
 use Encode;
 
+=encoding utf8
+
 =head1 NAME
 
-SH::CodeTemplates - parent of the templates.
+SH::Code::Template - parent of the templates.
+
+=head1 SYNOPSIS
+
+ package SH::Code::Template::ScriptX;
+ use Mojo::Base 'SH::Code::Template';
+ sub name {'testing'};
 
 =head1 DESCRIPTION
 
@@ -37,7 +45,7 @@ has 'force';
 
 =head2 name
 
-Friendly name of the module. Used by the plugin parameter.
+Friendly name of the module. Used by the template parameter.
 This must be replaced in child object.
 =cut
 
@@ -49,7 +57,7 @@ sub name {
 
 =head2 help_text
 
-Text which is printet with the pluginshelp option.
+Text which is printet with the helptemplate option.
 This must be replaced in child object.
 
 =cut
@@ -73,7 +81,7 @@ sub generate {
 
 =head2  generate_file
 
-Generate wiched file based on input. Fi le must not exists else an error will be shown.
+Generate wished file based on input. Fi le must not exists else an error will be shown.
 
 input is a hash ref with following keys.
 
@@ -83,7 +91,7 @@ input is a hash ref with following keys.
 
 =item filename - Filename
 
-=item ts - template as string. Template protocoll Mojo::Template
+=item ts - template as string. Template protocol Mojo::Template
 
 =item parameters - all parameters for the template
 
@@ -119,7 +127,7 @@ sub generate_file {
 
 =head2 required_variables
 
-This metods should return a 2-parameter array of array. [['param','desc'],[p2,'d2']]
+This methods should return a 2-parameter array of array. [['param','desc'],[p2,'d2']]
 This must be set in child object.
 
 =cut
@@ -131,7 +139,7 @@ sub required_variables {
 
 =head2 optional_variables
 
-This metods should return 2 paramater array of array [['param','desc'],[p2,'d2']]
+This methods should return 2 parameter array of array [['param','desc'],[p2,'d2']]
 
 =cut
 
