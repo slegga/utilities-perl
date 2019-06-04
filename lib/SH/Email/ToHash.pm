@@ -288,6 +288,7 @@ Takes a typial From element and extract emailaddress
 sub extract_emailaddress {
     my $self = shift;
     my $from = shift;
+    return if !$from;
     die "Cant find email address" if !$from =~ /\@/;
     if ($from =~ /\<([\w\.\_\-]+\@[\w\.\_\-]+)>/) {
         return $1;
