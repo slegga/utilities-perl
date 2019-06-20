@@ -13,13 +13,13 @@ use Clone 'clone';
 use open OUT => ':encoding(UTF-8)';
 use utf8;
 use Encode;
-has tmpdir => '/tmp'; # A lot of files will be generated.
+has tmpdir => '/tmp';    # A lot of files will be generated.
 has parser => sub {
-	my $self = shift;
-	my $x = MIME::Parser->new;
-	path($self->tmpdir)->make_path;
-	$x->output_dir($self->tmpdir);
-	$x;
+    my $self = shift;
+    my $x    = MIME::Parser->new;
+    path($self->tmpdir)->make_path;
+    $x->output_dir($self->tmpdir);
+    $x;
 };
 
 =encoding UTF-8
@@ -107,11 +107,11 @@ sub msgtext2hash {
                     warn "Unknown Content-Transfer-Encoding: " . $v->{'Content-Transfer-Encoding'};
                 }
 
-				if (! ref $v->{'Content-Type'}) {
-					if ($v->{'Content-Type'} ne 'text/plain') {
-	                    warn "Unknown simple Content-Type: " . $v->{'Content-Type'};
-					}
-				}
+                if (!ref $v->{'Content-Type'}) {
+                    if ($v->{'Content-Type'} ne 'text/plain') {
+                        warn "Unknown simple Content-Type: " . $v->{'Content-Type'};
+                    }
+                }
                 elsif (ref $v->{'Content-Type'} && lc $v->{'Content-Type'}->{h}->{charset} eq 'UTF-8') {
                     $v->{content} = decode('UTF-8', $v->{content});
                 }
