@@ -107,15 +107,15 @@ sub msgtext2hash {
                     warn "Unknown Content-Transfer-Encoding: " . $v->{'Content-Transfer-Encoding'};
                 }
 
-                if (!ref $v->{'Content-Type'}) {
-                    if ($v->{'Content-Type'} ne 'text/plain') {
-                        warn "Unknown simple Content-Type: " . $v->{'Content-Type'};
-                    }
-                }
-                elsif (ref $v->{'Content-Type'} && lc $v->{'Content-Type'}->{h}->{charset} eq 'UTF-8') {
+				if (! ref $v->{'Content-Type'}) {
+					if (! grep {$v->{'Content-Type'} eq $_} ( qw|text/plain text/html|) ) {
+	                    warn "Unknown simple Content-Type: " . $v->{'Content-Type'};
+					}
+				}
+                elsif (ref $v->{'Content-Type'} && uc $v->{'Content-Type'}->{h}->{charset} eq 'UTF-8') {
                     $v->{content} = decode('UTF-8', $v->{content});
                 }
-                elsif (lc $v->{'Content-Type'}->{a}->[0] ne 'text/plain') {
+                elsif (! grep {lc $v->{'Content-Type'}->{a}->[0] eq $_ } ( qw|text/plain text/html|) ) {
                     warn "Unknown Content-Type: " . Dumper $v->{'Content-Type'};    #$v->{'Content-Type'}->{a}->[0];
                 }
                 return ($v, 'next');    #next tree. Finish handling body hash tree
