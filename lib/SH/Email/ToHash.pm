@@ -4,7 +4,6 @@ use Mojo::Base -base;
 use Data::Printer;
 use Data::Dumper;
 use Mojo::File 'path';
-use MIME::Parser;
 use MIME::Base64;
 
 #use MIME::Charset;
@@ -30,7 +29,7 @@ SH::Email::RawToHash - convert raw email mime text to a nice hash
 
 =head1 SYNOPSIS
 
-    use SH::Email::RawToHash;
+    use SH::Email::ToHash;
     use Data::Dumper;
     print Dumper SH::Email::RawToHash::message2hash("From: x@y.c\nTo: d@f.b");
 
@@ -56,13 +55,12 @@ sub msgtext2hash {
     my $return = {};
 
     #print @$msg;
-    my $email  = $self->parser->parse_data($msg);
-    my $header = $email->head->stringify;
+#    my $email  = $self->parser->parse_data($msg);
+    my ($header,$body) = split /\r\n\r\n/, $msg, 2;
 
 #    say $header;
 #
     $return->{header} = $self->parameterify($header);
-    my $body = $email->stringify_body;
 
     #remove first and last line
     my @body_cont = split /\n/, $body;
