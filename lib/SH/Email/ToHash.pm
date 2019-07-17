@@ -152,7 +152,7 @@ sub parameterify {
     my $return    = {};
     my $multiline = 0;
     my $k;
-    for my $l (split(/\n/, $string)) {
+    for my $l (split(/\r\n/, $string)) {
         if ($multiline) {
             $return->{content} .= $l . "\n";
         }
