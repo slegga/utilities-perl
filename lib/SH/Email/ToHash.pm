@@ -73,6 +73,11 @@ sub msgtext2hash {
 
     #warn $body;
     #warn "###############################################################";
+    # TODO: Handle multipart
+    if (exists $return->{header}->{'Content-Type'} && exists $return->{header}->{'Content-Type'}->{a} 
+        && $return->{header}->{'Content-Type'}->{a}->[0] =~ /^multipart/) {
+        $body = $self->multipart($return->{header}->{'Content-Type'}, $body); # split or extract body part.
+    }   
     $return->{body} = $self->parameterify($body);
     $return = $self->hash_traverse(
         $return,
@@ -87,38 +92,42 @@ sub msgtext2hash {
                 }
                 return ($v, 'next');
             }
-            elsif (defined $k
-                && $k eq 'body'
-                && exists $v->{'Content-Transfer-Encoding'}
-                && exists $v->{'Content-Type'}) {
-                if (lc $v->{'Content-Transfer-Encoding'} eq 'quoted-printable') {
-                    $v->{content} = decode_qp($v->{content});
-                }
-                elsif (lc $v->{'Content-Transfer-Encoding'} eq 'base64') {
-                    $v->{content} = decode_base64($v->{content});
-                }
-                elsif (lc $v->{'Content-Transfer-Encoding'} eq '7bit') {
-
-                    # plain ASCII. Do notthing.
-                }
+            elsif (defined $k && $k eq 'body' && exists $v->{'Content-Type'}) {
+                p $v->{'Content-Type'};
+                if (ref $v->{'Content-Type'} eq 'HASH' && $v->{'Content-Type'}->{a}->[0] =~ /^multipart/) {
+                    $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body} );
+                } 
                 else {
-                    warn "Unknown Content-Transfer-Encoding: " . $v->{'Content-Transfer-Encoding'};
-                }
+                    if ( exists $v->{'Content-Transfer-Encoding'} ) {
+                        if (lc $v->{'Content-Transfer-Encoding'} eq 'quoted-printable') {
+                            $v->{content} = decode_qp($v->{content});
+                        }
+                        elsif (lc $v->{'Content-Transfer-Encoding'} eq 'base64') {
+                            $v->{content} = decode_base64($v->{content});
+                        }
+                        elsif (lc $v->{'Content-Transfer-Encoding'} eq '7bit') {
 
-				if (! ref $v->{'Content-Type'}) {
-					if (! grep {$v->{'Content-Type'} eq $_} ( qw|text/plain text/html|) ) {
-	                    warn "Unknown simple Content-Type: " . $v->{'Content-Type'};
-					}
-				}
-                elsif (ref $v->{'Content-Type'} && uc $v->{'Content-Type'}->{h}->{charset} eq 'UTF-8') {
-                    $v->{content} = decode('UTF-8', $v->{content});
+                            # plain ASCII. Do notthing.
+                        }
+                        else {
+                            warn "Unknown Content-Transfer-Encoding: " . $v->{'Content-Transfer-Encoding'};
+                        }
+                    }
+                    elsif (! ref $v->{'Content-Type'}) {
+                        if (! grep {$v->{'Content-Type'} eq $_} ( qw|text/plain text/html|) ) {
+                            warn "Unknown simple Content-Type: " . $v->{'Content-Type'};
+                        }
+                    }
+                    elsif (ref $v->{'Content-Type'} && uc $v->{'Content-Type'}->{h}->{charset} eq 'UTF-8') {
+                        $v->{content} = decode('UTF-8', $v->{content});
+                    }
+                    elsif (! grep {lc $v->{'Content-Type'}->{a}->[0] eq $_ } ( qw|text/plain text/html|) ) {
+                        warn "Unknown Content-Type: " . Dumper $v->{'Content-Type'};    #$v->{'Content-Type'}->{a}->[0];
+                    }
+                    return ($v, 'next');    #next tree. Finish handling body hash tree
                 }
-                elsif (! grep {lc $v->{'Content-Type'}->{a}->[0] eq $_ } ( qw|text/plain text/html|) ) {
-                    warn "Unknown Content-Type: " . Dumper $v->{'Content-Type'};    #$v->{'Content-Type'}->{a}->[0];
-                }
-                return ($v, 'next');    #next tree. Finish handling body hash tree
             }
-            return ($v, 'continue');    # continue travarse current tree
+            return ($v, 'continue');    # continue traverse current tree
         }
     );
 
@@ -250,7 +259,7 @@ sub parameterify {
 
 Traverse a data structure. (Dept first).
 
-Takes self, datastructure, anonymous subroutine, optional keys
+Takes self, datastructure, anonymous subroutine, optional key
 
 Subroutine is called for each item, including parents. Sub routine must return a (datastructure, or value if item is a leaf) and a status.
 (If status is next rest of the current branch travserse is stopped, and jump to next branch).
@@ -297,6 +306,72 @@ sub extract_emailaddress {
         return $1;
     }
     return $from;
+}
+
+=head2 multipart
+
+Handle MIME multipart body.
+
+Expect content-type full and body (part)
+
+=over 2
+
+=item multipart/mixed
+
+Return first part
+
+=item  multipart/alternative
+
+Choose simplest to traverse
+
+=item multipart/digest
+
+Die not handled
+
+=item multipart/parallel
+
+die not handled
+
+=back
+
+=cut
+
+sub multipart {
+    my ($self, $type, $body) = @_;
+    my $return;
+    die "Content-Type is not referanse" if ref $type ne 'HASH';
+    if ($type->{a}->[0] !~ /^multipart/) {
+        die "Content-Type not like multipart"
+    }
+    
+    if (! exists $type->{h}->{boundary}) {
+        p $body;
+        p $type;
+        die "Missing boundary in Content-Type"; 
+    }
+
+    my $boundary = $type->{h}->{boundary};
+    if ($type->{a}->[0] eq 'multipart/alternative' || $type->{a}->[0] eq 'multipart/mixed') {
+        #choose first which is usually easy to traverse
+        return if ! $body;
+        my $rest = $body;
+        ($body,$rest) = split /$boundary/, $rest,2;
+        
+        if (!defined $body || $body !~ /\w/) { # Discard empty alternatives
+            die join("\n\n", !!$body, !!$rest);
+            (undef,$body)  = split /$boundary/, $rest,2;
+        }
+        return $body;
+    } elsif($type->{a}->[0] eq 'multipart/digest') {
+        ...
+    } elsif($type->{a}->[0] eq 'multipart/parallel') {
+        ...
+    }
+    else {
+        warn "Unhandeled multidocument multipart $type->{a}->[0]";
+        ...
+    } 
+    die;
 }
 
 =head1 AUTHOR
