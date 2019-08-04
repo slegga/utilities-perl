@@ -364,7 +364,8 @@ sub multipart {
         }
         return $body;
     } elsif($type->{a}->[0] eq 'multipart/report') {
-		# ignore it for now.
+		# ignore it for now
+		return;
     } elsif($type->{a}->[0] eq 'multipart/digest') {
         ...
     } elsif($type->{a}->[0] eq 'multipart/parallel') {
