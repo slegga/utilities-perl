@@ -93,7 +93,6 @@ sub msgtext2hash {
                 return ($v, 'next');
             }
             elsif (defined $k && $k eq 'body' && exists $v->{'Content-Type'}) {
-                p $v->{'Content-Type'};
                 if (ref $v->{'Content-Type'} eq 'HASH' && $v->{'Content-Type'}->{a}->[0] =~ /^multipart/) {
                     $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body} );
                 }
@@ -157,6 +156,7 @@ return a perl data structure
 
 sub parameterify {
     my $self      = shift;
+    return if ! defined $_[0];
     my $string    = join('', @_);
     my $return    = {};
     my $multiline = 0;
