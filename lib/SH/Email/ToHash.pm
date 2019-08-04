@@ -74,10 +74,10 @@ sub msgtext2hash {
     #warn $body;
     #warn "###############################################################";
     # TODO: Handle multipart
-    if (exists $return->{header}->{'Content-Type'} && exists $return->{header}->{'Content-Type'}->{a} 
+    if (exists $return->{header}->{'Content-Type'} && exists $return->{header}->{'Content-Type'}->{a}
         && $return->{header}->{'Content-Type'}->{a}->[0] =~ /^multipart/) {
         $body = $self->multipart($return->{header}->{'Content-Type'}, $body); # split or extract body part.
-    }   
+    }
     $return->{body} = $self->parameterify($body);
     $return = $self->hash_traverse(
         $return,
@@ -96,7 +96,7 @@ sub msgtext2hash {
                 p $v->{'Content-Type'};
                 if (ref $v->{'Content-Type'} eq 'HASH' && $v->{'Content-Type'}->{a}->[0] =~ /^multipart/) {
                     $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body} );
-                } 
+                }
                 else {
                     if ( exists $v->{'Content-Transfer-Encoding'} ) {
                         if (lc $v->{'Content-Transfer-Encoding'} eq 'quoted-printable') {
@@ -343,22 +343,23 @@ sub multipart {
     if ($type->{a}->[0] !~ /^multipart/) {
         die "Content-Type not like multipart"
     }
-    
+
     if (! exists $type->{h}->{boundary}) {
         p $body;
         p $type;
-        die "Missing boundary in Content-Type"; 
+        die "Missing boundary in Content-Type";
     }
 
     my $boundary = $type->{h}->{boundary};
-    if ($type->{a}->[0] eq 'multipart/alternative' || $type->{a}->[0] eq 'multipart/mixed') {
+    if ($type->{a}->[0] eq 'multipart/alternative' || $type->{a}->[0] eq 'multipart/mixed'
+     || $type->{a}->[0] eq 'multipart/related') {
         #choose first which is usually easy to traverse
         return if ! $body;
         my $rest = $body;
         ($body,$rest) = split /$boundary/, $rest,2;
-        
-        if (!defined $body || $body !~ /\w/) { # Discard empty alternatives
-            die join("\n\n", !!$body, !!$rest);
+
+        if (! defined $body || $body !~ /\w/) { # Discard empty alternatives
+#            die join("\n\n", !!$body, !!$rest);
             (undef,$body)  = split /$boundary/, $rest,2;
         }
         return $body;
@@ -370,7 +371,7 @@ sub multipart {
     else {
         warn "Unhandeled multidocument multipart $type->{a}->[0]";
         ...
-    } 
+    }
     die;
 }
 
