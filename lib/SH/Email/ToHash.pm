@@ -363,6 +363,8 @@ sub multipart {
             (undef,$body)  = split /$boundary/, $rest,2;
         }
         return $body;
+    } elsif($type->{a}->[0] eq 'multipart/report') {
+		# ignore it for now.
     } elsif($type->{a}->[0] eq 'multipart/digest') {
         ...
     } elsif($type->{a}->[0] eq 'multipart/parallel') {
@@ -370,7 +372,8 @@ sub multipart {
     }
     else {
         warn "Unhandeled multidocument multipart $type->{a}->[0]";
-        ...
+        p $body;
+        ...;
     }
     die;
 }
