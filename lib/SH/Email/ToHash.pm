@@ -13,13 +13,14 @@ use open OUT => ':encoding(UTF-8)';
 use utf8;
 use Encode;
 has tmpdir => '/tmp';    # A lot of files will be generated.
-has parser => sub {
-    my $self = shift;
-    my $x    = MIME::Parser->new;
-    path($self->tmpdir)->make_path;
-    $x->output_dir($self->tmpdir);
-    $x;
-};
+
+# has parser => sub {
+#     my $self = shift;
+#     my $x    = MIME::Parser->new;
+#     path($self->tmpdir)->make_path;
+#     $x->output_dir($self->tmpdir);
+#     $x;
+# };
 
 =encoding UTF-8
 
@@ -56,7 +57,9 @@ sub msgtext2hash {
 
     #print @$msg;
 #    my $email  = $self->parser->parse_data($msg);
-    my ($header,$body) = split /\r\n\r\n/, $msg, 2;
+
+    $msg =~ s&\r&&g;
+    my ($header, $body) = split /\n\n/, $msg, 2;
 
 #    say $header;
 #
@@ -74,9 +77,10 @@ sub msgtext2hash {
     #warn $body;
     #warn "###############################################################";
     # TODO: Handle multipart
-    if (exists $return->{header}->{'Content-Type'} && exists $return->{header}->{'Content-Type'}->{a}
+    if (   exists $return->{header}->{'Content-Type'}
+        && exists $return->{header}->{'Content-Type'}->{a}
         && $return->{header}->{'Content-Type'}->{a}->[0] =~ /^multipart/) {
-        $body = $self->multipart($return->{header}->{'Content-Type'}, $body); # split or extract body part.
+        $body = $self->multipart($return->{header}->{'Content-Type'}, $body);    # split or extract body part.
     }
     $return->{body} = $self->parameterify($body);
     $return = $self->hash_traverse(
@@ -94,10 +98,10 @@ sub msgtext2hash {
             }
             elsif (defined $k && $k eq 'body' && exists $v->{'Content-Type'}) {
                 if (ref $v->{'Content-Type'} eq 'HASH' && $v->{'Content-Type'}->{a}->[0] =~ /^multipart/) {
-                    $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body} );
+                    $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body});
                 }
                 else {
-                    if ( exists $v->{'Content-Transfer-Encoding'} ) {
+                    if (exists $v->{'Content-Transfer-Encoding'}) {
                         if (lc $v->{'Content-Transfer-Encoding'} eq 'quoted-printable') {
                             $v->{content} = decode_qp($v->{content});
                         }
@@ -112,21 +116,21 @@ sub msgtext2hash {
                             warn "Unknown Content-Transfer-Encoding: " . $v->{'Content-Transfer-Encoding'};
                         }
                     }
-                    elsif (! ref $v->{'Content-Type'}) {
-                        if (! grep {$v->{'Content-Type'} eq $_} ( qw|text/plain text/html|) ) {
+                    elsif (!ref $v->{'Content-Type'}) {
+                        if (!grep { $v->{'Content-Type'} eq $_ } (qw|text/plain text/html|)) {
                             warn "Unknown simple Content-Type: " . $v->{'Content-Type'};
                         }
                     }
                     elsif (ref $v->{'Content-Type'} && uc $v->{'Content-Type'}->{h}->{charset} eq 'UTF-8') {
                         $v->{content} = decode('UTF-8', $v->{content});
                     }
-                    elsif (! grep {lc $v->{'Content-Type'}->{a}->[0] eq $_ } ( qw|text/plain text/html|) ) {
+                    elsif (!grep { lc $v->{'Content-Type'}->{a}->[0] eq $_ } (qw|text/plain text/html|)) {
                         warn "Unknown Content-Type: " . Dumper $v->{'Content-Type'};    #$v->{'Content-Type'}->{a}->[0];
                     }
                     return ($v, 'next');    #next tree. Finish handling body hash tree
                 }
             }
-            return ($v, 'continue');    # continue traverse current tree
+            return ($v, 'continue');        # continue traverse current tree
         }
     );
 
@@ -155,13 +159,13 @@ return a perl data structure
 =cut
 
 sub parameterify {
-    my $self      = shift;
-    return if ! defined $_[0];
+    my $self = shift;
+    return if !defined $_[0];
     my $string    = join('', @_);
     my $return    = {};
     my $multiline = 0;
     my $k;
-    for my $l (split(/\r\n/, $string)) {
+    for my $l (split(/\n/, $string)) {
         if ($multiline) {
             $return->{content} .= $l . "\n";
         }
@@ -341,35 +345,42 @@ sub multipart {
     my $return;
     die "Content-Type is not referanse" if ref $type ne 'HASH';
     if ($type->{a}->[0] !~ /^multipart/) {
-        die "Content-Type not like multipart"
+        die "Content-Type not like multipart";
     }
 
-    if (! exists $type->{h}->{boundary}) {
+    if (!exists $type->{h}->{boundary}) {
         p $body;
         p $type;
         die "Missing boundary in Content-Type";
     }
 
     my $boundary = $type->{h}->{boundary};
-    if ($type->{a}->[0] eq 'multipart/alternative' || $type->{a}->[0] eq 'multipart/mixed'
-     || $type->{a}->[0] eq 'multipart/related') {
-        #choose first which is usually easy to traverse
-        return if ! $body;
-        my $rest = $body;
-        ($body,$rest) = split /$boundary/, $rest,2;
+    if (   $type->{a}->[0] eq 'multipart/alternative'
+        || $type->{a}->[0] eq 'multipart/mixed'
+        || $type->{a}->[0] eq 'multipart/related') {
 
-        if (! defined $body || $body !~ /\w/) { # Discard empty alternatives
+        #choose first which is usually easy to traverse
+        return if !$body;
+        my $rest = $body;
+        ($body, $rest) = split /$boundary/, $rest, 2;
+
+        if (!defined $body || $body !~ /\w/) {    # Discard empty alternatives
+
 #            die join("\n\n", !!$body, !!$rest);
-            (undef,$body)  = split /$boundary/, $rest,2;
+            (undef, $body) = split /$boundary/, $rest, 2;
         }
         return $body;
-    } elsif($type->{a}->[0] eq 'multipart/report') {
-		# ignore it for now
-		return;
-    } elsif($type->{a}->[0] eq 'multipart/digest') {
-        ...
-    } elsif($type->{a}->[0] eq 'multipart/parallel') {
-        ...
+    }
+    elsif ($type->{a}->[0] eq 'multipart/report') {
+
+        # ignore it for now
+        return;
+    }
+    elsif ($type->{a}->[0] eq 'multipart/digest') {
+        ...;
+    }
+    elsif ($type->{a}->[0] eq 'multipart/parallel') {
+        ...;
     }
     else {
         warn "Unhandeled multidocument multipart $type->{a}->[0]";
