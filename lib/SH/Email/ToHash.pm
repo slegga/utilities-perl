@@ -88,7 +88,7 @@ sub msgtext2hash {
             $body->{'Content-Type'} = $return->{header}->{'Content-Type'}->{a}->[0];
         }
     }
-    if ( exists $return->{header}->{'Content-Transfer-Encoding'} && $return->{header}->{'Content-Transfer-Encoding'} && (! exists $body->{'Content-Transfer-Encoding'} || ! $body->{'Content-Transfer-Encoding'})) {
+    if ( exists $return->{header}->{'Content-Transfer-Encoding'} && $return->{header}->{'Content-Transfer-Encoding'} && (!ref $body || ! exists $body->{'Content-Transfer-Encoding'} || ! $body->{'Content-Transfer-Encoding'})) {
         if (! ref $body) {
             $body={content => $body};
         }
