@@ -128,6 +128,11 @@ sub msgtext2hash {
 
                             # plain ASCII. Do notthing.
                         }
+                        elsif (lc $v->{'Content-Transfer-Encoding'} eq '8bit') {
+
+                            # nonstandard but probably latin1 do nothing, until problems
+                        }
+
                         else {
                             warn "Unknown Content-Transfer-Encoding: " . $v->{'Content-Transfer-Encoding'};
                         }
