@@ -77,12 +77,28 @@ sub msgtext2hash {
     #warn $body;
     #warn "###############################################################";
     # TODO: Handle multipart
-    if (   exists $return->{header}->{'Content-Type'}
-        && exists $return->{header}->{'Content-Type'}->{a}
+    if (   exists $return->{header}->{'Content-Type'} ) {
+
+        if ( exists $return->{header}->{'Content-Type'}->{a}
         && $return->{header}->{'Content-Type'}->{a}->[0] =~ /^multipart/) {
-        $body = $self->multipart($return->{header}->{'Content-Type'}, $body);    # split or extract body part.
+            $body = $self->multipart($return->{header}->{'Content-Type'}, $body);    # split or extract body part.
+        }
+        elsif ( $return->{header}->{'Content-Type'}->{a}->[0] &&( !ref $body || !exists $body->{'Content-Type'} || !$body->{'Content-Type'})) {
+            $body={content => $body};
+            $body->{'Content-Type'} = $return->{header}->{'Content-Type'}->{a}->[0];
+        }
     }
-    $return->{body} = $self->parameterify($body);
+    if ( exists $return->{header}->{'Content-Transfer-Encoding'} && $return->{header}->{'Content-Transfer-Encoding'} && (! exists $body->{'Content-Transfer-Encoding'} || ! $body->{'Content-Transfer-Encoding'})) {
+        if (! ref $body) {
+            $body={content => $body};
+        }
+        $body->{'Content-Transfer-Encoding'} = $return->{header}->{'Content-Transfer-Encoding'};
+    }
+    if (! ref $body) {
+        $return->{body} = $self->parameterify($body);
+    } else {
+        $return->{body} = $body;
+    }
     $return = $self->hash_traverse(
         $return,
         sub {
@@ -96,12 +112,12 @@ sub msgtext2hash {
                 }
                 return ($v, 'next');
             }
-            elsif (defined $k && $k eq 'body' && exists $v->{'Content-Type'}) {
+            elsif (defined $k && $k eq 'body' && exists $v->{'Content-Type'} && $v->{'Content-Type'}) {
                 if (ref $v->{'Content-Type'} eq 'HASH' && $v->{'Content-Type'}->{a}->[0] =~ /^multipart/) {
                     $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body});
                 }
                 else {
-                    if (exists $v->{'Content-Transfer-Encoding'}) {
+                    if ($v->{'Content-Transfer-Encoding'}) {
                         if (lc $v->{'Content-Transfer-Encoding'} eq 'quoted-printable') {
                             $v->{content} = decode_qp($v->{content});
                         }
@@ -134,11 +150,6 @@ sub msgtext2hash {
         }
     );
 
-    #$self->decode_mime_iso_8859_1_hash($return);
-
-    #say $email->effective_type();
-
-    #say$self->decode_mime_iso_8859_1($email->stringify_body);
     return $return;
 }
 
