@@ -10,8 +10,8 @@ use MIME::Base64;
 use MIME::QuotedPrint;
 use Clone 'clone';
 use open OUT => ':encoding(UTF-8)';
-#use utf8;
 use Encode;
+
 has tmpdir => '/tmp';    # A lot of files will be generated.
 
 # has parser => sub {
