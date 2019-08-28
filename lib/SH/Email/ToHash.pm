@@ -10,8 +10,8 @@ use MIME::Base64;
 use MIME::QuotedPrint;
 use Clone 'clone';
 use open OUT => ':encoding(UTF-8)';
+use utf8;
 use Encode;
-
 has tmpdir => '/tmp';    # A lot of files will be generated.
 
 # has parser => sub {
@@ -30,7 +30,7 @@ SH::Email::RawToHash - convert raw email mime text to a nice hash
 
 =head1 SYNOPSIS
 
-    use SH::Email::ToHash;
+    use SH::Email::RawToHash;
     use Data::Dumper;
     print Dumper SH::Email::RawToHash::message2hash("From: x@y.c\nTo: d@f.b");
 
@@ -77,26 +77,30 @@ sub msgtext2hash {
     #warn $body;
     #warn "###############################################################";
     # TODO: Handle multipart
-    if (   exists $return->{header}->{'Content-Type'} ) {
+    if (exists $return->{header}->{'Content-Type'}) {
 
-        if ( exists $return->{header}->{'Content-Type'}->{a}
-        && $return->{header}->{'Content-Type'}->{a}->[0] =~ /^multipart/) {
+        if (exists $return->{header}->{'Content-Type'}->{a}
+            && $return->{header}->{'Content-Type'}->{a}->[0] =~ /^multipart/) {
             $body = $self->multipart($return->{header}->{'Content-Type'}, $body);    # split or extract body part.
         }
-        elsif ( $return->{header}->{'Content-Type'}->{a}->[0] &&( !ref $body || !exists $body->{'Content-Type'} || !$body->{'Content-Type'})) {
-            $body={content => $body};
+        elsif ($return->{header}->{'Content-Type'}->{a}->[0]
+            && (!ref $body || !exists $body->{'Content-Type'} || !$body->{'Content-Type'})) {
+            $body = {content => $body};
             $body->{'Content-Type'} = $return->{header}->{'Content-Type'}->{a}->[0];
         }
     }
-    if ( exists $return->{header}->{'Content-Transfer-Encoding'} && $return->{header}->{'Content-Transfer-Encoding'} && (!ref $body || ! exists $body->{'Content-Transfer-Encoding'} || ! $body->{'Content-Transfer-Encoding'})) {
-        if (! ref $body) {
-            $body={content => $body};
+    if (   exists $return->{header}->{'Content-Transfer-Encoding'}
+        && $return->{header}->{'Content-Transfer-Encoding'}
+        && (!ref $body || !exists $body->{'Content-Transfer-Encoding'} || !$body->{'Content-Transfer-Encoding'})) {
+        if (!ref $body) {
+            $body = {content => $body};
         }
         $body->{'Content-Transfer-Encoding'} = $return->{header}->{'Content-Transfer-Encoding'};
     }
-    if (! ref $body) {
+    if (!ref $body) {
         $return->{body} = $self->parameterify($body);
-    } else {
+    }
+    else {
         $return->{body} = $body;
     }
     $return = $self->hash_traverse(
