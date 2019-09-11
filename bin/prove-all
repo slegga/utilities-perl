@@ -46,7 +46,7 @@ while (my $item = readdir $dh) {
     my $r = Git::Repository->new( work_tree => $wd );
     $r->run( 'remote','update');
     my $output = $r->run( 'status' );
-    if ($output =~/On branch master\s*\nYour branch is up[-\s]to[-\s]date.+nothing to commit\, working tree clean/ms) {
+    if ($output =~/On branch \w+\s*\nYour branch is up[-\s]to[-\s]date.+nothing to commit\, working tree clean/ms) {
         $r->run( 'pull' );
         prove($wd);
         next;
