@@ -20,6 +20,17 @@ Check if git is in sync and test all repos
 
 =cut
 
+sub prove {
+		chdir shift;
+		my $success = 'Result: PASS';
+		my $prove   = `prove -l -Q`;
+
+		if ($prove =~ /$success/) {
+		    say $success;
+		} else {
+		    say $prove;
+		}
+ }
 
 my $gitdir = "$FindBin::Bin/../..";
 opendir (my $dh , $gitdir);
@@ -37,17 +48,13 @@ while (my $item = readdir $dh) {
     my $output = $r->run( 'status' );
     if ($output =~/On branch master\s*\nYour branch is up[-\s]to[-\s]date.+nothing to commit\, working tree clean/ms) {
         $r->run( 'pull' );
-		chdir $wd;
-		my $success = 'Result: PASS';
-		my $prove   = `prove -l -Q`;
-
-		if ($prove =~ /$success/) {
-		    say $success;
-		} else {
-		    say $prove;
-		}
+        prove($wd);
         next;
-
+    }
+    elsif ( $output =~ /Your branch is behind '[\w\/]+' by \d+ commits, and can be fast-forwarded./ms ) {
+        $r->run( 'pull' );
+        prove($wd);
+        next;
     }
     say $output;
 #    die "git repo is unclean.";
