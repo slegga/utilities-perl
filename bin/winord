@@ -34,7 +34,7 @@ has y_max => 0;
 has windows  => sub{ [] }; # ->[screen]->{windowname}->{attribute}
 
 option "info!", "Show windows info";
-
+option "split=s", 'Set number of windows';
 
 #
 #       SUBROUTINES
@@ -51,7 +51,7 @@ sub get_info {
 	my $self = shift;
 	die "I am not my self" if ! ref $self;
 	my $resraw = `wmctrl -d|grep '*'`;
-	my ($x_res,$y_res) = ($resraw=~/WA\:.+?(\d+)x(\d+)/);
+		my ($x_res,$y_res) = ($resraw=~/WA\:.+?(\d+)x(\d+)/);
 	$self->x_min(0);
 	$self->y_min(0);
 	$self->x_max($x_res);
@@ -60,16 +60,17 @@ sub get_info {
 #$y_res -= (36); # remove statusbar size
 	my @wmctrl = map{[split(/\s+/,$_,8)]} split(/\n/,`wmctrl -Gl`);
 #	@wmctrl = map {(split(/\s+/,$_,8))[7]} @wmctrl;
+	say Dumper \@wmctrl;
 #	print join("\n", $x_res,$y_res,@wmctrl);
 #	print "\n";
 	my @win;
 	for my $r (@wmctrl) {
 		next if $r->[1] == -1;
 #		next if $r->[1] != 0; #only work on primary screen
-		$win[$r->[1]]{$r->[7]} = {x_pos=>$r->[2], y_pos=>$r->[3]};
+		$win[$r->[1]]{$r->[0]} = {x_pos=>$r->[2], y_pos=>$r->[3]};
 	}
 #	my %win = map{'name',$_} @wmctrl;
-	$self->windows(\@win);
+		$self->windows(\@win);
 	return $self;
 }
 
@@ -149,10 +150,10 @@ sub do_resize {
 		while (my ($key,$value) = each %win) {
 			my $resize;
 			if (exists $value->{minimize} && $value->{minimize})	 {
-		        $resize = 'wmctrl -Fr "' . $key . '" -b add,hidden -b remove,sticky';
+		        $resize = 'wmctrl -i -r "' . $key . '" -b add,hidden -b remove,sticky';
 			} else {
 			    $resize =
-			      'wmctrl -Fr "'
+			      'wmctrl -i -r "'
 			        . $key
 			         . '" -b remove,above,fullscreen,sticky,maximized_vert,maximized_horz -e '. $i .','
 			         . $value->{x_pos} . ','
@@ -180,14 +181,17 @@ sub main {
 	for my $screen(@{$self->windows()}) {
 		my %win = %$screen;
 		my $num_win = keys %win;
+		if ($self->split and $self->split > 0) {
+			$num_win = $self->split;
+		}
 		if ($num_win == 2) {
 			my $i=0;
 			for my $key(sort keys %win) {
 
-				if ($i == 0) {
+				if (($i % $num_win) == 0) {
 					$win{$key}{x_pos} = $self->x_min;
 					$win{$key}{y_pos} = $self->y_min;
-				} elsif ($i == 1) {
+				} elsif (($i % $num_win) == 1) {
 					$win{$key}{x_pos} = int(($self->x_min + $self->x_max)/2);
 					$win{$key}{y_pos} = $self->y_min;
 
@@ -200,14 +204,14 @@ sub main {
 			my $i=0;
 			for my $key(sort keys %win) {
 
-				if ($i == 0) {
+				if (($i % $num_win) == 0) {
 					$win{$key}{x_pos} = $self->x_min;
 					$win{$key}{y_pos} = $self->y_min;
-				} elsif ($i == 1) {
+				} elsif (($i % $num_win) == 1) {
 					$win{$key}{x_pos} = int(($self->x_min + $self->x_max)/3);
 					$win{$key}{y_pos} = $self->y_min;
 
-				} elsif ($i == 2) {
+				} elsif (($i % $num_win) == 2) {
 					$win{$key}{x_pos} = 2 * int(($self->x_min + $self->x_max)/3);
 					$win{$key}{y_pos} = $self->y_min;
 
@@ -216,22 +220,22 @@ sub main {
 				$win{$key}{y_size} = ( $self->y_max - $self->y_min );
 				$i++;
 			}
-		} elsif ($num_win == 3) {
+		} elsif ($num_win == 4) {
 			my $i=0;
 			for my $key(sort keys %win) {
 
-				if ($i == 0) {
+				if (($i % $num_win) == 0) {
 					$win{$key}{x_pos} = $self->x_min;
 					$win{$key}{y_pos} = $self->y_min;
-				} elsif ($i == 1) {
+				} elsif (($i % $num_win) == 1) {
 					$win{$key}{x_pos} = int(($self->x_min + $self->x_max)/2);
 					$win{$key}{y_pos} = $self->y_min;
 
-				} elsif ($i == 2) {
+				} elsif (($i % $num_win) == 2) {
 					$win{$key}{x_pos} = 2 * int(($self->x_min + $self->x_max)/2);
 					$win{$key}{y_pos} = $self->y_min;
 
-				} elsif ($i == 3) {
+				} elsif (($i % $num_win) == 3) {
 					$win{$key}{x_pos} = 2 * int(($self->x_min + $self->x_max)/2);
 					$win{$key}{y_pos} = $self->y_min;
 
