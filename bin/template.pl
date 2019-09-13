@@ -23,7 +23,7 @@ This script is ment to be ran at det root of the git repo/project.
 
 Auto load modules in SH/CodeTemplate/Plugins.
 
-Try template.pl --templateshelp for more info.
+Try template.pl --helptemplate for more info.
 
 Planned templates:
 
