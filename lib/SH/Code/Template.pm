@@ -5,6 +5,8 @@ use Clone 'clone';
 use open ':encoding(UTF-8)';
 use utf8;
 use Encode;
+use Carp::Always;
+use Data::Printer;
 
 =encoding utf8
 
@@ -144,7 +146,8 @@ This methods should return 2 parameter array of array [['param','desc'],[p2,'d2'
 =cut
 
 sub optional_variables {
-    return;
+    my $self = shift;
+    return [];
 }
 
 =head2 get_missing_param
@@ -166,4 +169,24 @@ sub get_missing_param {
     }
     return  $params;
 }
+
+=head1 pad_optional_param
+
+=cut
+
+sub pad_optional_param {
+    my $self = shift;
+    my $params = clone shift;
+    p $self;
+    return  $params if ! @{$self->optional_variables};
+    for my $p (@{$self->optional_variables}) {
+        if (!exists $params->{$p->[0]}) {
+            say $p->[0] .': '. $p->[1];
+            print "$p->[0]: ";
+            $params->{$p->[0]} = undef;
+        }
+    }
+    return  $params;
+}
+
 1;
