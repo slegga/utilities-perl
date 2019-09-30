@@ -34,17 +34,17 @@ while (my $item = readdir $dh) {
 #To slow make a new script				print `prove -l -Q -m`;
         next;
 
-    } elsif ($output =~/Your branch is behind.+nothing to commit\, working tree clean/ms) {
+    } elsif ($output =~/Your branch is behind.+(nothing to commit\, working tree clean|and can be fast-forwarded)/ms) {
       $r->run( 'pull' );
       next;
     }
     $output =~ s/On branch master//;
     $output =~ s/Your branch is up to date with \'origin\/master\'\.//;
-    $output =~ s/nothing to commit, working tree clean//;
+    $output =~ s/[\#\s]*nothing to commit, working (tree|directory) clean//sm;
     $output =~ s/\n//gm;
     if (! $silence) {
     	print color('red');
-	    say $output;
+	    say $output if $output;
 	    print color('reset');
 	}
 }
