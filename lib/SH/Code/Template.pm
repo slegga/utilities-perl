@@ -170,7 +170,9 @@ sub get_missing_param {
     return  $params;
 }
 
-=head1 pad_optional_param
+=head2 pad_optional_param
+
+Set value to undef if value is not defined.
 
 =cut
 
