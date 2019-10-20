@@ -136,13 +136,25 @@ sub _req_value_hash {
 	    		die "error";
 	    	}
     	} else {
-    		if (ref $value eq 'HASH') {
-	    		$return .= ($opts->{indent_text} x $indent) . "\"$k\": " . _req_value_hash($value, $opts,$indent);
-	    	} elsif (ref $value eq 'ARRAY') {
-	    		$return .= ($opts->{indent_text} x $indent) . "\"$k\": " . _req_value_array($value, $opts,$indent);
-	    	} else {
-    	 		$return .= ($opts->{indent_text} x $indent) . "\"$k\": \"$value\"";
-	    	}
+            for (ref $value) {
+        		if ($_ eq 'HASH') {
+    	    		$return .= ($opts->{indent_text} x $indent) . "\"$k\": " . _req_value_hash($value, $opts,$indent);
+    	    	} elsif ($_ eq 'ARRAY') {
+    	    		$return .= ($opts->{indent_text} x $indent) . "\"$k\": " . _req_value_array($value, $opts,$indent);
+                } elsif ($_ eq 'SCALAR') {
+                    my $o = $$value;
+                    if ($o == 1) {
+                        $o = 'true';
+                    } else {
+                        $o = 'false';
+                    }
+                    $return .= ($opts->{indent_text} x $indent) . "\"$k\": " .$o;
+    	    	} elsif ($_ eq '') {
+        	 		$return .= ($opts->{indent_text} x $indent) . "\"$k\": \"$value\"";
+    	    	} else {
+                    ...;
+                }
+            }
     	}
 
     }
