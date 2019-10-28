@@ -13,6 +13,8 @@ use Mojo::File 'path';
 
 =head2 required_variables
 
+=head2 optional_variables
+
 =head2 generate
 
 =cut
@@ -25,6 +27,13 @@ sub required_variables {[
     ['name',                'basename of script with out extendedname'],
     ['shortdescription',    'One line description of script'],
 ]};
+
+
+
+sub optional_variables {[
+    ['configfile',                'If set add code for reading configfile as a yml file'],
+]};
+
 
 sub generate {
     my $self = shift;
@@ -66,7 +75,10 @@ use open ':encoding(UTF-8)';
 
 =cut
 
-has 'config';
+% if (stash(configfile)) {
+has configfile =>($ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/' <%= stash('configfile') %>;
+has config => sub {YAML::Tiny::LoadFile(shift->configfile)};
+% }
 option 'dryrun!', 'Print to screen instead of doing changes';
 
  sub main {
