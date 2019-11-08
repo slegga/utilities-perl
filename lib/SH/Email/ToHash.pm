@@ -326,7 +326,7 @@ sub extract_emailaddress {
     my $from = shift;
     return if !$from;
     die "Cant find email address" if !$from =~ /\@/;
-    if ($from =~ /\<([\w\.\_\-]+\@[\w\.\_\-]+)>/) {
+    if ($from =~ /\<([\w\.\_\-\+]+\@[\w\.\_\-]+)>/) {
         return $1;
     }
     return $from;
