@@ -78,8 +78,11 @@ sub msgtext2hash {
     #warn "###############################################################";
     # TODO: Handle multipart
     if (exists $return->{header}->{'Content-Type'}) {
-
-        if (exists $return->{header}->{'Content-Type'}->{a}
+		if (! ref $return->{header}->{'Content-Type'}) {
+			$body = {content => $body};
+			$body->{'Content-Type'} = $return->{header}->{'Content-Type'};
+		}
+        elsif (exists $return->{header}->{'Content-Type'}->{a}
             && $return->{header}->{'Content-Type'}->{a}->[0] =~ /^multipart/) {
             $body = $self->multipart($return->{header}->{'Content-Type'}, $body);    # split or extract body part.
         }
