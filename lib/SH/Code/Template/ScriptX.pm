@@ -42,7 +42,7 @@ sub generate {
 
     my $p = $self->get_missing_param(\%parameters);
     say join(':', values %$p);
-
+    $p->{configfile} =undef if ! exists $p->{configfile};
     $self->generate_file({path=>'bin', filename=>$p->{name}.'.pl', parameters=>$p, ts => data_section(__PACKAGE__, 'main.pl')}) or die "Did not make the file ". $p->{name}.'.pl';
 
     $p->{pathname}= "bin/".$p->{name}.'.pl';
@@ -74,10 +74,10 @@ use open ':encoding(UTF-8)';
 <DESCRIPTION>
 
 =cut
-
-% if (stash(configfile)) {
-has configfile =>($ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/' <%= stash('configfile') %>;
-has config => sub {YAML::Tiny::LoadFile(shift->configfile)};
+%
+% if ($configfile) {
+has configfile =>($ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/' <%= $configfile %>;
+has config => sub {YAML::Tiny::LoadFile($configfile};
 % }
 option 'dryrun!', 'Print to screen instead of doing changes';
 

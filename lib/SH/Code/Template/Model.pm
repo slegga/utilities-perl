@@ -1,0 +1,159 @@
+package SH::Code::Template::Model;
+use Mojo::Base 'SH::Code::Template';
+use Mojo::Template;
+use Mojo::Loader qw(data_section);
+use Data::Dumper;
+use Mojo::File 'path';
+
+=head1 METHODS
+
+=head2 name
+
+=head2 help_text
+
+=head2 required_variables
+
+=head2 optional_variables
+
+=head2 generate
+
+=cut
+
+
+sub name {'model'};
+sub help_text {'Generate file lib/Model/<Modelname>.pm and t/<Modelname>.t'};
+
+sub required_variables {[
+    ['name',                'basename of script with out extendedname'],
+    ['shortdescription',    'One line description of script'],
+]};
+
+
+
+sub optional_variables {[
+    ['configfile',             'If set add code for reading configfile as a yml file'],
+    ['sqlitefile',               'Name of SQLite file.'],
+]};
+
+
+sub generate {
+    my $self = shift;
+    my $main = shift;
+    my %parameters = map { $_, $main->{$_} } keys %$main;
+
+    my $p = $self->get_missing_param(\%parameters);
+    say join(':', values %$p);
+    $p->{configfile} =undef if ! exists $p->{configfile};
+    $self->generate_file({path=>'lib/Model', filename=>$p->{name}.'.pm', parameters=>$p, ts => data_section(__PACKAGE__, 'main.pm')})
+        or die "Did not make the file ". $p->{name}.'.pm';
+
+    $p->{pathname}= "lib/Model/".$p->{name}.'.pm';
+    $self->generate_file({path=>'t', filename=>$p->{name}.'.t', parameters=>$p, ts => data_section(__PACKAGE__, 'test.t')})
+        or die "Did not make the file ". $p->{name}.'.t';
+    path()->child('migrations')->make_path;
+}
+
+1;
+
+__DATA__
+
+@@main.pm
+package Model::<%= $name %>;
+use Mojo::Base -base, -signatures;
+use Mojo::SQLite;
+use open ':encoding(UTF-8)';
+
+
+
+
+=head1 NAME
+
+Model::<%= $name %>.pm - <%= $shortdescription %>
+
+=head1 DESCRIPTION
+
+<DESCRIPTION>
+
+=head1 ATTRIBUTES
+
+=head2 dbfile
+
+Name of dbfile
+
+=head2 sqlite
+
+Default to a new Mojo::SQLite object
+
+=head2 db
+
+Default to a new Mojo::SQLite::Database object
+
+=cut
+
+has dbfile => $ENV{HOME}.'/etc/<%= $name %>.db';
+has sqlite => sub {
+	my $self = shift;
+	if ( -f $self->dbfile) {
+		return Mojo::SQLite->new()->from_filename($self->dbfile);
+	} else {
+		my $path = path($self->dbfile)->dirname;
+		if (!-d "$path" ) {
+			$path->make_path;
+		}
+		return Mojo::SQLite->new("file:".$self->dbfile);
+	#	die "COULD NOT CREATE FILE ".$self->dbfile if ! -f $self->dbfile;
+	}
+
+};
+has db => sub {shift->sqlite->db};
+
+
+%
+% if ($configfile) {
+has configfile =>($ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/' <%= $configfile %>;
+has config => sub {YAML::Tiny::LoadFile($configfile};
+% }
+option 'dryrun!', 'Print to screen instead of doing changes';
+
+=head1 METHODS
+
+=head2 read
+
+...
+
+=cut
+
+sub read {
+    my $self = shift;
+    my $res = $self->db->query(q|select a, b from c|);
+    die $res->stderr if ($res->err);
+}
+
+sub write {
+    my $self = shift;
+    my $hash =shift;
+    my @keys = keys %$hash;
+    my @values = values %$hash;
+    my $res = $self->db->query('replace into c('.join(',',@keys).')', @values);
+    die $res->stderr if ($res->err);
+}
+
+
+__PACKAGE__->new(options_cfg=>{extra=>1})->main();
+
+@@test.t
+use Mojo::Base -strict;
+use Test::More;
+use FindBin;
+use lib "$FindBin::Bin/../../utilities-perl/lib";
+use SH::UseLib;
+use Mojo::File 'path';
+
+# <%= $name %>.pm - <%= $shortdescription %>
+
+use Model::<%= $name %>;
+
+unlike(path('<%= $pathname %>')->slurp, qr{\<[A-Z]+\>},'All placeholders are changed');
+my $m  = Model::<%= $name %>->new(debug=>1);
+is_deeply($m->read('a'), {x=>'y'}, 'output is ok')$
+done_testing;
