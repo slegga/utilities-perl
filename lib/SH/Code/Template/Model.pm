@@ -43,7 +43,7 @@ sub generate {
 
     my $p = $self->get_missing_param(\%parameters);
     say join(':', values %$p);
-    $p->{configfile} =undef if ! exists $p->{configfile};
+	$p = $self->pad_optional_param($p);
     $self->generate_file({path=>'lib/Model', filename=>$p->{name}.'.pm', parameters=>$p, ts => data_section(__PACKAGE__, 'main.pm')})
         or die "Did not make the file ". $p->{name}.'.pm';
 

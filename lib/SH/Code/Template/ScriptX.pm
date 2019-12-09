@@ -42,7 +42,7 @@ sub generate {
 
     my $p = $self->get_missing_param(\%parameters);
     say join(':', values %$p);
-    $p->{configfile} =undef if ! exists $p->{configfile};
+    $p = $self->pad_optional_param($p);
     $self->generate_file({path=>'bin', filename=>$p->{name}.'.pl', parameters=>$p, ts => data_section(__PACKAGE__, 'main.pl')}) or die "Did not make the file ". $p->{name}.'.pl';
 
     $p->{pathname}= "bin/".$p->{name}.'.pl';
