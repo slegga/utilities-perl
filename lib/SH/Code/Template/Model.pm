@@ -5,7 +5,7 @@ use Mojo::Loader qw(data_section);
 use Data::Dumper;
 use Mojo::File 'path';
 
-=head1 METHODS
+=head1 METHOD
 
 =head2 name
 
@@ -152,8 +152,18 @@ use Mojo::File 'path';
 # <%= $name %>.pm - <%= $shortdescription %>
 
 use Model::<%= $name %>;
-
+% if ($mysql) {
+use File::Temp;
+my $tempdir = File::Temp->newdir; # Deleted when object goes out of scope
+my $tempfile = catfile $tempdir, 'test.db';
+my $sql = Mojo::SQLite->new->from_filename($tempfile);
+$sql->migrations->from_file('migrations/tabledefs.sql')->migrate;
+% }
 unlike(path('<%= $pathname %>')->slurp, qr{\<[A-Z]+\>},'All placeholders are changed');
 my $m  = Model::<%= $name %>->new(debug=>1);
 is_deeply($m->read('a'), {x=>'y'}, 'output is ok')$
 done_testing;
+
+@@tabledefs.sql
+## sqllite migrations
+##TOTO
