@@ -146,6 +146,7 @@ sub do_resize {
 	my $self = shift;
 	my $i =0;
 	for my $screen(@{$self->windows()}) {
+		next if !$screen;
 		my %win = %$screen;
 		while (my ($key,$value) = each %win) {
 			my $resize;
@@ -179,6 +180,7 @@ sub main {
 	#go thru all windows and set tmp size
 	my @screens;
 	for my $screen(@{$self->windows()}) {
+		next if ! $screen;
 		my %win = %$screen;
 		my $num_win = keys %win;
 		if ($self->split and $self->split > 0) {
