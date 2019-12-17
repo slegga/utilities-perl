@@ -47,6 +47,10 @@ sub generate {
 
     $p->{pathname}= "bin/".$p->{name}.'.pl';
     $self->generate_file({path=>'t', filename=>$p->{name}.'.t', parameters=>$p, ts => data_section(__PACKAGE__, 'test.t')}) or die "Did not make the file ". $p->{name}.'.t';
+	if ($p->{sqlitefile} && ! -e 'migrations/tabledef.sql')  {
+		$self->generate_file({path=>'migrations', filename=>'tabledef.sql', parameters=>$p, ts => data_section(__PACKAGE__, 'tabledef.sql')})
+		        or die "Did not make the file migrations/tabledef.sql";
+	}
 }
 
 1;
@@ -106,3 +110,17 @@ my $t = Test::ScriptX->new('bin/<%= $name %>.pl', debug=>1);
 $t->run(help=>1);
 $t->stderr_ok->stdout_like(qr{<%= $name%>});
 done_testing;
+
+@@tabledefs.sql
+## sqllite migrations
+-- 1 up
+create table messages (message text);
+insert into messages values ('I ♥ Mojolicious!');
+-- 1 down
+drop table messages;
+
+-- 2 up (...you can comment freely here...)
+create table stuff (whatever integer);
+-- 2 down
+drop table stuff;
+
