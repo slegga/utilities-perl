@@ -59,7 +59,7 @@ has config =>sub {
 
  sub main {
     my $self = shift;
-    my @e = $self->extra_options;
+    my @e = @{ $self->extra_options };
 
     if (@e) {
         while (@e) {

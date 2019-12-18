@@ -87,7 +87,7 @@ option 'dryrun!', 'Print to screen instead of doing changes';
 
  sub main {
     my $self = shift;
-    my @e = $self->extra_options;
+    my @e = @{ $self->extra_options };
 }
 
 __PACKAGE__->new(options_cfg=>{extra=>1})->main();

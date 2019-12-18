@@ -49,15 +49,17 @@ This is an alternative to Applify and SH::Script
 This module makes it easy to document input parameters. And script --help will show
 all of the documentation.
 
-Script as Module makes it easy to test and manipulate in a test script.
+This  module makes it easy to test and manipulate scripts with tests.
 
 =head2 Reason for this module
 
-I like to debug.
+Easy to test and write useful tests. Easy to manipulate the test object while simulate running of scripts using this module.
 
-Anonymous subroutines which you have to use in Applify can not be debugged in the tools I have seen so far.
+I like to debug. It is easier to debug than Applify but not as easy as with plain perl.
 
-I like to se the main code when I open a script and not just a wrapper/proxy for a main script module.
+Anonymous subroutines which you have to use in Applify is hard to debug in the tools I have seen so far.
+
+I like to see the main code when I open a script and not just a tiny wrapper/proxy for a main script module.
 
 =head1 TODO
 
@@ -67,7 +69,16 @@ Show an example of a test to show where script as module really shines.
 
 #our $_options_values = {}; #needed by exported option
 my $_options=[];
-my @_extra_options=();
+
+=head1 ATTRIBUTES
+
+=head2 extra_options
+
+Container in the form of an array ref where unexpected options is placed.
+
+=cut
+
+has extra_options=>sub {[]};
 
 =head1 EXPORTED FUNCTIONS
 
@@ -118,20 +129,6 @@ sub option {
 
 =head1 METHODS
 
-
-=head2 with_options
-
-Deprecated.
-
-=cut
-
-sub with_options {
-    my $self = shift;
-    die "OPTIONS NOT READ" if @_;
-    warn "Method with_options is deprecated ".caller();
-    return $self;
-}
-
 =head2 new
 
 Takes key,value,key, value
@@ -170,10 +167,10 @@ sub new {
 
 
 	if (@ARGV) {
-		@_extra_options = @ARGV;
+		$self->extra_options([@ARGV]);
 
 		if (! defined $options_cfg || ! exists $options_cfg->{extra} || ! $options_cfg->{extra} ) {
-	        say "Unexpected arguments from commandline ". join(', ', @_extra_options);
+	        say "Unexpected arguments from commandline ". join(', ', @{$self->extra_options});
 	        return $self->usage;
 		}
 	}
@@ -218,16 +215,6 @@ sub new {
     return $self;
 }
 
-=head2 extra_options
-
-Return unexpected arguments from commandline.
-
-=cut
-
-sub extra_options {
-	my $self = shift;
-	return @_extra_options;
-}
 
 =head2 usage
 
