@@ -31,7 +31,7 @@ Planned templates:
 
 =item scriptx - generate script in bin catalog and a testfile
 
-=item mojoobject - standard module. and a test file.
+=item model   - standard module. and a test file.
 
 =item gitrepo - generate standard test files, catalog structures, info etc.
 

@@ -109,9 +109,13 @@ sub generate_file {
     my $mt = Mojo::Template->new(vars=>1);
     my $out = $mt->render( $input->{ts}, $input->{parameters} );
     my $pa =path( $input->{path} );
-    if (!$self->force && ! -d "$pa") {
-        die "Path $pa must exists from current path. Bail out!";
-    }
+    if (! -d "$pa") {
+	    if ($self->force) {
+	    	$pa->make_path;
+	    } else {
+	        die "Path $pa must exists from current path or use options --force. Bail out!";
+	    }
+	}
     my $fi = $pa->child($input->{filename});
     if (! $self->force && -e "$fi") {
         die "$fi exists! Bail out!";
