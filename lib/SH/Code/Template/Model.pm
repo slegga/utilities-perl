@@ -117,7 +117,6 @@ has db => sub {shift->sqlite->db};
 has configfile =>($ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/' <%= $configfile %>;
 has config => sub {YAML::Tiny::LoadFile($configfile};
 % }
-option 'dryrun!', 'Print to screen instead of doing changes';
 
 =head1 METHODS
 
@@ -141,9 +140,7 @@ sub write {
     my $res = $self->db->query('replace into c('.join(',',@keys).')', @values);
     die $res->stderr if ($res->err);
 }
-
-
-__PACKAGE__->new(options_cfg=>{extra=>1})->main();
+1;
 
 @@test.t
 use Mojo::Base -strict;
@@ -156,7 +153,7 @@ use Mojo::File 'path';
 # <%= $name %>.pm - <%= $shortdescription %>
 
 use Model::<%= $name %>;
-% if ($mysql) {
+% if ( $sqlitefile ) {
 use File::Temp;
 my $tempdir = File::Temp->newdir; # Deleted when object goes out of scope
 my $tempfile = catfile $tempdir, 'test.db';
@@ -165,7 +162,7 @@ $sql->migrations->from_file('migrations/tabledefs.sql')->migrate;
 % }
 unlike(path('<%= $pathname %>')->slurp, qr{\<[A-Z]+\>},'All placeholders are changed');
 my $m  = Model::<%= $name %>->new(debug=>1);
-is_deeply($m->read('a'), {x=>'y'}, 'output is ok')$
+is_deeply($m->read('a'), {x=>'y'}, 'output is ok');
 done_testing;
 
 @@tabledefs.sql

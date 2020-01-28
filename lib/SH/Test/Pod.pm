@@ -496,7 +496,7 @@ sub _nms_check_pod {
         if (ref $item eq 'ARRAY') {
             if ($item->[0] eq 'head1') {
                 $head1 = $item->[2];
-                _print_fail("$podfile: Header exists $head1") if exists $pod_hr->{$head1};
+                _print_fail("$podfile:Duplicate. Header exists $head1") if exists $pod_hr->{$head1};
                  push @act_order, $head1;
             }
             else {
