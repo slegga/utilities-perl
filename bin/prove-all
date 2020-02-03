@@ -23,7 +23,7 @@ Check if git is in sync and test all repos
 sub prove {
 		chdir shift;
 		my $success = 'Result: PASS';
-		my $prove   = `prove -l -Q`;
+		my $prove   = `prove -l -Q 2>1&`;
 
 		if ($prove =~ /$success/) {
 		    say $success;
