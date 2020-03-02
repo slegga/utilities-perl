@@ -60,8 +60,19 @@ __DATA__
 @@main.pl
 #!/usr/bin/env perl
 
-use FindBin;
-use lib "$FindBin::Bin/../../utilities-perl/lib";
+my $lib;
+BEGIN {
+    my $gitdir = Mojo::File->curfile;
+    my @cats = @$gitdir;
+    while (my $cd = pop @cats) {
+        if ($cd eq 'git') {
+            $gitdir = path(@cats,'git');
+            last;
+        }
+    }
+    $lib =  $gitdir->child('utilities-perl','lib')->to_string;
+};
+use lib $lib;
 use SH::UseLib;
 use SH::ScriptX;
 use Mojo::Base 'SH::ScriptX';
@@ -95,15 +106,27 @@ __PACKAGE__->new(options_cfg=>{extra=>1})->main();
 @@test.t
 use Mojo::Base -strict;
 use Test::More;
-use FindBin;
-use lib "$FindBin::Bin/../../utilities-perl/lib";
-use SH::UseLib;
 use Mojo::File 'path';
 
-# <%= $name %>.pl - <%= $shortdescription %>
+my $lib;
+BEGIN {
+    my $gitdir = Mojo::File->curfile;
+    my @cats = @$gitdir;
+    while (my $cd = pop @cats) {
+        if ($cd eq 'git') {
+            $gitdir = path(@cats,'git');
+            last;
+        }
+    }
+    $lib =  $gitdir->child('utilities-perl','lib')->to_string;
+};
+use lib $lib;
 
+use SH::UseLib;
 use Test::ScriptX;
 
+
+# <%= $name %>.pl - <%= $shortdescription %>
 
 unlike(path('<%= $pathname %>')->slurp, qr{\<[A-Z]+\>},'All placeholders are changed');
 my $t = Test::ScriptX->new('bin/<%= $name %>.pl', debug=>1);
