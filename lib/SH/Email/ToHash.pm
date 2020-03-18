@@ -122,6 +122,9 @@ sub msgtext2hash {
             elsif (defined $k && $k eq 'body' && exists $v->{'Content-Type'} && $v->{'Content-Type'}) {
                 if (ref $v->{'Content-Type'} eq 'HASH' && $v->{'Content-Type'}->{a}->[0] =~ /^multipart/i) {
                     $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body});
+                } elsif ($v->{'Content-Type'} =~ /^multipart/i) {
+                	#warn $v->{'Content-Type'};
+                    $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body});
                 }
                 else {
                     if ($v->{'Content-Transfer-Encoding'}) {
