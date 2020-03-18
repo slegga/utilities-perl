@@ -120,7 +120,7 @@ sub msgtext2hash {
                 return ($v, 'next');
             }
             elsif (defined $k && $k eq 'body' && exists $v->{'Content-Type'} && $v->{'Content-Type'}) {
-                if (ref $v->{'Content-Type'} eq 'HASH' && $v->{'Content-Type'}->{a}->[0] =~ /^multipart/) {
+                if (ref $v->{'Content-Type'} eq 'HASH' && $v->{'Content-Type'}->{a}->[0] =~ /^multipart/i) {
                     $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body});
                 }
                 else {
