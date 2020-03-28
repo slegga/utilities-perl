@@ -53,8 +53,8 @@ sub usage {
 print "backup.pl [-sjekk][-debug][-nocopy] *.tc\n\n";
 print"Husk og koble til flyttbar og minnepenn. Og pass på at de er mounted\n";
 print "For vanlig backup: \n";
-print "sudo su;cd /home/stein/Backup \n";
-print "clear;/home/stein/bin/backup.pl *.tc\n";
+print "sudo su;cd $ENV{HOME}/Backup \n";
+print "clear;$ENV{HOME}/bin/backup.pl *.tc\n";
 print "For korttids backup av arbeidsdokumenter: clear;backup.pl *.tct\n";
 print "\nFor å etablere ny fil. Gjør følgende\n";
 print "1. Lag en truecrypt fil på Backup området med passe med plass og passende navn. La den hete .tc på slutten\n";
