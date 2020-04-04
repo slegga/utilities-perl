@@ -31,7 +31,8 @@ sub required_variables {[
 
 
 sub optional_variables {[
-    ['configfile',                'If set add code for reading configfile as a yml file'],
+    ['configfile',          'If set add code for reading configfile as a yml file'],
+    ['sqlitefile',          'Generate a script with sqlite support'],
 ]};
 
 
@@ -60,6 +61,8 @@ __DATA__
 @@main.pl
 #!/usr/bin/env perl
 
+use Mojo::File 'path';
+
 my $lib;
 BEGIN {
     my $gitdir = Mojo::File->curfile;
@@ -78,7 +81,13 @@ use SH::ScriptX;
 use Mojo::Base 'SH::ScriptX';
 use utf8;
 use open ':encoding(UTF-8)';
+% if ($configfile) {
+use  YAML::Tiny;
+}
+
 #use Carp::Always;
+
+=encoding utf8
 
 =head1 NAME
 
@@ -92,11 +101,11 @@ use open ':encoding(UTF-8)';
 %
 % if ($configfile) {
 has configfile =>($ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/' <%= $configfile %>;
-has config => sub {YAML::Tiny::LoadFile($configfile};
+has config => sub { YAML::Tiny::LoadFile($configfile) };
 % }
 option 'dryrun!', 'Print to screen instead of doing changes';
 
- sub main {
+sub main {
     my $self = shift;
     my @e = @{ $self->extra_options };
 }
