@@ -111,6 +111,11 @@ sub generate_file {
     die "Missing ts" if ! exists $input->{ts} || ! $input->{ts};
     my $mt = Mojo::Template->new(vars=>1);
     my $out = $mt->render( $input->{ts}, $input->{parameters} );
+    if ($out =~/line \d+/) {
+        warn $input->{ts};
+        die $out;
+    }
+
     my $pa =path( $input->{path} );
     if (! -d "$pa") {
 	    if ($self->force) {

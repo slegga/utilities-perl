@@ -82,7 +82,7 @@ use utf8;
 use open ':encoding(UTF-8)';
 % if ($configfile) {
 use  YAML::Tiny;
-}
+% }
 
 #use Carp::Always;
 
@@ -154,4 +154,3 @@ drop table messages;
 create table stuff (whatever integer);
 -- 2 down
 drop table stuff;
-
