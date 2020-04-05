@@ -63,7 +63,9 @@ has config =>sub {
 
     if (@e) {
         while (@e) {
-            my ($key, $value) =(shift(@e), shift(@e));
+            my $key =   shift(@e);
+            my $value = shift(@e);
+            die "Invalid value $value. Cant start with --" if $value =~/^--/;
             if ($key =~ /^\-\-\w+$/) {
                 $key =~ s/^\-\-//;
                 $self->{$key} = $value;

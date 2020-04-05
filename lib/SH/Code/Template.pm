@@ -81,6 +81,8 @@ sub generate {
     die "Missing generate method for module ". ref $self;
 }
 
+
+
 =head2  generate_file
 
 Generate wished file based on input. Fi le must not exists else an error will be shown.
@@ -106,6 +108,7 @@ sub generate_file {
     my $input = shift;
     die "Missing path" if ! exists $input->{path};
     die "Missing filename" if ! exists $input->{filename};
+    die "Missing ts" if ! exists $input->{ts} || ! $input->{ts};
     my $mt = Mojo::Template->new(vars=>1);
     my $out = $mt->render( $input->{ts}, $input->{parameters} );
     my $pa =path( $input->{path} );
@@ -194,5 +197,20 @@ sub pad_optional_param {
     }
     return  $params;
 }
+
+=head2 xdata_section
+
+Call Mojop::Loader::data_section
+Check input output
+
+=cut
+
+sub xdata_section {
+    my $self = shift;
+    my $return = Mojo::Loader::data_section(@_);
+    die "Cant find datasection for ".join(', ', @_) if ! $return;
+    return $return;
+}
+
 
 1;

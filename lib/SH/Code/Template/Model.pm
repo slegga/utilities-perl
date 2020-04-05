@@ -1,7 +1,7 @@
 package SH::Code::Template::Model;
 use Mojo::Base 'SH::Code::Template';
 use Mojo::Template;
-use Mojo::Loader qw(data_section);
+use Mojo::Loader;
 use Data::Dumper;
 use Mojo::File 'path';
 
@@ -27,8 +27,6 @@ sub required_variables {[
     ['name',                'basename of script with out extendedname'],
     ['shortdescription',    'One line description of script'],
 ]};
-
-
 
 sub optional_variables {[
     ['configfile',             'If set add code for reading configfile as a yml file'],

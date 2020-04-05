@@ -1,7 +1,6 @@
 package SH::Code::Template::ScriptX;
 use Mojo::Base 'SH::Code::Template';
 use Mojo::Template;
-use Mojo::Loader qw(data_section);
 use Data::Dumper;
 use Mojo::File 'path';
 
@@ -44,12 +43,12 @@ sub generate {
     my $p = $self->get_missing_param(\%parameters);
     say join(':', values %$p);
     $p = $self->pad_optional_param($p);
-    $self->generate_file({path=>'bin', filename=>$p->{name}.'.pl', parameters=>$p, ts => data_section(__PACKAGE__, 'main.pl')}) or die "Did not make the file ". $p->{name}.'.pl';
+    $self->generate_file({path=>'bin', filename=>$p->{name}.'.pl', parameters=>$p, ts => $self->xdata_section(__PACKAGE__, 'main.pl')}) or die "Did not make the file ". $p->{name}.'.pl';
 
     $p->{pathname}= "bin/".$p->{name}.'.pl';
-    $self->generate_file({path=>'t', filename=>$p->{name}.'.t', parameters=>$p, ts => data_section(__PACKAGE__, 'test.t')}) or die "Did not make the file ". $p->{name}.'.t';
+    $self->generate_file({path=>'t', filename=>$p->{name}.'.t', parameters=>$p, ts => $self->xdata_section(__PACKAGE__, 'test.t')}) or die "Did not make the file ". $p->{name}.'.t';
 	if ($p->{sqlitefile} && ! -e 'migrations/tabledef.sql')  {
-		$self->generate_file({path=>'migrations', filename=>'tabledef.sql', parameters=>$p, ts => data_section(__PACKAGE__, 'tabledef.sql')})
+		$self->generate_file({path=>'migrations', filename=>'tabledefs.sql', parameters=>$p, ts => $self->xdata_section(__PACKAGE__, 'tabledefs.sql')})
 		        or die "Did not make the file migrations/tabledef.sql";
 	}
 }
@@ -98,9 +97,9 @@ use  YAML::Tiny;
 <DESCRIPTION>
 
 =cut
-%
+
 % if ($configfile) {
-has configfile =>($ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/' <%= $configfile %>;
+has configfile =>($ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/<%= $configfile %>.yml';
 has config => sub { YAML::Tiny::LoadFile($configfile) };
 % }
 option 'dryrun!', 'Print to screen instead of doing changes';
