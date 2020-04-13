@@ -5,7 +5,7 @@ use List::MoreUtils 'first_index';
 use Data::Dumper;
 use JSON;
 use Clone  'clone';
-
+use List::MoreUtils qw(first_index);
 =head1 NAME
 
 SH::PrettyPrint
@@ -38,7 +38,19 @@ Print this with header and rows.
 
 sub print_hashes {
 	my $ahr = shift;
+	my $options=shift;
 	my @keys = sort keys %{$ahr->[0]};
+
+	if (ref $options) {
+	    if (exists $options->{columns}) {
+	        my @t = @{$options->{columns} };
+	        for my $t(@t) {
+	            my $x = first_index {$t eq $_} @keys;
+	            splice(@keys, $x, 1) or die "splice [".@keys."],$x,1";
+	        }
+	        unshift @keys,@t;
+	    }
+	}
 
 	# Calculate size
 
