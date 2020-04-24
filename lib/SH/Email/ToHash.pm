@@ -152,6 +152,9 @@ sub msgtext2hash {
                     elsif (ref $v->{'Content-Type'} && uc $v->{'Content-Type'}->{h}->{charset} eq 'UTF-8') {
                         $v->{content} = decode('UTF-8', $v->{content});
                     }
+                    elsif (! ref $v->{'Content-Type'} && $v->{'Content-Type'} =~ /^multipart/i) {
+                        $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body});
+                    }
                     elsif (!grep { lc $v->{'Content-Type'}->{a}->[0] eq $_ } (qw|text/plain text/html|)) {
                         warn "Unknown Content-Type: " . Dumper $v->{'Content-Type'};    #$v->{'Content-Type'}->{a}->[0];
                     }
