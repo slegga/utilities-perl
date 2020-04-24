@@ -148,7 +148,11 @@ sub msgtext2hash {
                         $v->{content} = decode('UTF-8', $v->{content});
                     }
                     elsif (! ref $v->{'Content-Type'} && $v->{'Content-Type'} =~ /^multipart/i) {
-                        $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body});
+#                        if ($type->{a}->[0] !~ /^multipart/) {
+ #                       if (!exists $type->{h}->{boundary}) {
+                        my $fake_type = clone $v;
+                        $fake_type->{a} =[$v->{'Content-Type'}];
+                        $v->{content} = $self->multipart($fake_type, $v->{body});
                     }
                     elsif (!ref $v->{'Content-Type'}) {
                         if (!grep { $v->{'Content-Type'} eq $_ } (qw|text/plain text/html|)) {
@@ -369,7 +373,7 @@ die not handled
 sub multipart {
     my ($self, $type, $body) = @_;
     my $return;
-    die "Content-Type is not referanse" if ref $type ne 'HASH';
+    die "Content-Type is not referanse $type\n" if ref $type ne 'HASH';
     if ($type->{a}->[0] !~ /^multipart/) {
         die "Content-Type not like multipart";
     }
