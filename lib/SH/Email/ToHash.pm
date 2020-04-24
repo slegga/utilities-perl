@@ -374,8 +374,8 @@ sub multipart {
     my ($self, $type, $body) = @_;
     my $return;
     die "Content-Type is not referanse $type\n" if ref $type ne 'HASH';
-    if ($type->{a}->[0] !~ /^multipart/) {
-        die "Content-Type not like multipart";
+    if ($type->{a}->[0] !~ /^multipart/i) {
+        die "Content-Type not like multipart\n".Dumper $type;
     }
 
     if (!exists $type->{h}->{boundary}) {
