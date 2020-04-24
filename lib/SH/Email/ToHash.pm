@@ -144,16 +144,16 @@ sub msgtext2hash {
                             warn "Unknown Content-Transfer-Encoding: " . $v->{'Content-Transfer-Encoding'};
                         }
                     }
-                    elsif (!ref $v->{'Content-Type'}) {
-                        if (!grep { $v->{'Content-Type'} eq $_ } (qw|text/plain text/html|)) {
-                            warn "Unknown simple Content-Type: " . $v->{'Content-Type'};
-                        }
-                    }
                     elsif (ref $v->{'Content-Type'} && uc $v->{'Content-Type'}->{h}->{charset} eq 'UTF-8') {
                         $v->{content} = decode('UTF-8', $v->{content});
                     }
                     elsif (! ref $v->{'Content-Type'} && $v->{'Content-Type'} =~ /^multipart/i) {
                         $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body});
+                    }
+                    elsif (!ref $v->{'Content-Type'}) {
+                        if (!grep { $v->{'Content-Type'} eq $_ } (qw|text/plain text/html|)) {
+                            warn "Unknown simple Content-Type: " . $v->{'Content-Type'};
+                        }
                     }
                     elsif (!grep { lc $v->{'Content-Type'}->{a}->[0] eq $_ } (qw|text/plain text/html|)) {
                         warn "Unknown Content-Type: " . Dumper $v->{'Content-Type'};    #$v->{'Content-Type'}->{a}->[0];
