@@ -380,6 +380,7 @@ sub multipart {
 
     if (!exists $type->{h}->{boundary}) {
         p $body;
+        say '';
         p $type;
         die "Missing boundary in Content-Type";
     }
