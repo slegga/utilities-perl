@@ -36,5 +36,5 @@ X-Source-IP: 208.72.90.123
 X-Scanned-By: MIMEDefang 2.78
 END_MESSAGE
 
-die Dumper $x->parameterify($txt);
+#die Dumper $x->parameterify($txt);
 is_deeply ($x->parameterify($txt), {});

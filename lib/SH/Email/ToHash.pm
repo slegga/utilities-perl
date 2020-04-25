@@ -388,9 +388,10 @@ sub multipart {
     }
 
     my $boundary = $type->{h}->{boundary};
-    if (   $type->{a}->[0] eq 'multipart/alternative'
-        || $type->{a}->[0] eq 'multipart/mixed'
-        || $type->{a}->[0] eq 'multipart/related') {
+    my $tmptype = lc($type->{a}->[0]);
+    if (   $tmptype eq 'multipart/alternative'
+        || $tmptype eq 'multipart/mixed'
+        || $tmptype eq 'multipart/related') {
 
         #choose first which is usually easy to traverse
         return if !$body;
@@ -404,15 +405,15 @@ sub multipart {
         }
         return $body;
     }
-    elsif ($type->{a}->[0] eq 'multipart/report') {
+    elsif ($tmptype eq 'multipart/report') {
 
         # ignore it for now
         return;
     }
-    elsif ($type->{a}->[0] eq 'multipart/digest') {
+    elsif ($tmptype eq 'multipart/digest') {
         ...;
     }
-    elsif ($type->{a}->[0] eq 'multipart/parallel') {
+    elsif ($tmptype eq 'multipart/parallel') {
         ...;
     }
     else {
