@@ -89,7 +89,7 @@ sub msgtext2hash {
         elsif ($return->{header}->{'Content-Type'}->{a}->[0]
             && (!ref $body || !exists $body->{'Content-Type'} || !$body->{'Content-Type'})) {
             $body = {content => $body};
-            $body->{'Content-Type'} = $return->{header}->{'Content-Type'}->{a}->[0];
+            $body->{'Content-Type'} = $return->{header}->{'Content-Type'};
         }
     }
     if (   exists $return->{header}->{'Content-Transfer-Encoding'}
