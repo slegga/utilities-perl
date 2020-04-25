@@ -4,50 +4,36 @@ use SH::Email::ToHash;
 use Data::Dumper;
 my $x = SH::Email::ToHash->new;
 my $txt = <<'END_MESSAGE';
-From root  Sat Feb 29 18:25:00 2020
-Return-Path: <delivery_20200229172453.5e5a9e65773f844fc139bcbf@bounce.letsdeal.no>
+From root  Sun Mar 15 09:32:20 2020
+Return-Path: <norwegian@mailgb.custhelp.com>
 Received: from nmspam3.e.nsc.no (nmspam3.e.nsc.no [148.123.163.134])
-	by nmmx9.nsc.no (8.15.2/8.15.2) with ESMTPS id 01THOvPS064344
+	by nmmx5.nsc.no (8.15.2/8.15.2) with ESMTPS id 02F8WHIu035184
 	(version=TLSv1.2 cipher=DHE-RSA-AES256-SHA256 bits=256 verify=NOT)
-	for <steihamm@online.no>; Sat, 29 Feb 2020 18:25:00 +0100
-Received: from nj2mta-116.sailthru.com (nj2mta-116.sailthru.com [204.153.121.116])
-	by nmspam3.e.nsc.no  with ESMTP id 01THOrCl018126-01THOrCm018126
-	for <steihamm@online.no>; Sat, 29 Feb 2020 18:24:57 +0100
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; s=sailthru; d=letsdeal.no;
- h=Date:From:To:Message-ID:Subject:MIME-Version:Content-Type:List-Unsubscribe; i=notice@letsdeal.no;
- bh=/fFYP26yDE+A4iYCt5JKxleZIJw=;
- b=uEG87uSrvncKN7ILtnPGGv6kaClqdn+GYrn6mV3vnvrj9A3NYMN0iL32nPmQXL+8loDTKYLdiq4i
-   mAppod9jE3rZAJsYvsV5GVwEwET1wdxvl6fBhH8ccQnEZnh5fdG+Iaxh7xXQftwFu7vgJC/HD1fV
-   itkRzw4QC8HS8kSwyx4=
-Received: from nj1-ownlumber.flt (172.18.20.23) by nj2mta-116.sailthru.com id hbaf6i1qqbst for <steihamm@online.no>; Sat, 29 Feb 2020 12:24:53 -0500 (envelope-from <delivery_20200229172453.5e5a9e65773f844fc139bcbf@bounce.letsdeal.no>)
-Date: Sat, 29 Feb 2020 17:24:53 +0000 (UTC)
-From: "Let's deal" <notice@letsdeal.no>
+	for <steihamm@online.no>; Sun, 15 Mar 2020 09:32:20 +0100
+Received: from mailgwgb03.rightnowtech.com (mailgwgb03.rightnowtech.com [208.72.90.123])
+	by nmspam3.e.nsc.no  with ESMTP id 02F8WDM2015002-02F8WDM4015002
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NO)
+	for <steihamm@online.no>; Sun, 15 Mar 2020 09:32:16 +0100
+Received: from access-gb.rightnowtech.com (10.80.0.83) by mailgwgb04.rightnowtech.com id hdnk102lr20g for <steihamm@online.no>; Sun, 15 Mar 2020 08:32:13 +0000 (envelope-from <norwegian@mailgb.custhelp.com>)
+Received: from webgb20.int.rightnowtech.com (localhost [127.0.0.1])
+	by access-gb.rightnowtech.com ("Mail Server") with SMTP id F1550EA03E
+	for <steihamm@online.no>; Sun, 15 Mar 2020 08:32:12 +0000 (GMT)
+Content-Type: Multipart/Alternative;
+  boundary="------------Boundary-00=_OP78VA40000000000000"
+From: "Norwegian Customer Relations"
+    <customer.relations@norwegian.com>
+Reply-To: "Norwegian Customer Relations"
+    <customer.relations@norwegian.com>
 To: steihamm@online.no
-Message-ID: <20200229172453.5e5a9e65773f844fc139bcbf@sailthru.com>
-Subject: Takk for din bestilling (ordre 27166529)
+Date: Sun, 15 Mar 2020 09:32:12 +0100 (CET)
+Subject: Cancelled flight claim for booking reference MJGH76 - Flight  DY1817 LPA-OSL 24.02.20 [Incident: 200307-001033]
 MIME-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_Part_1369523_35859008.1582997093656"
-X-Virtual-Mta: sharedpool-trans
-x-job: 4249-transactional-20200229
-X-TM-ID: 20200229172453.5e5a9e65773f844fc139bcbf
-X-Sail-Id: 4249.5239044.28700238
-X-Info: Message sent by sailthru.com customer Lets Deal AB (letsdeal.no)
-X-Info: We do not permit unsolicited commercial email
-X-Info: Please report abuse by forwarding complete headers to
-X-Info: abuse@sailthru.com
-X-Mailer: sailthru.com
-X-JMailer: nj1-ownlumber.flt
-X-Unsubscribe-Web: https://link.letsdeal.no/oc/51dd6f1d191b2a646debb1dd5e5a9e65773f844fc139bcbf/22f18734
-List-Unsubscribe: <https://link.letsdeal.no/oc/51dd6f1d191b2a646debb1dd5e5a9e65773f844fc139bcbf/22f18734>, <mailto:unsubscribe_20200229172453.5e5a9e65773f844fc139bcbf@mx.sailthru.com>
+Message-Id: <RNTT.AvPwaQoeDv8S~dlsGhEe~yL587cq1nj~H3uOXjj~PP9H.1584261132.3CPoG8Q1zC0j@webgb20.int.rightnowtech.com>
 Authentication-Results: nmspam3.e.nsc.no;
-	spf=pass (nsc.no: domain of delivery_20200229172453.5e5a9e65773f844fc139bcbf@bounce.letsdeal.no designates 204.153.121.116 as permitted sender) smtp.mailfrom=delivery_20200229172453.5e5a9e65773f844fc139bcbf@bounce.letsdeal.no
-X-XClient-IP-Addr: 204.153.121.116
-X-Source-IP: 204.153.121.116
+	spf=pass (nsc.no: domain of norwegian@mailgb.custhelp.com designates 208.72.90.123 as permitted sender) smtp.mailfrom=norwegian@mailgb.custhelp.com
+X-XClient-IP-Addr: 208.72.90.123
+X-Source-IP: 208.72.90.123
 X-Scanned-By: MIMEDefang 2.78
-
-bodybody
-
 END_MESSAGE
 
 die Dumper $x->parameterify($txt);

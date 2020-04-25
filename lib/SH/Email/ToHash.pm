@@ -147,16 +147,18 @@ sub msgtext2hash {
                     elsif (ref $v->{'Content-Type'} && uc $v->{'Content-Type'}->{h}->{charset} eq 'UTF-8') {
                         $v->{content} = decode('UTF-8', $v->{content});
                     }
-                    elsif (! ref $v->{'Content-Type'} && $v->{'Content-Type'} =~ /^multipart/i) {
+#                    elsif (! ref $v->{'Content-Type'} && $v->{'Content-Type'} =~ /^multipart/i) {
 #                        if ($type->{a}->[0] !~ /^multipart/) {
  #                       if (!exists $type->{h}->{boundary}) {
-                        my $fake_type = clone $v;
-                        $fake_type->{a} =[$v->{'Content-Type'}];
-                        $v->{content} = $self->multipart($fake_type, $v->{body});
-                    }
+ #                       my $fake_type = clone $v;
+ #                       $fake_type->{a} =[$v->{'Content-Type'}];
+ #                       $v->{content} = $self->multipart($fake_type, $v->{body});
+ #                   }
                     elsif (!ref $v->{'Content-Type'}) {
                         if (!grep { $v->{'Content-Type'} eq $_ } (qw|text/plain text/html|)) {
                             warn "Unknown simple Content-Type: " . $v->{'Content-Type'};
+                            p $v;
+                            die;
                         }
                     }
                     elsif (!grep { lc $v->{'Content-Type'}->{a}->[0] eq $_ } (qw|text/plain text/html|)) {
