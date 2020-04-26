@@ -46,6 +46,7 @@ sub print_hashes {
 	        my @t = @{$options->{columns} };
 	        for my $t(@t) {
 	            my $x = first_index {$t eq $_} @keys;
+	            next if $x<0;
 	            splice(@keys, $x, 1) or die "splice [".@keys."],$x,1";
 	        }
 	        unshift @keys,@t;
@@ -61,6 +62,7 @@ sub print_hashes {
 
 	for my $row( @$ahr ) {
 		for my $key (@keys) {
+		    next if ! exists $row->{$key};
 			if ($size{$key} < length( $row->{$key} )) {
 				$size{$key} = length( $row->{$key} );
 			}
