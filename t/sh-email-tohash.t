@@ -2,6 +2,8 @@ use Test::More;
 use Mojo::Base -strict;
 use SH::Email::ToHash;
 use Data::Dumper;
+use Mojo::File 'path';
+
 my $x = SH::Email::ToHash->new;
 my $txt = <<'END_MESSAGE';
 From root  Sun Mar 15 09:32:20 2020
@@ -20,11 +22,14 @@ END_MESSAGE
 #die Dumpe r $x->parameterify($txt);
 is_deeply ($x->parameterify($txt)->{'Content-Type'}, {a=>['Multipart/Alternative'],h=>{boundary=>'"------------Boundary-00=_OP78VA40000000000000"'}});
 
- ...; # TODO:
 # use Test::Deep;
-# path t/problememails
-#for path->tree
+ path 't/problememails';
+for my $f(path('t/data')->list->each) {
+    next if $f->to_string !~ /\.txt$/;
+    ok(exists $x->msgtext2hash($f->slurp)->{header}->{'Content-Type'},$f->to_string);
+}
 # exists $msg->{'Content-Type'}
+# ...; # TODO:
 
 
 done_testing;
