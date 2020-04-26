@@ -20,7 +20,11 @@ END_MESSAGE
 #die Dumpe r $x->parameterify($txt);
 is_deeply ($x->parameterify($txt)->{'Content-Type'}, {a=>['Multipart/Alternative'],h=>{boundary=>'"------------Boundary-00=_OP78VA40000000000000"'}});
 
-
+ ...; # TODO:
+# use Test::Deep;
+# path t/problememails
+#for path->tree
+# exists $msg->{'Content-Type'}
 
 
 done_testing;
