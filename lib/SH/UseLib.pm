@@ -30,9 +30,23 @@ SH::UseLib - Find all the lib catalog and put it in @INC
 
 =head1 SYNOPSIS
 
- use FindBin::Bin;
- use lib "$FindBin::Bin/../../utilities-perl/lib";
+ use lib 'lib';
+ use Mojo::File 'path';
+ my $lib;
+ BEGIN {
+    my $gitdir = Mojo::File->curfile;
+    my @cats = @$gitdir;
+    while (my $cd = pop @cats) {
+        if ($cd eq 'git') {
+            $gitdir = path(@cats,'git');
+            last;
+        }
+    }
+    $lib =  $gitdir->child('utilities-perl','lib')->to_string; #return utilities-perl/lib
+ };
+ use lib $lib;
  use SH::UseLib;
+ use Model::GetCommonConfig;
 
 =head1 DESCRIPTION
 
