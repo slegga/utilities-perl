@@ -45,7 +45,7 @@ sub generate {
     $p = $self->pad_optional_param($p);
     $self->generate_file({path=>'bin', filename=>$p->{name}.'.pl', parameters=>$p, ts => $self->xdata_section(__PACKAGE__, 'main.pl')}) or die "Did not make the file ". $p->{name}.'.pl';
 
-    $p->{pathname}= "bin/".$p->{name}.'.pl';
+    $p->{pathname}= "bin/".$p->{name}.($p->{name}=~/\.pl$/ ?'' : '.pl');
     $self->generate_file({path=>'t', filename=>$p->{name}.'.t', parameters=>$p, ts => $self->xdata_section(__PACKAGE__, 'test.t')}) or die "Did not make the file ". $p->{name}.'.t';
 	if ($p->{sqlitefile} && ! -e 'migrations/tabledef.sql')  {
 		$self->generate_file({path=>'migrations', filename=>'tabledefs.sql', parameters=>$p, ts => $self->xdata_section(__PACKAGE__, 'tabledefs.sql')})

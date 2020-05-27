@@ -1,4 +1,4 @@
-# script_compile.t
+ # script_compile.t
 use Mojo::File 'path';
 use Test::More;
 use FindBin;
@@ -17,7 +17,7 @@ for my $script (glob('script/*'),glob('bin/*')) { #$FindBin::Bin . '/../
     $t->run(help => 1);
     $t->stderr_ok;
     my $b = path($0)->basename;
-    $t->stdout_like(qr/$b/);
+    $t->stdout_like(qr/$script/);
 }
 
 done_testing;

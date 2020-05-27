@@ -79,7 +79,7 @@ Container in the form of an array ref where unexpected options is placed.
 =cut
 
 has extra_options=>sub {[]};
-
+has 'scriptname';
 =head1 EXPORTED FUNCTIONS
 
 =head2 option
@@ -319,8 +319,9 @@ sub _default_options {
 }
 
 sub _gen_usage {
+    my $self = shift;
 	my $script;
-	$script = basename($0);
+	$script = $self->scriptname || basename($0);
 
 	my $return = "\n" . sprintf"$script %s\n\n",(@$_options ? '[OPTIONS]' : '');
 	for my $o (@$_options,_default_options()) {

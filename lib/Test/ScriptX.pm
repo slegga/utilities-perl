@@ -71,7 +71,6 @@ sub new {
     $attributes = {@_} if (@_);
     my $self = $class->SUPER::new( scriptname => $scriptname, attributes => $attributes );
 
-#    $self->scriptname(path shift);
 #    $self->attributes(\%{@_}); # convert to hash_ref
     my $pc = $self->scriptname->slurp;
     die $self->scriptname . " does not use ::ScriptX" if ($pc !~ /use \w\w\:\:ScriptX\;/);
@@ -81,7 +80,8 @@ sub new {
     $module_counter ++;
 	$self->module("SCRIPTX::TESTING::C" . $module_counter);
 	my $module = $self->module;
-    eval <<EOF or die "eval ".($@||$self->scriptname .' do not return true. Set __PACKAGE__->new->main as the last statment in script');##no critic
+#warn $pc;
+    eval <<EOF or die "eval ".($@||$self->scriptname->to_string .' do not return true. Set __PACKAGE__->new->main as the last statment in script');##no critic
 package $module;
 no warnings 'redefine';
 $pc
@@ -116,7 +116,7 @@ sub run {
         my ($stdout, $stderr, @result) = capture {
             my $class;
         	if (! $self->roles ) {
-	            $module->new(%attr)->$mainsub;
+	            $module->new(scriptname=>$self->scriptname->to_string,%attr)->$mainsub;
 	        } else {
 	        	$module->with_roles(@{ $self->roles })->new(%attr)->$mainsub;
 	        }

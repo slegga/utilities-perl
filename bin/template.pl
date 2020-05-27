@@ -19,7 +19,7 @@ template.pl - generate code
 
 Generate script/modules/object and other code based on templates as a template. See Code::Template*
 
-This script is ment to be ran at det root of the git repo/project.
+This script is ment to be run at det root of the git repo/project.
 
 Auto load modules in SH/CodeTemplate/Plugins.
 
