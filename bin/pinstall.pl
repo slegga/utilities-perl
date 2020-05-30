@@ -54,8 +54,20 @@ sub main {
         die "$testfile did not pass. Please run prove -lv $testfile" if $provedata->{$testfile}->{last_result};
     }
     say "# git status";
-    say " if dirty git add -A;git commit -a";
-    say "# git push";
+    my $wd= Mojo::File->new;
+    die "$wd is not a git-repo" if ! -d $wd->child('.git')->to_string;
+    my $r = Git::Repository->new( work_tree => "$wd" );
+    $r->run( 'remote','update');
+    my $output = $r->run( 'status' );
+    if ($output !~/On branch master\s*\nYour branch is up-to-date.+nothing to commit\, working tree clean/ms) {
+        say $output;
+        print "Commit message: ";
+        my $cm = <STDIN>;
+        $r->run( 'add','-A');
+        $r->run( 'commit','-a','-m',$cm);
+
+    }
+    $r->run( 'push');
 }
 
 __PACKAGE__->new->main();
