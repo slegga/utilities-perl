@@ -9,6 +9,8 @@ use Mojo::File;
 use feature 'say';
 use Git::Repository;
 use Term::ANSIColor;
+use Mojo::File 'path';
+use YAML::Tiny;
 
 =head1 NAME
 
@@ -18,18 +20,36 @@ prove-all
 
 Check if git is in sync and test all repos
 
+    # check if in basegit repo or die
+    my $curdir = Mojo::File::curfile;
+    $curdir = Mojo::File->new;
+    die "You are not in a git-directory".$curdir->child('.git')->to_string if ! -d $curdir->child('.git')->to_string;
+    # prove or die
+    say `prove -l -Q --state save 2>/dev/null 1>/dev/null`;
+    my $provedata = YAML::Tiny->read( $curdir->child('.prove')->to_string )->[0]->{tests};
+#    say Dumper $provedata;
+    for my $testfile(keys %$provedata) {
+        die "$testfile did not pass. Please run prove -lv $testfile" if $provedata->{$testfile}->{last_result};
+    }
+
+
 =cut
 
 sub prove {
-		chdir shift;
-		my $success = 'Result: PASS';
-		my $prove   = `prove -l -Q 2>&1`;
-
-		if ($prove =~ /$success/) {
-		    say $success;
-		} else {
-		    say $prove;
-		}
+    my $dir = shift;
+    chdir $dir;
+    my $dirmf = path($dir);
+    if ($dirmf->child('.gitignore')->slurp !~/\.prove/) {
+        die "echo .prove >> $dir/.gitignore";
+    }
+    my $success = 'Result: PASS';
+    my $prove   = `prove -l -Q --state save 2>/dev/null 1>/dev/null`;
+        my $provedata = YAML::Tiny->read( path($dir)->child('.prove')->to_string )->[0]->{tests};
+        for my $testfile(keys %$provedata) {
+            if ($provedata->{$testfile}->{last_result}) {
+                say STDERR "$testfile did not pass. Please run:\ncd $dir;prove -lv $testfile"
+            }
+        }
  }
 
 my $gitdir = "$FindBin::Bin/../..";

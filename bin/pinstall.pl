@@ -59,7 +59,7 @@ sub main {
     my $r = Git::Repository->new( work_tree => "$wd" );
     $r->run( 'remote','update');
     my $output = $r->run( 'status' );
-    if ($output !~/On branch master\s*\nYour branch is up-to-date.+nothing to commit\, working tree clean/ms) {
+    if ($output !~/nothing to commit\, working tree clean/ms) {
         say $output;
         print "Commit message: ";
         my $cm = <STDIN>;
