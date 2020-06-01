@@ -22,7 +22,7 @@ use Test::ScriptX;
 
 # pinstall.pl - Run tests and git push
 
-unlike(path('bin/pinstall.pl')->slurp, qr{\<(?!STDIN\b)[A-Z]+\>},'All placeholders are changed');
+unlike(path('bin/git-push.pl')->slurp, qr{\<(?!STDIN\b)[A-Z]+\>},'All placeholders are changed');
 my $t = Test::ScriptX->new('bin/pinstall.pl', debug=>1);
 $t->run(help=>1);
 $t->stderr_ok->stdout_like(qr{pinstall.pl});
