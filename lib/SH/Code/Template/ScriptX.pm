@@ -1,8 +1,10 @@
 package SH::Code::Template::ScriptX;
+use lib 'lib';
 use Mojo::Base 'SH::Code::Template';
 use Mojo::Template;
 use Data::Dumper;
 use Mojo::File 'path';
+use open qw(:std :utf8);
 
 =head1 METHODS
 
@@ -78,8 +80,8 @@ use lib $lib;
 use SH::UseLib;
 use SH::ScriptX;
 use Mojo::Base 'SH::ScriptX';
-use utf8;
-use open ':encoding(UTF-8)';
+use open qw(:std :utf8);
+
 % if ($configfile) {
 use  YAML::Tiny;
 % }
@@ -115,6 +117,7 @@ __PACKAGE__->new(options_cfg=>{extra=>1})->main();
 use Mojo::Base -strict;
 use Test::More;
 use Mojo::File 'path';
+use open qw(:std :utf8);
 
 my $lib;
 BEGIN {
