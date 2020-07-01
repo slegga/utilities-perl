@@ -52,14 +52,20 @@ sub main {
     while (my $tf = shift(@links)) {
         my $first = 1;
         do {
-            my @stat  = stat("$tf");
-            my $mode = $stat[2];
-            my $user_rwx      = ($mode & S_IRWXU) >> 6;
-            my $group_rwx    = ($mode & S_IRWXG) >> 3;
-            my $other_rwx =  $mode & S_IRWXO;            my $link =       readlink "$tf";
-            if ($link && $first != 1 && $link ne $tf->to_string ) {
-                push @links, path($link);
-                next;
+            my (@stat, $mode, $user_rwx, $group_rwx, $other_rwx,$link);
+
+            my $exists = -e "$tf"||0;
+            if ($exists) {
+                @stat  = stat("$tf");
+                $mode = $stat[2];
+                $user_rwx      = ($mode & S_IRWXU) >> 6;
+                $group_rwx    = ($mode & S_IRWXG) >> 3;
+                $other_rwx =  $mode & S_IRWXO;
+                $link =       readlink "$tf";
+                if ($link && $first != 1 && $link ne $tf->to_string ) {
+                    push @links, path($link);
+                    next;
+                }
             }
             $first = 0;
             push @$result,{name=>"$tf",
@@ -68,8 +74,8 @@ sub main {
                 user_rwx=> $user_rwx,
                 group_rwx => $group_rwx,
                 other_rwx=>$other_rwx,
-                exists=> -e "$tf"||0
-                };
+                exists=> $exists
+               };
             $tf = $tf->dirname;
         }while ( $tf->to_string ne '/');
         say SH::PrettyPrint::print_hashes($result,{columns => [qw/name user group user_rwx group_rwx other_rwx/]})
