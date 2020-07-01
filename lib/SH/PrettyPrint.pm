@@ -63,8 +63,8 @@ sub print_hashes {
 	for my $row( @$ahr ) {
 		for my $key (@keys) {
 		    next if ! exists $row->{$key};
-			if ($size{$key} < length( $row->{$key} )) {
-				$size{$key} = length( $row->{$key} );
+			if ($row->{$key} && $size{$key} < length( $row->{$key} )) {
+				$size{$key} = length( $row->{$key});
 			}
 		}
 
