@@ -45,6 +45,7 @@ sub generate {
     my $p = $self->get_missing_param(\%parameters);
     say join(':', values %$p);
     $p = $self->pad_optional_param($p);
+    $p->{name} =~ s/\.pl$//; # usual error to add .pl
     $self->generate_file({path=>'bin', filename=>$p->{name}.'.pl', parameters=>$p, ts => $self->xdata_section(__PACKAGE__, 'main.pl')}) or die "Did not make the file ". $p->{name}.'.pl';
 
     $p->{pathname}= "bin/".$p->{name}.($p->{name}=~/\.pl$/ ?'' : '.pl');
