@@ -461,26 +461,6 @@ sub _nms_check_pod {
 	   	return;
     }
 
-    # Pod::Simple->parse_file also work after __DATA__ line
-    # So need to do this work around
-    # my $content = path($podfile)->slurp;
-    #my @linesall = split(/\n/, $content);
-    #my @lines;
-    #my $data_flag=0;;
-    #for my $l(@linesall) {
-#        if ($l eq '__DATA__') {
-#            $data_flag=1;
-#            next;
-#        } elsif ($l eq '__END__') {
-#            $data_flag=0;
-#            next;
-#        }
-#        if (! $data_flag) {
-#push @lines, $l;
-#        }
-#    }
-#    push @lines,undef;
- #   my $pod_hr_raw = Pod::Simple::SimpleTree->new->parse_lines(@lines)->root;
     my $pod_hr_raw = Pod::Simple::SimpleTree->new->parse_file($podfile)->root;
     # remove fluff
     shift @$pod_hr_raw;
@@ -501,12 +481,6 @@ sub _nms_check_pod {
             }
             else {
                 if (ref $item->[2]) {
-
-#                    if (ref $item->[2]->[2]) {
-#                        warn Dumper $item->[2]->[2];
-#                        warn $pod_hr;
-#                        die "Got $item->[2]->[2] expected string";
-#                    }
                     $pod_hr->{$head1} .= _req_get_text($item->[2]);
                 } elsif (!defined $head1) {
                     _print_fail("$podfile: First text in POD must be a =head1");
@@ -571,7 +545,6 @@ sub _nms_spell_check {
     my $modulename = shift;
     my $podfile = shift;
     my $name = shift;
-    my $parser = Pod::Simple::Text->new();     #sentence => 0, width => 1000);{width => 1000}
     my $pod;
 
     open my $in_fh, '<', $podfile;
