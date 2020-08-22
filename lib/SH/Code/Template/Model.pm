@@ -78,13 +78,15 @@ Model::<%= $name %>.pm - <%= $shortdescription %>
 
 =head1 ATTRIBUTES
 
-=head2 dbfile
+=head2 dbfile - default to $HOME/etc/<scripname>.db
 
 Name of dbfile
 
 =head2 sqlite
 
 Default to a new Mojo::SQLite object
+
+=head2 configfile - Default to $CONFIG_DIR else $HOME/etc/<scriptname>.yml
 
 =head2 db
 

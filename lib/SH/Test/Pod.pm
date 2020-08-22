@@ -22,6 +22,8 @@ use File::Basename;
 
 use Term::ANSIColor;
 use Test::Builder::Module;
+use PPR;
+
 our @ISA    = qw(Test::Builder::Module Exporter);
 our @EXPORT = qw(check_modules_pod check_scripts_pod);
 
@@ -140,6 +142,11 @@ sub check_modules_pod {
         if ( _is_cfg_active($cfg, 'module_pod', 'spell_check')) {
             _nms_spell_check($cfg, $modulename, $podfile, "POD spelling for $podfile" );
         }
+
+        if ( _is_cfg_active($cfg, 'module_pod', 'environment_variables')) {
+            _check_environment_variables($cfg, $modulename,$podfile, "Environment variables");
+        }
+
     }
 
     return _return_test('check_modules');
@@ -174,7 +181,6 @@ sub check_scripts_pod {
         pod_file_ok( $scriptpath, "POD syntax: $scriptpath" );
         $cfg->{master} = undef;
         next if ! _is_cfg_active($cfg, 'script_pod', 'headers_required', 'spell_check');
-#        my $parser = Pod::Simple::Text->new;
         if ( _is_cfg_active($cfg, 'script_pod' ,'headers_required')) {
             _nms_check_pod($cfg, undef, $scriptpath, "POD content: $scriptpath" );
         }
@@ -196,7 +202,7 @@ Check input scalar for English spelling errors.
  $_[1]: additional legal words as array reference
 Return a list of unknown words from the text.
 
-Read from ~/.dictionary.txt for own words.
+Read from $HOME/.dictionary.txt for own words.
 
 Read from project_home/.dictionary.txt
 
@@ -302,7 +308,37 @@ sub spellcheck {
     return @return;#@capmywords{@return};
 }
 
+# =head2 check_environment_variables
 
+#Check if all environemnts variables is  documented in POD
+
+
+sub _check_environment_variables {
+    my ($in_cfg,$modulename,$podfile,$text) = @_; # ($cfg, $modulename,$podfile, "Environment variables")
+
+    # Get pod as utf8 and perl only text
+    my $podtext;
+    my $parser = Pod::Simple::Text->new;
+    $parser->output_string(\$podtext);
+    $parser->parse_file($podfile);
+    my $perltext = path($podfile)->slurp;                    # Get the source
+    $perltext =~ s{ (?&PerlNWS)  $PPR::GRAMMAR }{ }gx;  # Compact whitespace
+    my @env_keys;
+    for my $l(split(/\n/, $perltext)) {
+        if ($l =~/\$ENV\{([\w\_]+)\}/) {
+            push @env_keys,$1;
+        }
+    }
+    say STDERR join(' ', @env_keys);
+    for my $key(@env_keys) {
+        if ($podtext !~ /$key/gm) {
+     	   	_print_fail("Missing environment variable in pod; $key");
+    	   	_return_test($modulename);
+    	   	return;
+        }
+    }
+    return _return_test($modulename);
+}
 
 # _get_config
 # Return config tree. Root is repo and user.
@@ -401,7 +437,8 @@ sub _all_module_name_path_hash_ref {
 #    my $name2path = Pod::Simple::Search->new->inc(0)->survey("$FindBin::Bin/../lib");
     if (exists $cfg->{user}->{skip}) {
         for my $red(@{$cfg->{user}->{skip}}) {
-            if ( first {$red eq $_} grep {$_} keys %$name2path) {
+            my @x = grep {$_} keys %$name2path;
+            if ( first { $red eq $_ }@x) {
                 delete $name2path->{$red};
             }
         }

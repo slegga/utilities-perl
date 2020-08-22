@@ -99,6 +99,10 @@ use  YAML::Tiny;
 
 <DESCRIPTION>
 
+=head1 ATTRIBUTES
+
+=head2 configfile - default to $CONFIG_DIR then $HOME/etc/<scriptname>.yml
+
 =cut
 
 % if ($configfile) {
