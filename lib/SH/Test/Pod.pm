@@ -309,7 +309,7 @@ sub spellcheck {
 }
 
 # =head2 check_environment_variables
-
+# ignore HOME
 #Check if all environemnts variables is  documented in POD
 
 
@@ -326,7 +326,9 @@ sub _check_environment_variables {
     my @env_keys;
     for my $l(split(/\n/, $perltext)) {
         if ($l =~/\$ENV\{([\w\_]+)\}/) {
-            push @env_keys,$1;
+            my $key = $1;
+
+            push @env_keys,$key if $key ne 'HOME';
         }
     }
     say STDERR join(' ', @env_keys);
