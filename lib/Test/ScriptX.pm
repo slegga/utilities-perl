@@ -71,6 +71,7 @@ sub new {
     $attributes = {@_} if (@_);
     my $self = $class->SUPER::new( scriptname => $scriptname, attributes => $attributes );
 
+#    $self->scriptname(path shift);
 #    $self->attributes(\%{@_}); # convert to hash_ref
     my $pc = $self->scriptname->slurp;
     die $self->scriptname . " does not use ::ScriptX" if ($pc !~ /use \w\w\:\:ScriptX\;/);
@@ -80,7 +81,6 @@ sub new {
     $module_counter ++;
 	$self->module("SCRIPTX::TESTING::C" . $module_counter);
 	my $module = $self->module;
-#warn $pc;
     eval <<EOF or die "eval ".($@||$self->scriptname->to_string .' do not return true. Set __PACKAGE__->new->main as the last statment in script');##no critic
 package $module;
 no warnings 'redefine';
@@ -106,8 +106,14 @@ sub run {
     my  $self = shift;
 	{
         my $mainsub = $self->main_sub;
-
+        my @opts=();
         my %data =();
+        if (@_ % 2 == 1) {
+            #take first element if odd number of element and pass it to main function as deref array
+            my $x = shift;
+            die "First element in run with odd parameters must be an array ref $x" if ref $x ne 'ARRAY';
+            @opts = @{$x};
+        }
         %data = @_ if  @_;
         my %attr = %{$self->attributes};
         %attr = (%attr,%data);
@@ -116,9 +122,9 @@ sub run {
         my ($stdout, $stderr, @result) = capture {
             my $class;
         	if (! $self->roles ) {
-	            $module->new(scriptname=>$self->scriptname->to_string,%attr)->$mainsub;
+	            $module->new(scriptname=>$self->scriptname->to_string,%attr)->$mainsub(@opts);
 	        } else {
-	        	$module->with_roles(@{ $self->roles })->new(%attr)->$mainsub;
+	        	$module->with_roles(@{ $self->roles })->new(scriptname=>$self->scriptname->to_string,%attr)->$mainsub(@opts);
 	        }
         };
         $self->cached_stdout($stdout);
