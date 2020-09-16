@@ -97,17 +97,17 @@ use  YAML::Tiny;
 
 =head1 DESCRIPTION
 
-<DESCRIPTION>
+<<DESCRIPTION>>
 
 =head1 ATTRIBUTES
 
-=head2 configfile - default to $CONFIG_DIR then $HOME/etc/<scriptname>.yml
+=head2 configfile - default to $CONFIG_DIR then $HOME/etc/<<scriptname>>.yml
 
 =cut
 
 % if ($configfile) {
 has configfile =>($ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/<%= $configfile %>.yml';
-has config => sub { YAML::Tiny::LoadFile($configfile) };
+has config => sub { YAML::Tiny::LoadFile(shift->configfile) };
 % }
 option 'dryrun!', 'Print to screen instead of doing changes';
 
@@ -144,7 +144,7 @@ use Test::ScriptX;
 
 # <%= $name %>.pl - <%= $shortdescription %>
 
-unlike(path('<%= $pathname %>')->slurp, qr{\<[A-Z]+\>},'All placeholders are changed');
+unlike(path('<%= $pathname %>')->slurp, qr{\<\<[A-Z]+\>\>},'All placeholders are changed');
 my $t = Test::ScriptX->new('bin/<%= $name %>.pl', debug=>1);
 $t->run(help=>1);
 $t->stderr_ok->stdout_like(qr{<%= $name%>});
