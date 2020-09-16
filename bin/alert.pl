@@ -20,6 +20,7 @@ use SH::ScriptX;
 use Mojo::Base 'SH::ScriptX';
 use open qw(:std :utf8);
 use Mojo::UserAgent;
+use Sys::Hostname;
 
 use  YAML::Tiny;
 
@@ -52,7 +53,9 @@ sub main {
     my @e = @{ $self->extra_options };
     my $bot_id = $self->config->{bot_id};
     say $bot_id;
-    my $text='';
+    my ($short_hostname) = split /\./, hostname(); # Split by '.', keep the first part
+    my $text=getpwuid( $< ).'@'.$short_hostname.': ';
+    
     my $i=0;
     while(<STDIN>) {
         print $_;
