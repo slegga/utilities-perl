@@ -29,7 +29,7 @@ while (my $item = readdir $dh) {
     my $r = Git::Repository->new( work_tree => $wd );
     $r->run( 'remote','update');
     my $output = $r->run( 'status' );
-    if ($output =~/On branch master\s*\nYour branch is up-to-date.+nothing to commit\, working tree clean/ms) {
+    if ($output =~/On branch master\s*\nYour branch is up-to-date.+nothing to commit\, working tree clean/ms || $output =~/^On branch mainYour branch is up to date with/) {
 #        $r->run( 'pull' );
 #To slow make a new script				print `prove -l -Q -m`;
         next;
@@ -39,8 +39,8 @@ while (my $item = readdir $dh) {
       next;
     }
     next if grep {$item eq $_} (qw/ gosync / );
-    $output =~ s/On branch master//;
-    $output =~ s/Your branch is up to date with \'origin\/master\'\.//;
+    $output =~ s/On branch (master|main)//;
+    $output =~ s/Your branch is up to date with \'origin\/(master|main)\'\.//;
     $output =~ s/[\#\s]*nothing to commit, working (tree|directory) clean//sm;
     $output =~ s/\n//gm;
         if (! $silence) {
