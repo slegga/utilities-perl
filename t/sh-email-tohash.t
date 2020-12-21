@@ -26,7 +26,10 @@ is_deeply ($x->parameterify($txt)->{'Content-Type'}, {a=>['Multipart/Alternative
  path 't/problememails';
 for my $f(path('t/data')->list->each) {
     next if $f->to_string !~ /\.txt$/;
-    ok(exists $x->msgtext2hash($f->slurp)->{header}->{'Content-Type'},$f->to_string);
+    my $cont =$x->msgtext2hash($f->slurp);
+    ok(exists $cont->{header}->{'Content-Type'},$f->to_string);
+    like ($cont->{header}->{From}, qr'(no|com|shop)','from');
+#    warn Dumper $cont;
 }
 # exists $msg->{'Content-Type'}
 # ...; # TODO:
