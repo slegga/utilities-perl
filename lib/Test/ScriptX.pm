@@ -71,7 +71,6 @@ sub new {
     $attributes = {@_} if (@_);
     my $self = $class->SUPER::new( scriptname => $scriptname, attributes => $attributes );
 
-#    $self->scriptname(path shift);
 #    $self->attributes(\%{@_}); # convert to hash_ref
     my $pc = $self->scriptname->slurp;
     die $self->scriptname . " does not use ::ScriptX" if ($pc !~ /use \w\w\:\:ScriptX\;/);
@@ -122,7 +121,8 @@ sub run {
         my ($stdout, $stderr, @result) = capture {
             my $class;
         	if (! $self->roles ) {
-	            $module->new(scriptname=>$self->scriptname->to_string,%attr)->$mainsub(@opts);
+	            my $o = $module->new(scriptname=>$self->scriptname->to_string, %attr);
+	            $o->$mainsub(@opts);
 	        } else {
 	        	$module->with_roles(@{ $self->roles })->new(scriptname=>$self->scriptname->to_string,%attr)->$mainsub(@opts);
 	        }
