@@ -33,7 +33,7 @@ SH::Email::RawToHash - convert raw email mime text to a nice hash
     use SH::Email::ToHash;
     use Data::Dumper;
     my $email = SH::Email::ToHash::new();
-    print Dumper email->message2hash("From: x\@y.c\nTo: d\@f.b");
+    print Dumper $email->message2hash("From: x\@y.c\nTo: d\@f.b");
 
 =head1 DESCRIPTION
 
