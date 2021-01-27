@@ -10,6 +10,15 @@ use List::MoreUtils qw(first_index);
 
 SH::PrettyPrint
 
+=head1 SYNOPSIS
+
+    use SH::PrettyPrint;
+    print SH::PrettyPrint([['col1','col2'],['2col1','2col2']]);
+
+=head1 DESCRIPTION
+
+Pretty print. Collection of print data functions.
+
 =head1 FUNCTIONS
 
 =head2 print_arrays

@@ -14,8 +14,8 @@ Test::ScriptX - Test module for script based on SH::ScriptX
 =head1 SYNOPSIS
 
  use Test::ScriptX;
- use Mock::Quickly;
- my $mock = Mock::Quickly->new;
+ use Test2::Mock;
+ my $mock = Test2::Mock->new;
  {
      my $t = Test::ScriptX->new('bin/script-to-be-tested.pl','main', email_obj=>$mock);
      $t->run(help=>1)->stderr_ok()->stdout_like( qr{basename(0)} );

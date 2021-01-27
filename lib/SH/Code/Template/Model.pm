@@ -5,6 +5,18 @@ use Mojo::Loader;
 use Data::Dumper;
 use Mojo::File 'path';
 
+=head1 NAME
+
+SH::Code::Template::Model - Template for Mojolicious Model class
+
+=head1 DESCRIPTION
+
+Plugin for template.pl. Template for a Mojolicous model class.
+
+=head1 SYNOPSIS
+
+template.pl --helptemplate
+
 =head1 METHOD
 
 =head2 name

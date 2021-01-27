@@ -6,6 +6,18 @@ use Data::Dumper;
 use Mojo::File 'path';
 use open qw(:std :utf8);
 
+=head1 NAME
+
+SH::Code::Template::ScriptX - Plugin for template.pl
+
+=head1 SYNOPSIS
+
+See template.pl --helptemplate
+
+=head1 DESCRIPTION
+
+Plugin for template.pl for generating a scriptx - script in bin/.
+
 =head1 METHODS
 
 =head2 name

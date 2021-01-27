@@ -218,4 +218,10 @@ sub xdata_section {
 }
 
 
+=head1 AUTHOR
+
+Slegga
+
+=cut
+
 1;

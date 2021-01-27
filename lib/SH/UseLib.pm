@@ -52,7 +52,7 @@ SH::UseLib - Find all the lib catalog and put it in @INC
 
 Find all the lib catalog and put it in @INC
 
-=head1 FUNTIONS
+=head1 FUNCTIONS
 
 =head2 import
 

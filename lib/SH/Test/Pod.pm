@@ -124,7 +124,7 @@ sub check_modules_pod {
     $modules = _all_module_name_path_hash_ref($cfg);
     while (my ($modulename, $podfile) = each %$modules) {
         next if ! $podfile;
-		if (!_is_cfg_active($cfg, 'module_pod', 'pod_required'))	{
+		if (! _is_cfg_active($cfg, 'module_pod', 'pod_required'))	{
 		    my $parser = Pod::Simple->new;
 		    $parser->complain_stderr(1);
 			if(! $parser->parse_file($podfile)->content_seen ) {
@@ -146,6 +146,11 @@ sub check_modules_pod {
         if ( _is_cfg_active($cfg, 'module_pod', 'environment_variables')) {
             _check_environment_variables($cfg, $modulename,$podfile, "Environment variables");
         }
+
+        if ( _is_cfg_active($cfg, 'module_pod', 'synopsis_compile')) {
+            _check_synopsis($cfg, $modulename, $podfile, "SYNOPSIS: $podfile" );
+        }
+
 
     }
 
@@ -184,7 +189,6 @@ sub check_scripts_pod {
         if ( _is_cfg_active($cfg, 'script_pod' ,'headers_required')) {
             _nms_check_pod($cfg, undef, $scriptpath, "POD content: $scriptpath" );
         }
-
         if ( _is_cfg_active($cfg, 'script_pod', 'spell_check')) {
             _nms_spell_check($cfg, undef, $scriptpath, "POD spelling for $scriptpath" );
         }
@@ -641,6 +645,99 @@ sub _return_test {
     $CLASS->builder->ok( $send_ok, $text );
 }
 
+sub _check_synopsis {
+    my ($in_cfg, $modulename, $podfile, $name ) = @_;
+my $pod_hr_raw = Pod::Simple::SimpleTree->new->parse_file($podfile)->root;
+    shift @$pod_hr_raw;
+    shift @$pod_hr_raw;
+	die if ! ref $in_cfg;
+    my $ok=1;
+
+    my $pod_hr = {};
+    my @act_order=();
+    my $head1;
+    my $in_synopsis=0;
+    my @synopsis=();
+    for my $item (@$pod_hr_raw) {
+        next if ref $item eq 'HASH';
+        if (ref $item eq 'ARRAY') {
+            if ($item->[0] eq 'head1') {
+                if ($item->[2] eq 'SYNOPSIS') {
+                    $in_synopsis = 1;
+                } else {
+                    $in_synopsis = 0;
+                }
+                next;
+            } elsif ($item->[0] eq 'Verbatim' and $in_synopsis == 1) {
+                for my $verb_l(@$item) {
+                    next if $verb_l eq 'Verbatim';
+                    if (!ref $verb_l) {
+                        push @synopsis, $verb_l;
+                    } elsif (ref $verb_l eq 'ARRAY') {
+                        push @synopsis, $verb_l->[2];
+                    } elsif (ref $verb_l eq 'HASH' && $verb_l->{'xml:space'} eq 'preserve') {
+                        #do nothing
+                    } else {
+                        warn Dumper $verb_l;
+                        ...;
+                    }
+
+                }
+            }
+        } else {
+            warn Dumper $item;
+            ...;
+        }
+    }
+
+    if (@synopsis) {
+        #warn Dumper @synopsis;
+        for my $s(@synopsis) {
+            if ( $modulename !~ /ScriptTest/ ) {
+                my $locallib = $podfile;
+                $locallib =~ s!/lib.+!/lib!;
+                my $gitroot = $locallib;
+                $gitroot =~ s/lib$//;
+                chdir($gitroot);
+                my $tmpcofigdir = $ENV{NMS_CONFIG_DIR};
+                if ($tmpcofigdir && $tmpcofigdir eq '/NMS_CONFIG_DIR/is/unset/inside/unittests') {
+                    $tmpcofigdir='';
+                }
+                if ($tmpcofigdir && $tmpcofigdir =~ '^t/etc') {
+#                        chdir($locallib."/..");
+                }
+
+                if (! $tmpcofigdir) {
+                    if (-d "$gitroot/t/etc/nx-config") {
+                        $tmpcofigdir = $gitroot."/t/etc";
+                        #                           chdir($gitroot);
+                    }
+
+                }
+                if (! $tmpcofigdir && $s !~ /NMS_CONFIG_DIR/) {
+                    $tmpcofigdir='test';
+                }
+                die "###########".$gitroot.'#### getcwd' if $tmpcofigdir eq '/local/net/experimental/t527081/git';
+
+                # try to make unique package names so redefined warning is not given
+                my $tmp = "no strict;use warnings FATAL => 'all';no warnings 'redefine';use lib '$locallib';BEGIN{\$ENV{NMS_CONFIG_DIR}='$tmpcofigdir'};\$ENV{NMS_CONFIG_DIR}='$tmpcofigdir';{if (0) {" . $s . "\n}}";
+
+                # Gives error Useless use of private variable in void context at .. if {$tmp} so then use $tmp instead
+
+
+                # see http://perldoc.perl.org/functions/eval.html
+                eval $tmp; ## no critic
+                # print $tmp."\n";
+                if ($@) {
+                    _print_fail("SYNOPSIS for module $modulename does not compile: $@\n\n$tmp");
+                }
+            }
+        }
+    } else {
+        _print_fail("Missing Synopsis for module $modulename") if grep {$_ eq 'SYNOPSIS'} @{ $in_cfg->{headers_required} };;
+    }
+    return _return_test($name);
+}
 =head1 SEE ALSO
 
 For perl policy for POD documentation: L<https://perldoc.perl.org/perlpodstyle.html>
