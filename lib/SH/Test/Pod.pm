@@ -717,7 +717,6 @@ my $pod_hr_raw = Pod::Simple::SimpleTree->new->parse_file($podfile)->root;
                 if (! $tmpcofigdir && $s !~ /NMS_CONFIG_DIR/) {
                     $tmpcofigdir='test';
                 }
-                die "###########".$gitroot.'#### getcwd' if $tmpcofigdir eq '/local/net/experimental/t527081/git';
 
                 # try to make unique package names so redefined warning is not given
                 my $tmp = "no strict;use warnings FATAL => 'all';no warnings 'redefine';use lib '$locallib';BEGIN{\$ENV{NMS_CONFIG_DIR}='$tmpcofigdir'};\$ENV{NMS_CONFIG_DIR}='$tmpcofigdir';{if (0) {" . $s . "\n}}";
