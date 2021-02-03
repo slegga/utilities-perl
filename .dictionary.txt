@@ -1,0 +1,11 @@
+app
+slegga
+applify
+todo
+dryrun
+helptemplate
+param
+testobject
+yml
+yaml
+emailaddress
