@@ -180,7 +180,7 @@ sub msgtext2hash {
 =head2 parameterify
 
 Mime Email to hash
-Takes a list of strings and concatinate them.
+Takes a list of strings and concatenate them.
 
 
 split on ;
@@ -296,14 +296,14 @@ sub parameterify {
 
 =head2 hash_traverse
 
-Traverse a data structure. (Dept first).
+Traverse a data structure. (Depth first).
 
-Takes self, datastructure, anonymous subroutine, optional key
+Takes self, data structure, anonymous subroutine, optional key
 
-Subroutine is called for each item, including parents. Sub routine must return a (datastructure, or value if item is a leaf) and a status.
-(If status is next rest of the current branch travserse is stopped, and jump to next branch).
+Subroutine is called for each item, including parents. Sub routine must return a (data structure, or value if item is a leaf) and a status.
+(If status is next rest of the current branch traverse is stopped, and jump to next branch).
 
-Returns a datastructure.
+Returns a data structure.
 
 =cut
 
@@ -332,7 +332,7 @@ sub hash_traverse {
 
 =head2 extract_emailaddress
 
-Takes a typial From element and extract emailaddress
+Takes a typical From element and extract emailaddress
 
 =cut
 

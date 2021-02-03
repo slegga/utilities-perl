@@ -622,7 +622,9 @@ sub _nms_spell_check {
 
     #my $ok = 1;
     my @unknown = spellcheck($pod, $additional_words);
-    warn $pod if @unknown;
+    for my $line (split /\n/, $pod) {
+        say STDERR $line if grep {$line =~ /$_/i} @unknown;
+    }
     _print_fail("'". join (', ',  @unknown) . "' are unknown words. Correct spelling or add to your ~/.dictionary.txt, project .dictionary.txt or global /local/net/etc/.dictionary.txt") if  @unknown;
     return _return_test($name);
 };

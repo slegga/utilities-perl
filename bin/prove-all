@@ -4,12 +4,10 @@ use warnings;
 use strict;
 use autodie;
 use Carp;
-use FindBin;
-use Mojo::File;
 use feature 'say';
 use Git::Repository;
 use Term::ANSIColor;
-use Mojo::File 'path';
+use Mojo::File qw'path curfile';
 use YAML::Tiny;
 
 =head1 NAME
@@ -52,7 +50,7 @@ sub prove {
         }
  }
 
-my $gitdir = "$FindBin::Bin/../..";
+my $gitdir = curfile->dirname->dirname->to_string;
 opendir (my $dh , $gitdir);
 while (my $item = readdir $dh) {
     next if $item =~/^\./;

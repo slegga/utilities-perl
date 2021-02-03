@@ -3,7 +3,6 @@ use Mojo::Base -base;
 use Test::More();
 
 use Mojo::Util qw(decode encode);
-use FindBin;
 use Mojo::File 'path';
 use Capture::Tiny ':all';
 
@@ -96,7 +95,7 @@ EOF
 =head2 run
 
 Run script object with given key => value input.
-Store stdout and stderr out put and retrun value if any.
+Store stdout and stderr out put and return value if any.
 
 
 =cut

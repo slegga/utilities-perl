@@ -36,13 +36,13 @@ SH::ScriptX - Development of a lite version of Applify
 
     __PACKAGE__->new->main;
 
-# perl script/test-scriptx.pl --name tittentei
+# perl script/test-scriptx.pl --name Wood Head
 # perl script/test-scriptx.pl --help
 # perl script/test-scriptx.pl --usage
 
 =head1 DESCRIPTION
 
-Warning this module is experimental. Funtionality may sudently change.
+Warning this module is experimental. Functionality may suddenly change.
 
 This is an alternative to Applify and SH::Script
 
@@ -84,7 +84,7 @@ has 'scriptname';
 
 =head2 option
 
-TODO: Deside what is best.
+TODO: Decide what is best.
 Unsure if do like Applify or Getopt::Long::Descriptive or 'option', 'type','description'
 
 Go for Getopt::Long::Descriptive this may change.
@@ -100,7 +100,7 @@ Valid keys in third argument is:
 
 =head3 synopsis
 
-option infile => string => "File for storing configuration bla bla" => {default=>'blabla.yml'}
+option infile => string => "File for storing configuration." => {default=>'my-config.yml'}
 
 =cut
 
@@ -218,7 +218,7 @@ sub new {
 
 =head2 usage
 
-args: $podfile, verboseflag
+args: $podfile, $verboseflag
 Print out'usage', help message and exit.
 If verbose flag is on then print the pod also.
 

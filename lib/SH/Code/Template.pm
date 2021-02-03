@@ -59,7 +59,7 @@ sub name {
 
 =head2 help_text
 
-Text which is printet with the helptemplate option.
+Text which is printed with the helptemplate option.
 This must be replaced in child object.
 
 =cut
