@@ -50,7 +50,7 @@ sub prove {
         }
  }
 
-my $gitdir = curfile->dirname->dirname->to_string;
+my $gitdir = curfile->dirname->dirname->dirname->to_string;
 opendir (my $dh , $gitdir);
 while (my $item = readdir $dh) {
     next if $item =~/^\./;
