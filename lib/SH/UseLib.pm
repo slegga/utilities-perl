@@ -10,7 +10,6 @@ sub import {
     splice(@tmp,$#tmp-3); #remove 3 dirs;
 
     my $git = Mojo::File::path(@tmp);
- #   warn $git;
     for my $dir($git->list({dir => 1})->each ) {
         my $lib = $dir->child('lib');
         if ( -d $lib ) {
@@ -18,6 +17,19 @@ sub import {
         }
     }
 #    warn join("\n",@INC);
+}
+
+sub find_repo_from_file {
+    my $file = shift;
+    my $git = Mojo::File::path($file);
+    my $return =Mojo::File->new('/');
+    for my $dir(@$git ) {
+        $return = $return->child($dir);
+        if ( -d $return->child('.git' )) {
+            last
+        }
+    }
+    return $return;
 }
 
 1;
@@ -53,6 +65,10 @@ SH::UseLib - Find all the lib catalog and put it in @INC
 Find all the lib catalog and put it in @INC
 
 =head1 FUNCTIONS
+
+=head2 find_repo_from_file
+
+Find full path to first path that contain a lib directory
 
 =head2 import
 
