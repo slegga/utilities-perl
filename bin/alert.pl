@@ -52,10 +52,9 @@ sub main {
     my $self = shift;
     my @e = @{ $self->extra_options };
     my $bot_id = $self->config->{bot_id};
-    say $bot_id;
     my ($short_hostname) = split /\./, hostname(); # Split by '.', keep the first part
-    my $text=getpwuid( $< ).'@'.$short_hostname.': ';
-    
+    my $identity = getpwuid( $< ).'@'.$short_hostname.': ';
+    my $text='';
     my $i=0;
     while(<STDIN>) {
         print $_;
@@ -66,7 +65,7 @@ sub main {
     return if !$text;
     my $payload ={
         bot_id=>$bot_id,
-        text =>$text
+        text =>$identity . $text
     };
 
     $self->ua->post($self->url=>json=>$payload);
