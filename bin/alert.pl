@@ -62,7 +62,7 @@ sub main {
         $i++;
         last if $i>50;
     }
-    return if !$text;
+    return if $text !~ /\w/;
     my $payload ={
         bot_id=>$bot_id,
         text =>$identity . $text
