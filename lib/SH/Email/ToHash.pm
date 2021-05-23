@@ -124,7 +124,7 @@ sub msgtext2hash {
             }
             elsif (defined $k && $k eq 'body' && exists $v->{'Content-Type'} && $v->{'Content-Type'}) {
                 if (ref $v->{'Content-Type'} eq 'HASH' && $v->{'Content-Type'}->{a}->[0] =~ /^multipart/i) {
-                    $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body});
+                    $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body}//$v->{content});
                 }
                 else {
                     if ($v->{'Content-Transfer-Encoding'}) {
@@ -391,6 +391,7 @@ sub multipart {
     }
 
     my $boundary = $type->{h}->{boundary};
+    $boundary=~ s/\"//g;
     my $tmptype = lc($type->{a}->[0]);
     if (   $tmptype eq 'multipart/alternative'
         || $tmptype eq 'multipart/mixed'
@@ -400,11 +401,17 @@ sub multipart {
         return if !$body;
         my $rest = $body;
         ($body, $rest) = split /$boundary/, $rest, 2;
-
-        if (!defined $body || $body !~ /\w/) {    # Discard empty alternatives
+        if ($body eq '--') {
+            ($body,$rest) = split /\-\-$boundary/, $rest, 2;
+        }
+        elsif (!defined $body || $body !~ /\w/) {    # Discard empty alternatives
 
 #            die join("\n\n", !!$body, !!$rest);
             (undef, $body) = split /$boundary/, $rest, 2;
+        }
+        if ($body!~/multipart/ && $body =~/base64/ ) {
+            (undef, $body) = split /base64/, $rest, 2;
+            $body = decode_base64($body);
         }
         return $body;
     }

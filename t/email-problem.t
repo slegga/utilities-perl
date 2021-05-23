@@ -20,9 +20,15 @@ use Data::Dumper;
 {
     my $raw = path('t/data/base64-problem.txt');
         my $email_h = SH::Email::ToHash->msgtext2hash($raw->slurp);
-        like($email_h->{body}->{content},qr'netflix', 'Got correct word');
-        like($email_h->{header}->{From},qr'shop', 'Got correct word');
+        like($email_h->{body}->{content}, qr'netflix', 'Got correct word');
+        like($email_h->{header}->{From}, qr'shop', 'Got correct word');
 #        die Dumper $email_h;
+}
+
+{
+    my $raw = path('t/data/base64-problem2.txt');
+        my $email_h = SH::Email::ToHash->msgtext2hash($raw->slurp);
+        like($email_h->{body}->{content}, qr'dating', 'Got correct word');
 }
 
 
