@@ -410,7 +410,7 @@ sub multipart {
             (undef, $body) = split /$boundary/, $rest, 2;
         }
         if ($body!~/multipart/ && $body =~/base64/ ) {
-            (undef, $body) = split /base64/, $rest, 2;
+            (undef, $body) = split /base64/, $body, 2;
             $body = decode_base64($body);
         }
         return $body;
