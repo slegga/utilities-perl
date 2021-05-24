@@ -251,6 +251,7 @@ sub parameterify {
             else {
                 #Normal multilinestart
                 $multiline = 1;
+                $return->{content} .= $l . "\n";
             }
 
             #...;
