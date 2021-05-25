@@ -205,7 +205,7 @@ sub pad_optional_param {
 
 =head2 xdata_section
 
-Call Mojop::Loader::data_section
+Call Mojo::Loader::data_section
 Check input output
 
 =cut

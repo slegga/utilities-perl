@@ -30,9 +30,9 @@ SH::Email::RawToHash - convert raw email mime text to a nice hash
 
 =head1 SYNOPSIS
 
-    use SH::Email::ToHash;
+    use SH::Email::RawToHash;
     use Data::Dumper;
-    my $email = SH::Email::ToHash::new();
+    print Dumper SH::Email::RawToHash::message2hash("From: x@y.c\nTo: d@f.b");
     print Dumper $email->message2hash("From: x\@y.c\nTo: d\@f.b");
 
 =head1 DESCRIPTION
@@ -124,7 +124,7 @@ sub msgtext2hash {
             }
             elsif (defined $k && $k eq 'body' && exists $v->{'Content-Type'} && $v->{'Content-Type'}) {
                 if (ref $v->{'Content-Type'} eq 'HASH' && $v->{'Content-Type'}->{a}->[0] =~ /^multipart/i) {
-                    $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body}//$v->{content});
+                    $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body});
                 }
                 else {
                     if ($v->{'Content-Transfer-Encoding'}) {
@@ -251,7 +251,6 @@ sub parameterify {
             else {
                 #Normal multilinestart
                 $multiline = 1;
-                $return->{content} .= $l . "\n";
             }
 
             #...;
@@ -392,7 +391,6 @@ sub multipart {
     }
 
     my $boundary = $type->{h}->{boundary};
-    $boundary=~ s/\"//g;
     my $tmptype = lc($type->{a}->[0]);
     if (   $tmptype eq 'multipart/alternative'
         || $tmptype eq 'multipart/mixed'
@@ -402,17 +400,11 @@ sub multipart {
         return if !$body;
         my $rest = $body;
         ($body, $rest) = split /$boundary/, $rest, 2;
-        if ($body eq '--') {
-            ($body,$rest) = split /\-\-$boundary/, $rest, 2;
-        }
-        elsif (!defined $body || $body !~ /\w/) {    # Discard empty alternatives
+
+        if (!defined $body || $body !~ /\w/) {    # Discard empty alternatives
 
 #            die join("\n\n", !!$body, !!$rest);
             (undef, $body) = split /$boundary/, $rest, 2;
-        }
-        if ($body!~/multipart/ && $body =~/base64/ ) {
-            (undef, $body) = split /base64/, $body, 2;
-            $body = decode_base64($body);
         }
         return $body;
     }

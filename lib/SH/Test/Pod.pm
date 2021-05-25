@@ -12,18 +12,18 @@ use List::MoreUtils qw /any uniq/;
 use Clone 'clone';
 use File::Find;
 use Pod::Simple::Search;
-use Mojo::File qw/path curfile/;
+use Mojo::File qw/path/;
 use Data::Dumper;
 use Carp qw /carp/;
 use Pod::Spell;
 use Pod::Coverage;
 use Pod::Simple;
 use File::Basename;
-use Cwd;
+
 use Term::ANSIColor;
 use Test::Builder::Module;
 use PPR;
-use SH::UseLib;
+
 our @ISA    = qw(Test::Builder::Module Exporter);
 our @EXPORT = qw(check_modules_pod check_scripts_pod);
 
@@ -217,7 +217,7 @@ Read from /local/net/etc/.dictionary.txt
 
 sub spellcheck {
     my $text = shift; #text to be spellchecked
-    my $extrawords_ar = shift;#additional legal words  and repo/.dictionary.txt
+    my $extrawords_ar = shift;#additional legal words as
     my @mywords= split(/\b/, $text);
     @mywords = sort {lc($a) cmp lc($b)} @mywords;
      @mywords = uniq @mywords;
@@ -238,13 +238,22 @@ sub spellcheck {
         warn "Empty list " if ! @ownwordlist;
     }
 
+    # project dict
+    if (-r '.dictionary.txt') {
+        open my $pdfh,'<','.dictionary.txt';
+        my @tmp = <$pdfh>;
+        push @ownwordlist, @tmp;
+        close $pdfh;
+        @ownwordlist = map {my $x = $_; chomp $x;$x} @ownwordlist;
+        }
+
     # global dict
     if (-r '/local/net/etc/.dictionary.txt') {
         open my $pdfh,'<','/local/net/etc/.dictionary.txt';
         my @tmp = <$pdfh>;
         push @ownwordlist, @tmp;
         close $pdfh;
-        @ownwordlist = sort map {my $x = $_; chomp $x;$x} @ownwordlist;
+        @ownwordlist = map {my $x = $_; chomp $x;$x} @ownwordlist;
     }
 
 
@@ -600,10 +609,6 @@ sub _nms_spell_check {
         my @subs = $pc->covered;
         @$additional_words = grep{$_} map{split(/\s/, $_)} @subs;
         push @$additional_words, grep{$_} map {lc $_} split('\:\:',$modulename)
-    }
-    my $repodict = SH::UseLib::find_repo_from_file($podfile)->child('.dictionary.txt');
-    if (-f "$repodict") {
-        push @$additional_words, split (/\n/, $repodict->slurp);
     }
 
     $pod =~ s/\'\w+\'//gm;
