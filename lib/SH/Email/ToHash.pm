@@ -112,7 +112,8 @@ sub msgtext2hash {
             my $pos = index($content, $boundary);
             if($boundary && $pos>=0 ) {
                 if (length($return->{body}->{content}) ) {
-                    $return->{body}->{content}= $self->multipart($return->{body}->{'Content-Type'}, $return->{body}->{content});
+                    $body = $self->multipart($return->{body}->{'Content-Type'}, $return->{body}->{content});
+                    $return->{body} = $self->parameterify($body);
                 }
             }
         }
