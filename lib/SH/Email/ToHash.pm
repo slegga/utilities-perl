@@ -1,6 +1,6 @@
 package SH::Email::ToHash;
 
-use Mojo::Base -base;
+use Mojo::Base -base, -signatures;
 use Data::Printer;
 use Data::Dumper;
 use Mojo::File 'path';
@@ -105,6 +105,17 @@ sub msgtext2hash {
     }
     if (!ref $body) {
         $return->{body} = $self->parameterify($body);
+        my $boundary = $return->{body}->{'Content-Type'}->{h}->{boundary};
+        $boundary =~ s/\"//g;
+        my $content = $return->{body}->{content};
+        if ($return->{body}->{content}) {
+            my $pos = index($content, $boundary);
+            if($boundary && $pos>=0 ) {
+                if (length($return->{body}->{content}) ) {
+                    $return->{body}->{content}= $self->multipart($return->{body}->{'Content-Type'}, $return->{body}->{content});
+                }
+            }
+        }
     }
     else {
         $return->{body} = $body;
@@ -391,6 +402,7 @@ sub multipart {
     }
 
     my $boundary = $type->{h}->{boundary};
+    $boundary =~ s/"//g;
     my $tmptype = lc($type->{a}->[0]);
     if (   $tmptype eq 'multipart/alternative'
         || $tmptype eq 'multipart/mixed'
@@ -398,13 +410,14 @@ sub multipart {
 
         #choose first which is usually easy to traverse
         return if !$body;
-        my $rest = $body;
-        ($body, $rest) = split /$boundary/, $rest, 2;
+        my $rest;
+        $rest = $body;
+        ($body, $rest) = _two_split("--$boundary", $rest);
 
         if (!defined $body || $body !~ /\w/) {    # Discard empty alternatives
 
 #            die join("\n\n", !!$body, !!$rest);
-            (undef, $body) = split /$boundary/, $rest, 2;
+            (undef, $body) = _two_split("--$boundary", $rest);
         }
         return $body;
     }
@@ -425,6 +438,18 @@ sub multipart {
         ...;
     }
     die;
+}
+
+# split did not work well with long boundary
+# my ($first,$sec) = _two_spit('boundary','first text boundary second text');
+sub _two_split($delimiter,$string) {
+    my $pos = index($string,$delimiter);
+    if ($pos<0) {
+        return ($string,undef);
+    }
+    my $first = substr($string,0,$pos);
+    my $second = substr($string, $pos+length($delimiter));
+    return ($first, $second);
 }
 
 =head1 AUTHOR
