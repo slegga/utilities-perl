@@ -219,7 +219,7 @@ sub parameterify {
         if ($multiline) {
             $return->{content} .= $l . "\n";
         }
-        elsif ($l =~ /^([\w\-]+):\s(.*)/) {
+        elsif ($l =~ /^([\w\-]+):\s?(.*)/) {
             $k = $1;
             my $v = $2;
 
