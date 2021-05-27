@@ -176,10 +176,8 @@ sub msgtext2hash {
                             die;
                         }
                     }
-                    elsif (! $v->{'Content-Type'}->{a}->[0]) {
-                        warn Dumper  $v->{'Content-Type'};
-                        warn Dumper $v;
-
+                    elsif (! $v->{'Content-Type'}->{a} || (ref $v->{'Content-Type'}->{a} && ! @{ $v->{'Content-Type'}->{a} })) {
+                        # keep $v->{content}
                     }
                     elsif (!grep { lc $v->{'Content-Type'}->{a}->[0] eq $_ } (qw|text/plain text/html|)) {
                         warn "Unknown Content-Type: " . Dumper $v->{'Content-Type'};    #$v->{'Content-Type'}->{a}->[0];
