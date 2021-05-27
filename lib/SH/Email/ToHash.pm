@@ -109,10 +109,10 @@ sub msgtext2hash {
         $boundary =~ s/\"//g;
         my $content = $return->{body}->{content};
         if ($return->{body}->{content}) {
-            my $pos = index($content, $boundary);
+            my $pos = index($content, "$boundary\n");
             if($boundary && $pos>=0 ) {
                 if (length($return->{body}->{content}) ) {
-                    $body = $self->multipart($return->{body}->{'Content-Type'}, $return->{body}->{content});
+                    $body = $self->multipart($return->{body}->{'Content-Type'}, $content);
                     $return->{body} = $self->parameterify($body);
                 }
             }
@@ -404,6 +404,7 @@ sub multipart {
 
     my $boundary = $type->{h}->{boundary};
     $boundary =~ s/"//g;
+    $boundary .="\n";
     my $tmptype = lc($type->{a}->[0]);
     if (   $tmptype eq 'multipart/alternative'
         || $tmptype eq 'multipart/mixed'
@@ -418,7 +419,7 @@ sub multipart {
         if (!defined $body || $body !~ /\w/) {    # Discard empty alternatives
 
 #            die join("\n\n", !!$body, !!$rest);
-            (undef, $body) = _two_split("--$boundary", $rest);
+            ($body, $rest) = _two_split("--$boundary", $rest);
         }
         return $body;
     }
