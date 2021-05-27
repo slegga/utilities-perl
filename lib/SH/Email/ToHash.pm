@@ -135,7 +135,7 @@ sub msgtext2hash {
                 return ($v, 'next');
             }
             elsif (defined $k && $k eq 'body' && exists $v->{'Content-Type'} && $v->{'Content-Type'}) {
-                if (ref $v->{'Content-Type'} eq 'HASH' && $v->{'Content-Type'}->{a}->[0] =~ /^multipart/i) {
+                if (ref $v->{'Content-Type'} eq 'HASH' && exists $v->{'Content-Type'}->{a} && $v->{'Content-Type'}->{a} && $v->{'Content-Type'}->{a}->[0] =~ /^multipart/i) {
                     $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body});
                 }
                 else {
@@ -175,6 +175,11 @@ sub msgtext2hash {
                             p $v;
                             die;
                         }
+                    }
+                    elsif (! $v->{'Content-Type'}->{a}->[0]) {
+                        warn Dumper  $v->{'Content-Type'};
+                        warn Dumper $v;
+
                     }
                     elsif (!grep { lc $v->{'Content-Type'}->{a}->[0] eq $_ } (qw|text/plain text/html|)) {
                         warn "Unknown Content-Type: " . Dumper $v->{'Content-Type'};    #$v->{'Content-Type'}->{a}->[0];
