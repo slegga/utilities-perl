@@ -106,12 +106,12 @@ sub msgtext2hash {
     if (!ref $body) {
         $return->{body} = $self->parameterify($body);
         my $boundary = $return->{body}->{'Content-Type'}->{h}->{boundary};
-        $boundary =~ s/\"//g;
-        my $content = $return->{body}->{content};
-        if ($return->{body}->{content}) {
-            my $pos = index($content, "$boundary\n");
-            if($boundary && $pos>=0 ) {
-                if (length($return->{body}->{content}) ) {
+        if ($boundary) {
+            $boundary =~ s/\"//g;
+            my $content = $return->{body}->{content};
+            if ($content) {
+                my $pos = index($content, "$boundary\n");
+                if( $pos>=0 ) {
                     $body = $self->multipart($return->{body}->{'Content-Type'}, $content);
                     $return->{body} = $self->parameterify($body);
                 }
