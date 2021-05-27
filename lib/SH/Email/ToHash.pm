@@ -141,6 +141,10 @@ sub msgtext2hash {
                 else {
                     if ($v->{'Content-Transfer-Encoding'}) {
                         if (lc $v->{'Content-Transfer-Encoding'} eq 'quoted-printable') {
+                            if (! defined $v->{content}) {
+                                warn Dumper $v;
+                                die "missing content";
+                            }
                             $v->{content} = decode_qp($v->{content});
                         }
                         elsif (lc $v->{'Content-Transfer-Encoding'} eq 'base64') {
