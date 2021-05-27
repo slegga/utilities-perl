@@ -141,11 +141,7 @@ sub msgtext2hash {
                 else {
                     if ($v->{'Content-Transfer-Encoding'}) {
                         if (lc $v->{'Content-Transfer-Encoding'} eq 'quoted-printable') {
-                            if (! defined $v->{content}) {
-                                warn Dumper $v;
-                                die "missing content";
-                            }
-                            $v->{content} = decode_qp($v->{content});
+                            $v->{content} = decode_qp($v->{content}) if defined $v->{content};
                         }
                         elsif (lc $v->{'Content-Transfer-Encoding'} eq 'base64') {
                             $v->{content} = decode_base64($v->{content});
@@ -421,12 +417,12 @@ sub multipart {
         return if !$body;
         my $rest;
         $rest = $body;
-        ($body, $rest) = _two_split("--$boundary", $rest);
+        ($body, $rest) = _two_split("--$boundary\n", $rest);
 
         if (!defined $body || $body !~ /\w/) {    # Discard empty alternatives
 
 #            die join("\n\n", !!$body, !!$rest);
-            ($body, $rest) = _two_split("--$boundary", $rest);
+            ($body, $rest) = _two_split("--$boundary\n", $rest);
         }
         return $body;
     }
