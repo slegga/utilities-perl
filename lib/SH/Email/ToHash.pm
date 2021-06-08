@@ -105,7 +105,7 @@ sub msgtext2hash {
     }
     if (!ref $body) {
         $return->{body} = $self->parameterify($body);
-        if (! ref  $return->{body}->{'Content-Type'} ||! exists $return->{body}->{'Content-Type'}->{h}->{boundary} || ! $return->{body}->{'Content-Type'}->{h}->{boundary}) {
+        if (ref  $return->{body}->{'Content-Type'} && exists $return->{body}->{'Content-Type'}->{h}->{boundary} && $return->{body}->{'Content-Type'}->{h}->{boundary}) {
             my $boundary = $return->{body}->{'Content-Type'}->{h}->{boundary};
             if ($boundary) {
                 $boundary =~ s/\"//g;
