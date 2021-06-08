@@ -105,15 +105,17 @@ sub msgtext2hash {
     }
     if (!ref $body) {
         $return->{body} = $self->parameterify($body);
-        my $boundary = $return->{body}->{'Content-Type'}->{h}->{boundary};
-        if ($boundary) {
-            $boundary =~ s/\"//g;
-            my $content = $return->{body}->{content};
-            if ($content) {
-                my $pos = index($content, "$boundary\n");
-                if( $pos>=0 ) {
-                    $body = $self->multipart($return->{body}->{'Content-Type'}, $content);
-                    $return->{body} = $self->parameterify($body);
+        if (! ref  $return->{body}->{'Content-Type'} ||! exists $return->{body}->{'Content-Type'}->{h}->{boundary} || ! $return->{body}->{'Content-Type'}->{h}->{boundary}) {
+            my $boundary = $return->{body}->{'Content-Type'}->{h}->{boundary};
+            if ($boundary) {
+                $boundary =~ s/\"//g;
+                my $content = $return->{body}->{content};
+                if ($content) {
+                    my $pos = index($content, "$boundary\n");
+                    if( $pos>=0 ) {
+                        $body = $self->multipart($return->{body}->{'Content-Type'}, $content);
+                        $return->{body} = $self->parameterify($body);
+                    }
                 }
             }
         }
