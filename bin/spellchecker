@@ -1,0 +1,108 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use autodie;
+use List::MoreUtils qw(any uniq);
+use utf8;
+use open ':locale';
+use File::Copy;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use Mojo::Base -strict,-signatures;
+use SH::ScriptX;
+use SH::Test::Pod;
+
+=encoding utf8
+
+=head1 NAME
+
+spellchecker - Spell check a file
+
+=head1 DESCRIPTION
+
+Spellcheck a file. or stdin.
+Use OS dictionary
+
+=head2 Dictionaries
+
+=over
+
+=item OS dictionary
+
+/usr/share/dict/words
+
+=item global
+
+/local/net/etc/.dictionary
+
+=item personal dictionary
+
+~/.dictionary.txt
+
+=item repo dictionary
+
+git-repo/.dictionary.txt
+
+=back
+
+=head1 AUTHOR
+
+Slegga - C<steihamm@gmail.com>
+
+=cut
+
+
+
+#my ($opts,$usage) = options_and_usage($0,\@ARGV,
+#    "%c %o",
+#    ['add',          'add words to the personaldictonary.txt file' ],
+#    [ 'email|e=s',      'Send to email instead of screen' ],
+#    [ 'file|f=s',       'Run only the given file' ],
+#    {return_uncatched_arguments => 1}
+#);
+    option ('add!',          'add words to the personaldictonary.txt file' );
+    option ('email|e=s',      'Send to email instead of screen' );
+    option ('file|f=s',       'Run only the given file' );
+
+sub main($self) {
+    if ($self->{add}) {
+        my @extrawords = @ARGV;
+        if ( @extrawords) {
+            my $pdfile = $ENV{HOME}.'/.personaldictionary.txt';
+            my @ownwordlist;
+            if (-r $pdfile) {
+                open my $pdfh,'<',$pdfile;
+                my @tmp = <$pdfh>;
+                push @ownwordlist, @tmp;
+                close $pdfh;
+                map {chomp $_} (@ownwordlist);
+                warn "Empty list " if ! @ownwordlist;
+            }
+            map {s/\W+\$//}@extrawords;
+            map {s/\,//} @extrawords;
+            @extrawords = grep {/\w/} @extrawords;
+            push @ownwordlist, @extrawords;
+                @ownwordlist = sort {$a cmp $b} @ownwordlist;
+            @ownwordlist = uniq @ownwordlist;
+            @ownwordlist = grep {/\w/} @ownwordlist;
+            my $bak= $pdfile;
+            $bak=~s/txt$/bak/;
+            move $pdfile, $bak;
+            open my $fhw, '>', $pdfile;
+            for my $word (@ownwordlist) {
+                print $fhw $word."\n";
+            }
+            close $fhw;
+            print "Total own wordslist: " . scalar(@ownwordlist)."\n";
+        }else {
+            die "Now additional words";
+        }
+    } else {
+        binmode (STDIN,':utf8');
+        say $self->extra_options;
+        my $owntext = do { local $/; <STDIN> };
+        say $owntext;
+        print join("\n", SH::Test::Pod::spellcheck($owntext));
+        print "\n";
+    }
+}
