@@ -1,6 +1,6 @@
 package SH::Email::ToHash;
 
-use Mojo::Base -base, -signatures;
+use Mojo::Base -base;
 use Data::Printer;
 use Data::Dumper;
 use Mojo::File 'path';
@@ -26,13 +26,14 @@ has tmpdir => '/tmp';    # A lot of files will be generated.
 
 =head1 NAME
 
-SH::Email::RawToHash - convert raw email mime text to a nice hash
+SH::Email::ToHash - convert raw email mime text to a nice hash
 
 =head1 SYNOPSIS
 
     use SH::Email::ToHash;
     use Data::Dumper;
-    print Dumper SH::Email::ToHash::message2hash("From: x\@y.c\nTo: d\@f.b");
+    print Dumper SH::Email::ToHash::message2hash('From: x\@y.c\nTo: d\@f.b');
+    my $email = SH::Email::ToHash->new();
     print Dumper $email->message2hash("From: x\@y.c\nTo: d\@f.b");
 
 =head1 DESCRIPTION
@@ -105,20 +106,6 @@ sub msgtext2hash {
     }
     if (!ref $body) {
         $return->{body} = $self->parameterify($body);
-        if (ref  $return->{body}->{'Content-Type'} && exists $return->{body}->{'Content-Type'}->{h}->{boundary} && $return->{body}->{'Content-Type'}->{h}->{boundary}) {
-            my $boundary = $return->{body}->{'Content-Type'}->{h}->{boundary};
-            if ($boundary) {
-                $boundary =~ s/\"//g;
-                my $content = $return->{body}->{content};
-                if ($content) {
-                    my $pos = index($content, "$boundary\n");
-                    if( $pos>=0 ) {
-                        $body = $self->multipart($return->{body}->{'Content-Type'}, $content);
-                        $return->{body} = $self->parameterify($body);
-                    }
-                }
-            }
-        }
     }
     else {
         $return->{body} = $body;
@@ -137,13 +124,13 @@ sub msgtext2hash {
                 return ($v, 'next');
             }
             elsif (defined $k && $k eq 'body' && exists $v->{'Content-Type'} && $v->{'Content-Type'}) {
-                if (ref $v->{'Content-Type'} eq 'HASH' && exists $v->{'Content-Type'}->{a} && $v->{'Content-Type'}->{a} && $v->{'Content-Type'}->{a}->[0] =~ /^multipart/i) {
+                if (ref $v->{'Content-Type'} eq 'HASH' && $v->{'Content-Type'}->{a}->[0] =~ /^multipart/i) {
                     $v->{content} = $self->multipart($v->{'Content-Type'}, $v->{body});
                 }
                 else {
                     if ($v->{'Content-Transfer-Encoding'}) {
                         if (lc $v->{'Content-Transfer-Encoding'} eq 'quoted-printable') {
-                            $v->{content} = decode_qp($v->{content}) if defined $v->{content};
+                            $v->{content} = decode_qp($v->{content});
                         }
                         elsif (lc $v->{'Content-Transfer-Encoding'} eq 'base64') {
                             $v->{content} = decode_base64($v->{content});
@@ -161,7 +148,7 @@ sub msgtext2hash {
                             warn "Unknown Content-Transfer-Encoding: " . $v->{'Content-Transfer-Encoding'};
                         }
                     }
-                    elsif (ref $v->{'Content-Type'} && exists $v->{'Content-Type'}->{h}->{charset} && uc $v->{'Content-Type'}->{h}->{charset} eq 'UTF-8') {
+                    elsif (ref $v->{'Content-Type'} && uc $v->{'Content-Type'}->{h}->{charset} eq 'UTF-8') {
                         $v->{content} = decode('UTF-8', $v->{content});
                     }
 #                    elsif (! ref $v->{'Content-Type'} && $v->{'Content-Type'} =~ /^multipart/i) {
@@ -177,9 +164,6 @@ sub msgtext2hash {
                             p $v;
                             die;
                         }
-                    }
-                    elsif (! $v->{'Content-Type'}->{a} || (ref $v->{'Content-Type'}->{a} && ! @{ $v->{'Content-Type'}->{a} })) {
-                        # keep $v->{content}
                     }
                     elsif (!grep { lc $v->{'Content-Type'}->{a}->[0] eq $_ } (qw|text/plain text/html|)) {
                         warn "Unknown Content-Type: " . Dumper $v->{'Content-Type'};    #$v->{'Content-Type'}->{a}->[0];
@@ -221,7 +205,7 @@ sub parameterify {
         if ($multiline) {
             $return->{content} .= $l . "\n";
         }
-        elsif ($l =~ /^([\w\-]+):\s?(.*)/) {
+        elsif ($l =~ /^([\w\-]+):\s(.*)/) {
             $k = $1;
             my $v = $2;
 
@@ -408,8 +392,6 @@ sub multipart {
     }
 
     my $boundary = $type->{h}->{boundary};
-    $boundary =~ s/"//g;
-    $boundary .="\n";
     my $tmptype = lc($type->{a}->[0]);
     if (   $tmptype eq 'multipart/alternative'
         || $tmptype eq 'multipart/mixed'
@@ -417,14 +399,13 @@ sub multipart {
 
         #choose first which is usually easy to traverse
         return if !$body;
-        my $rest;
-        $rest = $body;
-        ($body, $rest) = _two_split("--$boundary\n", $rest);
+        my $rest = $body;
+        ($body, $rest) = split /$boundary/, $rest, 2;
 
         if (!defined $body || $body !~ /\w/) {    # Discard empty alternatives
 
 #            die join("\n\n", !!$body, !!$rest);
-            ($body, $rest) = _two_split("--$boundary\n", $rest);
+            (undef, $body) = split /$boundary/, $rest, 2;
         }
         return $body;
     }
@@ -445,18 +426,6 @@ sub multipart {
         ...;
     }
     die;
-}
-
-# split did not work well with long boundary
-# my ($first,$sec) = _two_spit('boundary','first text boundary second text');
-sub _two_split($delimiter,$string) {
-    my $pos = index($string,$delimiter);
-    if ($pos<0) {
-        return ($string,undef);
-    }
-    my $first = substr($string,0,$pos);
-    my $second = substr($string, $pos+length($delimiter));
-    return ($first, $second);
 }
 
 =head1 AUTHOR
