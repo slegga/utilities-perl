@@ -29,7 +29,6 @@ for my $f(path('t/data')->list->each) {
     my $cont =$x->msgtext2hash($f->slurp);
     ok(exists $cont->{header}->{'Content-Type'},$f->to_string);
     like ($cont->{header}->{From}, qr'(no|com|shop)','from');
-#    warn Dumper $cont;
 }
 # exists $msg->{'Content-Type'}
 # ...; # TODO:

@@ -2,13 +2,28 @@
 use strict;
 use warnings;
 use autodie;
+use Mojo::File qw /path curfile/;
+
+my $lib;
+BEGIN {
+    my $gitdir = Mojo::File->curfile;
+    my @cats = @$gitdir;
+    while (my $cd = pop @cats) {
+        if ($cd eq 'git') {
+            $gitdir = path(@cats,'git');
+            last;
+        }
+    }
+    $lib =  $gitdir->child('utilities-perl','lib')->to_string;
+};
+
 use List::MoreUtils qw(any uniq);
 use utf8;
 use open ':locale';
 use File::Copy;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
-use Mojo::Base -strict,-signatures;
+use Mojo::Base 'SH::ScriptX', -signatures ;
 use SH::ScriptX;
 use SH::Test::Pod;
 
@@ -61,8 +76,8 @@ Slegga - C<steihamm@gmail.com>
 #    {return_uncatched_arguments => 1}
 #);
     option ('add!',          'add words to the personaldictonary.txt file' );
-    option ('email|e=s',      'Send to email instead of screen' );
-    option ('file|f=s',       'Run only the given file' );
+    option ('email=s',      'Send to email instead of screen' );
+    option ('file=s',       'Run only the given file' );
 
 sub main($self) {
     if ($self->{add}) {
@@ -106,3 +121,5 @@ sub main($self) {
         print "\n";
     }
 }
+
+__PACKAGE__->new(options_cfg=>{extra=>1})->main();
