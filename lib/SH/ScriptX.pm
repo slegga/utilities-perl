@@ -4,7 +4,7 @@ use Carp;
 use List::MoreUtils q(any);
 use Pod::Text::Termcap;
 use File::Basename;
-use Mojo::Base -base;
+use Mojo::Base -base,-signatures;
 use Mojo::Util;
 use Encode::Locale qw(decode_argv);
 use IO::Interactive;
@@ -20,15 +20,14 @@ SH::ScriptX - Development of a lite version of Applify
 =head1 SYNOPSIS
 
     use SH::ScriptX; # call SH::ScriptX->import
-    use Mojo::Base 'SH::ScriptX';
+    use Mojo::Base 'SH::ScriptX',-signatures;
 
     has info => 'blabla';
     option 'name=s', 'from emailadress', {validation => qr'[\w\.\@]+'};
     print '__PACKAGE__ is:' . __PACKAGE__. "\n";
 
 
-    sub main {
-        my $self = shift;
+    sub main($self) {
         say "Hi ".$self->name;
         say "Info ".$self->info;
         return $self->gracefull_exit;
@@ -224,10 +223,7 @@ If verbose flag is on then print the pod also.
 
 =cut
 
-sub usage {
-	my $self = shift;
-	my $verbose = shift;
-#    print BOLD $usage->text;
+sub usage($self,$verbose) {
     say $self->_gen_usage;
     if ($verbose) {
         my $parser=Pod::Text::Termcap->new(sentence => 0, width => 120 );
@@ -246,15 +242,12 @@ Use in combination with return or else there will be no exit.
 
 =cut
 
-sub gracefull_exit {
-	my $self = shift;
+sub gracefull_exit($self) {
 	# remove $self and put in a dummy that takes all methods and return.
 	#...;
 #	exit; # to let script run as normal for so long.
 	my $return = bless {},'EXITOBJECT';
-#	*EXITOBJECT::AUTOLOAD=sub{};
 	Mojo::Util::monkey_patch ('EXITOBJECT',AUTOLOAD => sub {shift});
-#	p $return;
 	return $return;
 }
 
@@ -275,8 +268,7 @@ This method exists mainly because of testing
 
 =cut
 
-sub arguments {
-    my $self = shift;
+sub arguments($self) {
     if (@_>1) {
     	if (@_ % 2 == 0 ) {
     		my %opts = {@_};
@@ -318,8 +310,7 @@ sub _default_options {
     return (['help!','This help text'],['usage!','Short usage'],['version!','Show version']);
 }
 
-sub _gen_usage {
-    my $self = shift;
+sub _gen_usage($self) {
 	my $script;
 	$script = $self->scriptname || basename($0);
 
