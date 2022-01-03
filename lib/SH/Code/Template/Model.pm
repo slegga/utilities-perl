@@ -58,10 +58,10 @@ sub generate {
         or die "Did not make the file ". $p->{name}.'.pm';
 
     $p->{pathname}= "lib/Model/".$p->{name}.'.pm';
-    $self->generate_file({path=>'t', filename=>$p->{name}.'.t', parameters=>$p, ts => data_section(__PACKAGE__, 'test.t')})
+    $self->generate_file({path=>'t', filename=>$p->{name}.'.t', parameters=>$p, ts => $self->xdata_section(__PACKAGE__, 'test.t')})
         or die "Did not make the file ". $p->{name}.'.t';
 	if ($p->{sqlitefile} && ! -e 'migrations/tabledef.sql')  {
-		$self->generate_file({path=>'migrations', filename=>'tabledef.sql', parameters=>$p, ts => data_section(__PACKAGE__, 'tabledef.sql')})
+		$self->generate_file({path=>'migrations', filename=>'tabledef.sql', parameters=>$p, ts => $self->xdata_section(__PACKAGE__, 'tabledef.sql')})
 		        or die "Did not make the file migrations/tabledef.sql";
 	}
     path()->child('migrations')->make_path;
@@ -83,6 +83,10 @@ use open ':encoding(UTF-8)';
 =head1 NAME
 
 Model::<%= $name %>.pm - <%= $shortdescription %>
+
+=head1 SYNOPSIS
+
+    <CODE>
 
 =head1 DESCRIPTION
 
