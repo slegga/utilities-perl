@@ -710,7 +710,7 @@ my $pod_hr_raw = Pod::Simple::SimpleTree->new->parse_file($podfile)->root;
                 }
 
                 if (! $tmpcofigdir) {
-                    if (-d "$gitroot/t/etc/nx-config") {
+                    if (-d "$gitroot/t/etc") {
                         $tmpcofigdir = $gitroot."/t/etc";
                         #                           chdir($gitroot);
                     }

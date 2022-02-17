@@ -84,7 +84,6 @@ X-FE-Attachment-Name: GeileLisa.jpg
 Authentication-Results: nmspam4.e.nsc.no;
 	spf=pass (nsc.no: domain of ykorrey4y9h2d9uy@outlook.com designates 40.92.91.11 as permitted sender) smtp.mailfrom=ykorrey4y9h2d9uy@outlook.com
 X-FE-Policy-ID: 0:1:3:SYSTEM
-X-Telenor_id: 2AEED19980B
 X-XClient-IP-Addr: 40.92.91.11
 X-Source-IP: 40.92.91.11
 X-Scanned-By: MIMEDefang 2.84 on 10.123.160.166
