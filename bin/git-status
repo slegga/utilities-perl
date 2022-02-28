@@ -43,6 +43,9 @@ while (my $item = readdir $dh) {
     } elsif ($output =~/Your branch is behind.+(nothing to commit\, working tree clean|and can be fast-forwarded)/ms) {
       $r->run( 'pull' );
       next;
+    } elsif ($output =~/Your branch and '[^']*' have diverged/ms) {
+      $r->run( 'pull' );
+      next;
     }
     next if grep {$item eq $_} (qw/ gosync / );
     $output =~ s/On branch (master|main|develop)//;
