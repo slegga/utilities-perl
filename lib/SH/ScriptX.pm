@@ -223,7 +223,7 @@ If verbose flag is on then print the pod also.
 
 =cut
 
-sub usage($self,$verbose) {
+sub usage($self,$verbose=0) {
     say $self->_gen_usage;
     if ($verbose) {
         my $parser=Pod::Text::Termcap->new(sentence => 0, width => 120 );
