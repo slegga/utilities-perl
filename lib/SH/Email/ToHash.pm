@@ -5,6 +5,7 @@ use Data::Printer;
 use Data::Dumper;
 use Mojo::File 'path';
 use MIME::Base64;
+use Carp 'confess';
 
 #use MIME::Charset;
 use MIME::QuotedPrint;
@@ -226,6 +227,9 @@ sub parameterify {
                 $return->{$k}->[$#{$return->{$k}}] .= "\n" . $l;
             }
             else {
+                if (! defined $k) {
+                    confess 'ERROR LINE: '.$l;
+                }
                 $return->{$k} .= "\n" . $l;
             }
         }
