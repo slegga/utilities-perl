@@ -350,6 +350,9 @@ sub extract_emailaddress {
     my $self = shift;
     my $from = shift;
     return if !$from;
+    if (ref $from) {
+        ($from) = grep {index($_,'@')>=0} @$from;
+    }
     die "Cant find email address" if !$from =~ /\@/;
     if ($from =~ /\<([\w\.\_\-\+]+\@[\w\.\_\-]+)>/) {
         return $1;

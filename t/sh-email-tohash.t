@@ -28,7 +28,13 @@ for my $f(path('t/data')->list->each) {
     next if $f->to_string !~ /\.txt$/;
     my $cont =$x->msgtext2hash($f->slurp);
     ok(exists $cont->{header}->{'Content-Type'},$f->to_string);
-    like ($cont->{header}->{From}, qr'(no|com|shop)','from');
+    if (ref $cont->{header}->{From}) {
+        for my $f (@{ $cont->{header}->{From} } ) {
+            like ($f, qr'(no|com|shop|net)','from');
+        }
+    } else {
+        like ($cont->{header}->{From}, qr'(no|com|shop|net)','from');
+    }
 }
 # exists $msg->{'Content-Type'}
 # ...; # TODO:

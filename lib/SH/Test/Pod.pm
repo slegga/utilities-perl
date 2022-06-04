@@ -23,13 +23,14 @@ use File::Basename;
 use Term::ANSIColor;
 use Test::Builder::Module;
 use PPR;
+use Cwd 'abs_path';
 
 our @ISA    = qw(Test::Builder::Module Exporter);
 our @EXPORT = qw(check_modules_pod check_scripts_pod);
 
 my $CLASS = __PACKAGE__;
 my $ok=1;
-my $DICT_FILE = '/usr/share/dict/words';
+my $DICT_FILE = abs_path('/usr/share/dict/words');
 
 =head1 NAME
 
@@ -281,8 +282,10 @@ sub spellcheck {
     my $dword=<$fhr>;
 
     while (defined $dword && defined  $word) {
-
-        if ($dword eq $word || $dword eq lc $word) {
+        if($dword=~/^[\wæøåÆØÅ]/) {
+            $dword = <$fhr>;
+        }
+        elsif ($dword eq $word || $dword eq lc $word) {
             $word = shift @newwords;
             $dword = <$fhr>;
             chomp $dword if defined $dword;
