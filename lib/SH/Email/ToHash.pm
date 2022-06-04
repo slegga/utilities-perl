@@ -202,6 +202,7 @@ sub parameterify {
     my $return    = {};
     my $multiline = 0;
     my $k;
+    my $prev_l;
     for my $l (split(/\n/, $string)) {
         if ($multiline) {
             $return->{content} .= $l . "\n";
@@ -221,15 +222,15 @@ sub parameterify {
                 push @{$return->{$k}}, $v;
             }
         }
-        elsif ($l =~ /^\s+/) {
-            next if !defined $k && $l =~ /^\s*$/;
+        elsif ($l =~ /^\s+\w/) {
+            if (! defined $k) {
+                confess 'ERROR LINE: '.$l."\nprevline: $prev_l";
+            }
+
             if (ref $return->{$k} eq 'ARRAY') {
                 $return->{$k}->[$#{$return->{$k}}] .= "\n" . $l;
             }
             else {
-                if (! defined $k) {
-                    confess 'ERROR LINE: '.$l;
-                }
                 $return->{$k} .= "\n" . $l;
             }
         }
@@ -260,6 +261,7 @@ sub parameterify {
 
             #...;
         }
+        $prev_l=$l;
     }
 
 #$return = $self->hash_parse_values($return, sub {my ($value)=@_;if ($value && $value=~/\;/sm) {return {a=>[split(/\;/,$value)]} };$value} );
