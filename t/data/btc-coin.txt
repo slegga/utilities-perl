@@ -99,7 +99,6 @@ Content-Type: multipart/alternative; boundary="cCaNABweT4kN=_?:"
 X-FEAS-SPF: spf-result=pass, ip=212.129.18.16, helo=inteleas.jp.net, mailFrom=96dqts6zy8n4x1@inteleas.jp.net
 X-FE-Last-Public-Client-IP: 212.129.18.16
 X-FE-Envelope-From: 96dqts6zy8n4x1@inteleas.jp.net
-X-Telenor_id: E8B982DA08
 X-XClient-IP-Addr: 212.129.18.16
 X-Source-IP: 212.129.18.16
 X-Scanned-By: MIMEDefang 2.84 on 10.123.160.166
