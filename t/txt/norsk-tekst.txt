@@ -1,0 +1,4 @@
+gikk noen ord. Vi prøver med yaml.
+- dette er yaml
+     nøkkel: Dette er også yaml.
+     linje: I alle fall ligner det.
