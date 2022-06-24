@@ -52,6 +52,17 @@ Test::Spell
 
 Try to make spellchecking like Test::Mojo;
 
+=head1 INSTALLATION
+
+    sudo apt install libaspell-dev
+    sudo apt install aspell-no
+    https://ftp.gnu.org/gnu/aspell/dict/0index.html
+#    wget https://ftp.gnu.org/gnu/aspell/dict/nb/aspell-nb-0.50.1-0.tar.bz2
+#    less README
+#    .configure
+
+    cpanm -i Text::ASpell
+
 =head2 ATTRIBUTES
 
 =over 4
