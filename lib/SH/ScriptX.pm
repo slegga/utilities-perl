@@ -1,4 +1,6 @@
 package SH::ScriptX;
+use 5.26.1;
+
 use autodie;
 use Carp;
 use List::MoreUtils q(any);
@@ -8,6 +10,7 @@ use Mojo::Base -base,-signatures;
 use Mojo::Util;
 use Encode::Locale qw(decode_argv);
 use IO::Interactive;
+
 
 # use Data::Printer;
 
