@@ -271,29 +271,29 @@ This method exists mainly because of testing
 
 =cut
 
-sub arguments($self) {
-    if (@_>1) {
-    	if (@_ % 2 == 0 ) {
-    		my %opts = {@_};
+sub arguments($self, @args) {
+    if (@args>1) {
+    	if (@args % 2 == 0 ) {
+    		my %opts = {@args};
     		@$self{ keys %opts } = values %opts;
     	}
-    } elsif (@_ ==1 ) {
-    	if (ref $_[0] eq 'HASH') {
-    		my %opts = %{ $_[0] };
+    } elsif (@args ==1 ) {
+    	if (ref $args[0] eq 'HASH') {
+    		my %opts = %{ $args[0] };
             @$self{keys %opts} = values %opts;
         } else {
-    	    my $commandline = "cmd " . shift;
+    	    my $commandline = "cmd " . shift @args;
     	    if ( eval {require Parse::CommandLine;1;}) {
                 ...;
     	    } else {
-                my @args = split( /\s\-\-?/, shift);
+                my @args = split( /\s\-\-?/, @args);
                 ...;
     	    }
         }
-	} elsif (@_==0) {
+	} elsif (@args==0) {
 		warn "Nothing to do";
 	} else {
-		die "Wrong arguments " . join(", ",@_);
+		die "Wrong arguments " . join(", ",@args);
 	}
     # Find module to read commandline
     return $self;
