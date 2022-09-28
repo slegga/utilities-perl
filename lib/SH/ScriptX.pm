@@ -193,7 +193,7 @@ sub new {
     # Quit if used as a module and __PACKAGE__->new->main is executed
     my @caller = caller(1);
     if (scalar @caller ) {
-    	if( exists $caller[0] && defined $caller[0] && ($caller[0] eq 'main' || $caller[0] =~ '(SH\:\:)?Test\:\:ScriptX') ) {
+    	if( exists $caller[0] && defined $caller[0] && ($caller[0] eq 'main' || $caller[0] =~ '(SH\:\:)?Test\:\:ScriptX' || $caller[0] eq 'Object') ) {
 	        return $self->gracefull_exit;
 	    }
     }
