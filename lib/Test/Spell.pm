@@ -2,7 +2,6 @@ package Test::Spell;
 #does not work with æøå use open qw( :std :encoding(UTF-8) );
 use Mojo::File 'path';
 #use Text::Hunspell;
-use Text::Aspell;
 use Mojo::Base 'Test::Builder::Module',-base, -signatures;
 use Test::More;
 use Test::Builder::Module;
@@ -10,12 +9,20 @@ use Encode 'decode','encode';
 use Mojo::File 'path';
 use utf8;
 
+
 has 'file';
 has language=>'nb_NO'; # en_US
 has speller => sub {
-    my $aspell = Text::Aspell->new;
-    $aspell->set_option('lang','no');
-    $aspell->set_option('sug-mode','fast');
+    my $ok=eval {
+        require Text::Aspell;
+    };
+    my $aspell;
+    if ($ok) {
+        my $aspell = Text::Aspell->new;
+        $aspell->set_option('lang','no');
+        $aspell->set_option('sug-mode','fast');
+    } else {
+    }
     return $aspell;
 };
 has mywords =>sub {
@@ -35,6 +42,8 @@ has mywords =>sub {
 #    "/usr/share/hunspell/".$_[0]->language.".aff", "/usr/share/hunspell/".$_[0]->language.".dic"     # Hunspell dictionary file
 #)
 #};
+
+=encoding UTF-8
 
 =head1 NAME
 
@@ -63,6 +72,16 @@ Try to make spellchecking like Test::Mojo;
 
     cpanm -i Text::ASpell
 
+=head2 MAC OSX
+Gjør det over først.
+
+export C_INCLUDE_PATH=/opt/homebrew/Cellar/aspell/0.60.8/include
+xcode-select --install
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+sudo xcodebuild -license
+cpanm --interactive --verbose Text::Aspell
+
+
 =head2 ATTRIBUTES
 
 =over 4
@@ -85,6 +104,9 @@ sub test_text_spelling($self,@params) {
     my $tb = __PACKAGE__->builder;
     my $ok = 1;
     my $reason = 'Spellcheck ok';
+    if (! defined $self->speller) {
+        return $tb->ok(1,'Text::ASpell is not installed. Ignore testing');
+    }
     if (! $self->file) {
         $ok = 0;
         $reason = 'Must set file attribute before test';

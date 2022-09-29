@@ -1,9 +1,14 @@
 use Test::More;
 
+ok(1,'dummy');
+eval {
+    require Text::Aspell;
+    Text::Aspell::import;
+} or do {
+    done_testing;
+    exit;
+};
 
-
-
-use Text::Aspell;
 use utf8;
 my $speller = Text::Aspell->new;
 
