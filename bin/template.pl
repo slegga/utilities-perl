@@ -65,6 +65,10 @@ has config =>sub {
         while (@e) {
             my $key =   shift(@e);
             my $value = shift(@e);
+            if (!defined $value) {
+                say "No value for '$key'. Please give a value ";
+                return $self->gracefull_exit();
+            }
             die "Invalid value $value. Cant start with --" if $value =~/^--/;
             if ($key =~ /^\-\-\w+$/) {
                 $key =~ s/^\-\-//;

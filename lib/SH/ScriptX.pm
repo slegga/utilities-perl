@@ -10,7 +10,9 @@ use Mojo::Base -base,-signatures;
 use Mojo::Util;
 use Encode::Locale qw(decode_argv);
 use IO::Interactive;
-
+use 5.36.0;
+use Data::Dumper;
+use Data::Printer;
 
 # use Data::Printer;
 
