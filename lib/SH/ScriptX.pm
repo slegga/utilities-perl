@@ -1,5 +1,5 @@
 package SH::ScriptX;
-use 5.26.1;
+use 5.36.0;
 
 use autodie;
 use Carp;
@@ -23,7 +23,7 @@ SH::ScriptX - Development of a lite version of Applify
 =head1 SYNOPSIS
 
     use SH::ScriptX; # call SH::ScriptX->import
-    use Mojo::Base 'SH::ScriptX',-signatures;
+    use Mojo::Base 'SH::ScriptX', -signatures;
 
     has info => 'blabla';
     option 'name=s', 'from emailadress', {validation => qr'[\w\.\@]+'};
@@ -193,7 +193,7 @@ sub new {
     # Quit if used as a module and __PACKAGE__->new->main is executed
     my @caller = caller(1);
     if (scalar @caller ) {
-    	if( exists $caller[0] && defined $caller[0] && ($caller[0] eq 'main' || $caller[0] =~ '(SH\:\:)?Test\:\:ScriptX' || $caller[0] eq 'Object') ) {
+    	if( exists $caller[0] && defined $caller[0] && ($caller[0] eq 'main' || $caller[0] =~ '(SH\:\:)?Test\:\:ScriptX') ) {
 	        return $self->gracefull_exit;
 	    }
     }
