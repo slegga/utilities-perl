@@ -80,7 +80,7 @@ Slegga - C<steihamm@gmail.com>
     option ('file=s',       'Run only the given file' );
 
 sub main($self) {
-    if ($self->{add}) {
+    if ( $self->add ) {
         my @extrawords = @ARGV;
         if ( @extrawords) {
             my $pdfile = $ENV{HOME}.'/.personaldictionary.txt';
