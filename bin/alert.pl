@@ -57,11 +57,11 @@ sub main($self) {
     if    ($tx->res->is_success)   { print $tx->res->body }
     elsif ($tx->res->is_error)     { say "Error: " . $tx->res->message }
     elsif (! $tx->res->can('code') || ! $tx->res->code )  {
-        say "Error. Strange return";
-        p $tx;
+        say "Error. Strange return" . $tx->req->to_string;
+        p $tx->res;
     }
     elsif ($tx->res->code == 301)  { say "Reroute to Location " . $tx->res->headers->location }
-    else                      { p $tx }
+    else                      { say $tx->req->to_string;p $tx }
 }
 
 __PACKAGE__->new()->main();
