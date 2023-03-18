@@ -17,14 +17,8 @@ BEGIN {
 use lib $lib;
 use SH::UseLib;
 use SH::ScriptX;
-use Mojo::Base 'SH::ScriptX';
-use open qw(:std :utf8);
-use Mojo::UserAgent;
-use Sys::Hostname;
-
-use  YAML::Tiny;
-
-#use Carp::Always;
+use Mojo::Base 'SH::ScriptX', -signatures;
+use SH::Alert;
 
 =encoding utf8
 
@@ -42,33 +36,19 @@ Pipe text into script for sending a groupme to me. Fine for alerting about serve
 
 =cut
 
-has configfile =>($ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/groupme-bot.yml';
-has config => sub { YAML::Tiny::LoadFile(shift->configfile) };
 option 'dryrun!', 'Print to screen instead of doing changes';
-has ua =>sub{Mojo::UserAgent->new};
-has url => sub{Mojo::URL->new('https://api.groupme.com/v3/bots/post')};
+has alert => sub{SH::Alert->new(dryrun=>$_[0]->dryrun)};
 
-sub main {
-    my $self = shift;
-    my @e = @{ $self->extra_options };
-    my $bot_id = $self->config->{bot_id};
-    my ($short_hostname) = split /\./, hostname(); # Split by '.', keep the first part
-    my $identity = getpwuid( $< ).'@'.$short_hostname.': ';
-    my $text='';
-    my $i=0;
+sub main($self) {
+    my ($text, $i);
     while(<STDIN>) {
-        print $_;
         $text .=$_;
         $i++;
         last if $i>50;
     }
     return if $text !~ /\w/;
-    my $payload ={
-        bot_id=>$bot_id,
-        text =>$identity . $text
-    };
 
-    $self->ua->post($self->url=>json=>$payload);
+    $self->alert->groupme($text);
 }
 
-__PACKAGE__->new(options_cfg=>{extra=>1})->main();
+__PACKAGE__->new()->main();
