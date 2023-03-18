@@ -19,6 +19,7 @@ use SH::UseLib;
 use SH::ScriptX;
 use Mojo::Base 'SH::ScriptX', -signatures;
 use SH::Alert;
+use Data::Printer;
 
 =encoding utf8
 
@@ -55,8 +56,8 @@ sub main($self) {
     }
     if    ($tx->res->is_success)   { print $tx->res->body }
     elsif ($tx->res->is_error)     { say "Error: " . $tx->res->message }
-    elsif ($tx->res->code == 301)  { say "Reroute to Location " . $tx->res->headers->location }
-    else                      { say 'Whatever...' }
+    elsif ($tx->code == 301)  { say "Reroute to Location " . $tx->res->headers->location }
+    else                      { p $tx }
 }
 
 __PACKAGE__->new()->main();
