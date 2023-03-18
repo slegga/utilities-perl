@@ -56,8 +56,12 @@ sub main($self) {
     }
     if    ($tx->res->is_success)   { print $tx->res->body }
     elsif ($tx->res->is_error)     { say "Error: " . $tx->res->message }
-    elsif ($tx->code == 301)  { say "Reroute to Location " . $tx->res->headers->location }
-    else                      { p $tx }
+    elsif (! $tx->res->can('code'))  {
+        say "Error. Strange return";
+        p $tx;
+    }
+    elsif ($tx->res->code == 301)  { say "Reroute to Location " . $tx->res->headers->location }
+    else                      { p $tx->res }
 }
 
 __PACKAGE__->new()->main();
