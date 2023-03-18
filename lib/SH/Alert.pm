@@ -75,7 +75,12 @@ Put data into the config file listed below.
 
 has configfile =>($ENV{CONFIG_DIR}||$ENV{HOME}.'/etc').'/groupme-bot.yml';
 has config => sub { YAML::Tiny::LoadFile(shift->configfile) };
-has ua =>sub{Mojo::UserAgent->new};
+has ua =>sub{
+    my $ua = Mojo::UserAgent->new;
+    # Detect proxy servers from environment
+    $ua->proxy->detect;
+    return $ua;
+};
 has url => sub{Mojo::URL->new('https://api.groupme.com/v3/bots/post')};
 has 'dryrun';
 
@@ -99,8 +104,8 @@ sub groupme($self, $message, $bot=undef) {
         bot_id=>$bot_id,
         text =>$identity . $message
     };
-    return encode_json($payload) if $self->dryrun;
-    $self->ua->post($self->url=>json=>$payload);
+    return encode_json($payload) . $self->url if $self->dryrun;
+    $self->ua->post($self->url=>json=>$payload)->result;
 }
 
 1;
