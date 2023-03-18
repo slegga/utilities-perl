@@ -48,7 +48,15 @@ sub main($self) {
     }
     return if $text !~ /\w/;
 
-    $self->alert->groupme($text);
+    my $tx = $self->alert->groupme($text);
+    if (! ref $tx) {
+        say $tx;
+        return;
+    }
+    if    ($tx->res->is_success)   { print $tx->res->body }
+    elsif ($tx->res->is_error)     { say "Error: " . $tx->res->message }
+    elsif ($tx->res->code == 301)  { say "Reroute to Location " . $tx->res->headers->location }
+    else                      { say 'Whatever...' }
 }
 
 __PACKAGE__->new()->main();
