@@ -61,7 +61,8 @@ sub main($self) {
         p $tx->res;
     }
     elsif ($tx->res->code == 301)  { say "Reroute to Location " . $tx->res->headers->location }
-    else                      { say $tx->req->to_string;p $tx }
+    elsif ($tx->res->code == 404)  { say "Path not found '" . $tx->res->url . "'" }
+    else                      { say "code: ". $tx->res->code; say $tx->req->to_string;p $tx }
 }
 
 __PACKAGE__->new()->main();

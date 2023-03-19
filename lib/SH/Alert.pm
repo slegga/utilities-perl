@@ -105,7 +105,7 @@ sub groupme($self, $message, $bot=undef) {
         text =>$identity . $message
     };
     return encode_json($payload) . $self->url if $self->dryrun;
-    $self->ua->post($self->url=>json=>$payload)->result;
+    return $self->ua->post($self->url=>json=>$payload);
 }
 
 1;
