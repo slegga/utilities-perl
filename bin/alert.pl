@@ -49,20 +49,7 @@ sub main($self) {
     }
     return if $text !~ /\w/;
 
-    my $tx = $self->alert->groupme($text);
-    if (! ref $tx) {
-        say $tx;
-        return;
-    }
-    if    ($tx->res->is_success)   { print $tx->res->body }
-    elsif ($tx->res->is_error)     { say "Error: " . $tx->res->message }
-    elsif (! $tx->res->can('code') || ! $tx->res->code )  {
-        say "Error. Strange return" . $tx->req->to_string;
-        p $tx->res;
-    }
-    elsif ($tx->res->code == 301)  { say "Reroute to Location " . $tx->res->headers->location }
-    elsif ($tx->res->code == 404)  { say "Path not found '" . $tx->res->url . "'" }
-    else                      { say "code: ". $tx->res->code; say $tx->req->to_string;p $tx }
+    $self->alert->groupme($text);
 }
 
 __PACKAGE__->new()->main();

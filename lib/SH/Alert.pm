@@ -104,8 +104,22 @@ sub groupme($self, $message, $bot=undef) {
         bot_id=>$bot_id,
         text =>$identity . $message
     };
-    return encode_json($payload) . $self->url if $self->dryrun;
-    return $self->ua->post($self->url=>json=>$payload);
+    if ($self->dryrun) {
+        say "DryRun no communication with api.groupme.com";
+        say encode_json($payload) . $self->url ;
+    }
+
+    my $tx = $self->ua->post($self->url=>json=>$payload);
+
+    if    ($tx->res->is_success)   { return 1 }
+    elsif ($tx->res->is_error)     { die "Error: " . $tx->res->message }
+    elsif (! $tx->res->can('code') || ! $tx->res->code )  {
+        p $tx->res;
+        die "Error. Strange return: " . $tx->req->to_string;
+    }
+    elsif ($tx->res->code == 404)  { die "404 Path not found '" . $tx->req->url . "'" }
+    else                      { warn "code: ". $tx->res->code; warn $tx->req->to_string;p $tx; ...; }
+
 }
 
 1;
