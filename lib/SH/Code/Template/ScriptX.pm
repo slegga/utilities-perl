@@ -94,7 +94,7 @@ use SH::UseLib;
 use SH::ScriptX;
 use Mojo::Base 'SH::ScriptX';
 use open qw(:std :utf8);
-% if ($p->{sqlitefile}) {
+% if ($sqlitefile) {
     use Mojo::SQLite;
 % }
 % if ($configfile) {

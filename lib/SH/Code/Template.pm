@@ -101,6 +101,8 @@ input is a hash ref with following keys.
 
 =back
 
+In the template variables ....
+
 =cut
 
 sub generate_file {
