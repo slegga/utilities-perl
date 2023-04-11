@@ -25,3 +25,4 @@ nytprof.out
 t/logs/FilBackupLog.txt
 /.prove
 t/etc/file-forwarder.done.yml
+t/temp/*

@@ -14,9 +14,8 @@ sub is_accepted($self, $args) {
     return 0;
 }
 
-sub export($self,$args) {
-    my $return;
-    ...;
-    return $return;
+sub export($self,$args,$data) {
+    die "Missing argument file" . encode_json($args) if ! $args->{file}; 
+    DumpFile($args->{file}, $data);
 }
 1;

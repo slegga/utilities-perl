@@ -1,6 +1,6 @@
 package SH::Transform;
 use Mojo::Base -base, -signatures, -strict;
-use Module::Pluggable require=>1;
+use Module::Pluggable instantiate =>'new';
 use Mojo::JSON qw /encode_json/;
 
 =head1 NAME
@@ -33,9 +33,12 @@ Responsible for the output of the data.
 has _importers => sub($self) {
     my $return = [];
     for my $plugin($self->plugins) {
-        die $plugin;
-        if (ref $plugin =~ /^SH::Transform::Plugin::Importer::/) {
+        my $pname = ref $plugin;
+        warn $pname;
+        if ($pname =~ /^SH\:\:Transform\:\:Plugin\:\:Importer\:\:/) {
             push @$return, $plugin;
+        } else {
+          warn ref $plugin;
         }
     }
     die "No Importer plugins are awailable" if ! @$return;
@@ -45,7 +48,9 @@ has _importers => sub($self) {
 has _exporters => sub($self) {
     my $return=[];
     for my $plugin($self->plugins) {
-        if (ref $plugin =~ /^SH::Transform::Plugin::Exporter::/) {
+       my $pname = ref $plugin;
+        warn $pname;
+        if ($pname =~ /^SH\:\:Transform\:\:Plugin\:\:Exporter\:\:/) {
             push @$return, $plugin;
         }
     }
@@ -57,7 +62,7 @@ has importer => sub($self) {
     my $importer;
 
     for my $imp(@{$self->_importers}) {
-        if ($imp->accept($self->importer_args)) {
+        if ($imp->is_accepted($self->importer_args)) {
             die "More than one importer $importer and $imp for ".encode_json($self->importer_args) if $importer;
         }
         $importer = $imp;
@@ -69,13 +74,13 @@ has importer => sub($self) {
 has exporter => sub($self) {
     my $exporter;
 
-    die "No Exporters can export from args: " .encode_json($self->exporter_args) if ! $exporter;
     for my $exp(@{$self->_exporters}) {
-        if ($exp->accept($self->exporter_args)) {
+        if ($exp->is_accepted($self->exporter_args)) {
             die "More than one exporter $exporter and $exp for ".encode_json($self->exporter_args) if $exporter;
         }
         $exporter = $exp;
     }
+    die "No Exporters can export from args: " .encode_json($self->exporter_args) if ! $exporter;
     return $exporter;
 };
 

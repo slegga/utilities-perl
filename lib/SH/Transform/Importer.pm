@@ -1,12 +1,15 @@
-package SH::Tranform::Importer;
+package SH::Transform::Importer;
+use Carp 'confess';
 use Mojo::Base -base, -signatures;
 
 sub is_accepted($self,$args) {
-    die "__SUB__ is not defined in __CALLER__";
+    my $x = (caller(0))[3];
+    confess  $x ." is not defined in " .join(',',caller());    
 }
 
 sub import($self, $args) {
-    die "__SUB__ is not defined in __CALLER__";
+    my $x = (caller(1))[3];
+    die  $x." is not defined in " .join(',',caller());
 }
 
 
