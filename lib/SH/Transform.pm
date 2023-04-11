@@ -32,43 +32,44 @@ Responsible for the output of the data.
 
 has _importers => sub($self) {
     my $return = [];
-    for my $plugin($self->pluggins) {
-        if (ref $plugin =~ /^SH::Transform::Pluggin::Importer::/) {
+    for my $plugin($self->plugins) {
+        die $plugin;
+        if (ref $plugin =~ /^SH::Transform::Plugin::Importer::/) {
             push @$return, $plugin;
         }
     }
-    die "No Importer pluggins are awailable" if ! @$return;
+    die "No Importer plugins are awailable" if ! @$return;
     return $return;
 };
 
 has _exporters => sub($self) {
     my $return=[];
-    for my $plugin($self->pluggins) {
-        if (ref $plugin =~ /^SH::Transform::Pluggin::Importer::/) {
+    for my $plugin($self->plugins) {
+        if (ref $plugin =~ /^SH::Transform::Plugin::Exporter::/) {
             push @$return, $plugin;
         }
     }
-    die "No Exporter pluggins are awailable" if ! @$return;
+    die "No Exporter plugins are awailable" if ! @$return;
     return $return;
 };
 
 has importer => sub($self) {
     my $importer;
 
-    die "No Importers can import from args: " .encode_json($self->importer_args) if ! $importer;
     for my $imp(@{$self->_importers}) {
         if ($imp->accept($self->importer_args)) {
             die "More than one importer $importer and $imp for ".encode_json($self->importer_args) if $importer;
         }
         $importer = $imp;
     }
+    die "No Importers can import from args: " .encode_json($self->importer_args) if ! $importer;
     return $importer;
 };
 
 has exporter => sub($self) {
     my $exporter;
 
-    die "No Importers can import from args: " .encode_json($self->exporter_args) if ! $exporter;
+    die "No Exporters can export from args: " .encode_json($self->exporter_args) if ! $exporter;
     for my $exp(@{$self->_exporters}) {
         if ($exp->accept($self->exporter_args)) {
             die "More than one exporter $exporter and $exp for ".encode_json($self->exporter_args) if $exporter;
@@ -114,7 +115,7 @@ sub transform($self, $importer_args,$exporter_args) {
         die "Missing \$exporter_args ".($exporter_args//'__UNDEF__') if ! $self->exporter_args;
     }
     else {
-        $self->importer_args($exporter_args);
+        $self->exporter_args($exporter_args);
     }
 
     my $data = $self->importer->import($self->importer_args);
