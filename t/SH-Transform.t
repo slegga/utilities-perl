@@ -9,4 +9,8 @@ $exportfile->remove;
 $trans->transform({file=>'t/data/test.json'},{file=>$exportfile});
 ok(-e "$exportfile","Export file exists");
 
+$exportfile=path('t/temp/test2.yaml');
+$trans->transform({file=>'t/data/testdata.csv'},{file=>$exportfile});
+ok(-e "$exportfile","Export file exists");
+
 done_testing;

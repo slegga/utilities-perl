@@ -47,6 +47,7 @@ sub main($self) {
         $i++;
         last if $i>50;
     }
+    return if ! $text;
     return if $text !~ /\w/;
 
     $self->alert->groupme($text);
