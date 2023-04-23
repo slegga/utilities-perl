@@ -64,8 +64,8 @@ has importer => sub($self) {
     for my $imp(@{$self->_importers}) {
         if ($imp->is_accepted($self->importer_args)) {
             die "More than one importer $importer and $imp for ".encode_json($self->importer_args) if $importer;
+            $importer = $imp;
         }
-        $importer = $imp;
     }
     die "No Importers can import from args: " .encode_json($self->importer_args) if ! $importer;
     return $importer;
@@ -122,7 +122,7 @@ sub transform($self, $importer_args,$exporter_args) {
     else {
         $self->exporter_args($exporter_args);
     }
-
+$DB::sinlge=2;
     my $data = $self->importer->import($self->importer_args);
     return $self->exporter->export($self->exporter_args, $data);
 }
