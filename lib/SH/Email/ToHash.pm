@@ -149,7 +149,7 @@ sub msgtext2hash {
                             warn "Unknown Content-Transfer-Encoding: " . $v->{'Content-Transfer-Encoding'};
                         }
                     }
-                    elsif (ref $v->{'Content-Type'} && uc $v->{'Content-Type'}->{h}->{charset} eq 'UTF-8') {
+                    elsif (ref $v->{'Content-Type'} && $v->{'Content-Type'}->{h}->{charset}  && uc $v->{'Content-Type'}->{h}->{charset} eq 'UTF-8') {
                         $v->{content} = decode('UTF-8', $v->{content});
                     }
 #                    elsif (! ref $v->{'Content-Type'} && $v->{'Content-Type'} =~ /^multipart/i) {
