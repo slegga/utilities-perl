@@ -1,0 +1,169 @@
+package SH::PassCode::File;
+use Mojo::Base -base, -signatures;
+use Data::Printer;
+use IPC::Run qw/run/;
+
+=head1 NAME
+
+SH::PassCode::File;
+
+=head1 SYNOPSIS
+
+    my $pcf = SH::PassCode::File->new('finance/golddiggerbank','secretpw',{url=>'golddigger.com',username=>'social security number'});
+    my $password = $pcf->password; # secretpw
+
+
+=head1 DESCRIPTION
+
+Desgined to be a sub utility class for making easier for SS::PassCode to manipulate password files.
+
+=head1 ATTRBIUTES
+
+=head2 password
+
+=head2 filepath
+
+=head2 changed
+
+=head2 username
+
+=head2 url
+
+=head2 comment
+
+=head2 extra - {secrect question: secret answer}
+
+=cut 
+
+has ['filepath','password', 'changed', 'username', 'url', 'comment', 'extra', 'dir'];
+
+=head1 FUNCTIONS
+
+=head2 new
+
+    my $pcfile = SH::PassCode::File->new('type/filename');
+
+=head2 from_file
+
+    SH::PassCode::File->from_file('type/name');
+
+Return a SH::PassCode::File if file is found. Else return undef
+
+=cut 
+
+sub from_file($class,$filepath, $args=undef) {
+    my $subdir=sub{};
+    if ($args->{dir}) {
+        my $dir = $args->{dir};
+        $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
+    }
+
+    my $rcode = run [ "pass", "code", "show", $filepath ],
+    \my $stdin, \my $stdout, \my $stderr, init => $subdir;
+
+    if ($rcode>1) {
+        warn " $rcode: $stderr";
+    }
+
+    return if ! $stdout;
+    p $stdout;
+
+    my $hash ={};
+    my $lastkey;
+    my $key;
+    my $value;
+    for my $l( split(/\n/, $stdout) ) {
+        if (! keys %$hash) {
+            $hash->{password} = $l;
+            next;
+        }
+        if ($l =~ /^(\w+)\:\s*(.*)/) {
+            ($key, $value) = ($1,$2);
+        } 
+        else {
+            $value = $l;
+        }
+        if (!$key && $l) {
+            ...;
+        }
+        if (grep {$key eq $_} (qw/filepath username url comment changed/)) {
+            $hash->{$key} .= ($hash->{$key} ? "\n" : '') . $value;
+        }
+        else {
+            $hash->{extra}->{$key} .= ($hash->{extra}->{$key} ? "\n" : '') . $value;
+        }
+
+        $lastkey= $key if $key;
+    }
+
+    $hash->{dir} = $args->{dir} if $args->{dir};
+    my $return = $class->new(%$hash);
+    return $return;
+}
+
+=head1 METHODS
+
+=head2 to_file
+
+Write to file. Replace existing.
+
+
+=cut
+
+sub to_file($self) {
+
+    my $cont = $self->password . "\n";
+    for my $k(qw/filepath changed username url comment/) {
+        $cont .= "$k: " . $self->$k."\n" if $self->$k;
+    }
+
+    my $extra = $self->extra;
+    if ($extra) {
+        for my $k(keys %$extra) {
+            $cont .= "$k: " . $self->extra->{$k}."\n";
+        }
+    }
+    my $dir;
+    my $subdir=sub{};
+
+    if ($self->dir) {
+        $dir = $self->dir;
+        $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
+    }
+
+    my $stdin = $cont;
+    my $rcode = run [ "pass", "code", "insert", "-m", "-f", $self->filepath ],
+    \$stdin, \my $stdout, \my $stderr,init =>$subdir;
+
+    if ($rcode>1) {
+        warn "$rcode $stderr";
+    }
+
+    $stdin = $cont;
+}
+
+
+=head2 delete
+
+Remove the password file.
+
+=cut
+
+sub delete($self) {
+    my $subdir=sub{};
+    if ($self->{dir}) {
+        my $dir = $self->dir;
+        $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
+    }
+
+    my $rcode = run [ "pass", "code", "rm","-f", $self->filepath ],
+    \my $stdin, \my $stdout, \my $stderr, init => $subdir;
+
+    if ($rcode>1) {
+        warn " $rcode: $stderr";
+    }
+    if ($stdout) {
+        return SH::PassCode::File->new;
+    }
+}
+1;

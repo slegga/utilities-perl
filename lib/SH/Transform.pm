@@ -34,11 +34,8 @@ has _importers => sub($self) {
     my $return = [];
     for my $plugin($self->plugins) {
         my $pname = ref $plugin;
-        warn $pname;
         if ($pname =~ /^SH\:\:Transform\:\:Plugin\:\:Importer\:\:/) {
             push @$return, $plugin;
-        } else {
-          warn ref $plugin;
         }
     }
     die "No Importer plugins are awailable" if ! @$return;
@@ -49,7 +46,6 @@ has _exporters => sub($self) {
     my $return=[];
     for my $plugin($self->plugins) {
        my $pname = ref $plugin;
-        warn $pname;
         if ($pname =~ /^SH\:\:Transform\:\:Plugin\:\:Exporter\:\:/) {
             push @$return, $plugin;
         }
@@ -77,8 +73,8 @@ has exporter => sub($self) {
     for my $exp(@{$self->_exporters}) {
         if ($exp->is_accepted($self->exporter_args)) {
             die "More than one exporter $exporter and $exp for ".encode_json($self->exporter_args) if $exporter;
+            $exporter = $exp;
         }
-        $exporter = $exp;
     }
     die "No Exporters can export from args: " .encode_json($self->exporter_args) if ! $exporter;
     return $exporter;

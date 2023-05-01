@@ -32,7 +32,9 @@ sub is_accepted($self, $args) {
     if (exists $args->{file} && $args->{file}) {
         $extname = path($args->{file})->extname;
     }
-    return 0 if ! defined $extname; 
+    else {
+        return 0;
+    }
     return 1 if $extname eq 'yaml' || $extname eq 'yml';
     return 0;
 }
