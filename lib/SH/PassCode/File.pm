@@ -33,7 +33,15 @@ Desgined to be a sub utility class for making easier for SS::PassCode to manipul
 
 =head2 extra - {secrect question: secret answer}
 
-=cut 
+ENVIRONMENT VARIABLES
+
+=over 4
+
+=item PASSWORD_STORE_DIR - Alternative directory for password store
+
+=back
+
+=cut
 
 has ['filepath','password', 'changed', 'username', 'url', 'comment', 'extra', 'dir'];
 
@@ -49,7 +57,7 @@ has ['filepath','password', 'changed', 'username', 'url', 'comment', 'extra', 'd
 
 Return a SH::PassCode::File if file is found. Else return undef
 
-=cut 
+=cut
 
 sub from_file($class,$filepath, $args=undef) {
     my $subdir=sub{};
@@ -79,11 +87,13 @@ sub from_file($class,$filepath, $args=undef) {
         }
         if ($l =~ /^(\w+)\:\s*(.*)/) {
             ($key, $value) = ($1,$2);
-        } 
+        }
         else {
             $value = $l;
         }
         if (!$key && $l) {
+            p $stdout;
+            say "errorline: $l";
             ...;
         }
         if (grep {$key eq $_} (qw/filepath username url comment changed/)) {
@@ -101,6 +111,17 @@ sub from_file($class,$filepath, $args=undef) {
     return $return;
 }
 
+=head2 okeys
+
+Return array of object keys
+
+=cut
+
+sub okeys($class) {
+    return (qw/filepath password changed username url comment extra/);
+}
+
+
 =head1 METHODS
 
 =head2 to_file
@@ -112,6 +133,10 @@ Write to file. Replace existing.
 
 sub to_file($self) {
 
+    if (! $self->password) {
+        p $self;
+        die "Missing password";
+    }
     my $cont = $self->password . "\n";
     for my $k(qw/filepath changed username url comment/) {
         $cont .= "$k: " . $self->$k."\n" if $self->$k;

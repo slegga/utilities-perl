@@ -26,7 +26,11 @@ Enable export to yaml formated file.
 
 =head2 is_accepted
 
-...
+Decide if moduke is usable for the task or not.
+
+=head2 export
+
+Verify data, transform and write to a pass code directory.
 
 =cut
 
@@ -46,7 +50,7 @@ sub export($self,$args,$data) {
         # url,username,password,totp,extra,name,grouping,fav
         for my $r(@$data) {
             my $nr;
-            
+
             $nr->{filepath} = $r->{grouping} ? $r->{grouping}."/".$r->{name} : $r->{name};
             for my $k(qw/ password username url/) {
                 $nr->{$k} = $r->{$k};
@@ -54,32 +58,37 @@ sub export($self,$args,$data) {
             $nr->{changed} = my $date = strftime '%Y-%m-%d', localtime;
             $nr->{comment} = $r->{extra};
             $nr->{comment} .= ',topt:'.$r->{topt} if $r->{topt};
-            $nr->{comment} .= ',fav:'.$r->{topt} if $r->{fav};
+            $nr->{comment} .= ',fav:'.$r->{fav} if $r->{fav};
             $nr->{dir} = $args->{dir} if $args->{dir};
             push @formated_data, $nr;
         }
-        
+
     }
     elsif(exists $data->[0]->{SYSTEM}) {
         #if sqlite3
         ...;
         #select * from passord3 where 1=1 and ( 1=0  or SYSTEM regexp ? or URL regexp ? or BRUKER regexp ? or PASSORD regexp ? or BESKRIVELSE regexp ? ) ORDER BY SYSTEM,BRUKER
-        # id  DOMENE SYSTEM                   URL                                             BRUKER                   PASSORD  BESKRIVELSE                  BYTTE 
+        # id  DOMENE SYSTEM                   URL                                             BRUKER                   PASSORD  BESKRIVELSE                  BYTTE
     }
 
     for my $f (@formated_data) {
+        if (! $f->{filepath}) {
+            p $f;
+            die "Missing filepath";
+        }
         my $ex = SH::PassCode::File->from_file($f->{filepath},$args);
         if ( $ex) {
             # enrich
-            for my $k( SH::PassCode::File->keys ) {
-                if ($f->$k) {
-                    $ex->$k;
+            for my $k( SH::PassCode::File->okeys ) {
+                if ($f->{$k}) {
+                    my $x = $f->{$k};
+                    $ex->$k($x);
                 }
             }
             $ex->to_file;
-        } 
+        }
         else {
-            my $x = SH::PassCode::File->new(%$f)->to_file;    
+            my $x = SH::PassCode::File->new(%$f)->to_file;
         }
     }
 #    p @formated_data;
@@ -93,7 +102,7 @@ sub export($self,$args,$data) {
     # comment:
     # extra:
 
-    # die "Missing argument file" . encode_json($args) if ! $args->{file}; 
+    # die "Missing argument file" . encode_json($args) if ! $args->{file};
     # DumpFile($args->{file}, $data);
 }
 1;

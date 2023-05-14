@@ -119,7 +119,7 @@ sub transform($self, $importer_args,$exporter_args) {
         $self->exporter_args($exporter_args);
     }
 $DB::sinlge=2;
-    my $data = $self->importer->import($self->importer_args);
+    my $data = $self->importer->importx($self->importer_args);
     return $self->exporter->export($self->exporter_args, $data);
 }
 

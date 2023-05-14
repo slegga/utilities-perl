@@ -4,7 +4,7 @@ use IPC::Run qw/run/;
 use Data::Printer;
 use SH::PassCode::File;
 
-=head1 NAME 
+=head1 NAME
 
 SH::PassCode - Interface to pass code
 
@@ -12,7 +12,7 @@ SH::PassCode - Interface to pass code
 
     use SH::PassCode;
     my $pc = SH::PassCode->new;
-    $pc->create('finance/nordea', 'my password', {username=>'myuser', url=>'mybank.com',comment=>'savings'})
+    $pc->create('finance/nordea', 'my password', {username=>'myuser', url=>'mybank.com',comment=>'savings'});
     say $pc->list->map($_->name)->each;
     say $pc->list_tree->each;
     say $pc->list('finance')->each;
@@ -65,7 +65,7 @@ sub list($self, $path) {
         next if ($l eq $path);
         my $f;
         (undef, $f) = split(/ /,$l,2);
-        push @filenames, "$path/$f"; 
+        push @filenames, "$path/$f";
     }
     my @files = map { SH::PassCode::File->from_file($_) } @filenames;
     return @files;

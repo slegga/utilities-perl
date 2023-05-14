@@ -21,7 +21,11 @@ Enable export to yaml formated file.
 
 =head2 is_accepted
 
-...
+Mark if this is the right to use decided by args.
+
+=head2 export
+
+Examine data, transform, and export data to YAML file given as input.
 
 =cut
 
@@ -40,7 +44,7 @@ sub is_accepted($self, $args) {
 }
 
 sub export($self,$args,$data) {
-    die "Missing argument file" . encode_json($args) if ! $args->{file}; 
+    die "Missing argument file" . encode_json($args) if ! $args->{file};
     DumpFile($args->{file}, $data);
 }
 1;
