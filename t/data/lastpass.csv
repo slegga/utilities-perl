@@ -2,15 +2,7 @@ url,username,password,totp,extra,name,grouping,fav
 https://www.paypal.com,mr42@example.com,hemmelig,,Fluff text
 remember to keep a secret,paypal.com,unittest,0
 http://uwish,,,,"Når passordet har løpt ut så bytt på password.com og ikke password.org
-Fungerer ikke og lager du law sak så blir det satt et passord som du må bytte.
-
-Joke passordet er: 123456
-20.13-2022
 
 I tilfelle DNS trøbbel
-example.com 8.8.8.8
-example.com 8.8.8.8
-example.com 8.8.8.8
-example.com 8.8.8.8
 example.com 8.8.8.8",Longtext,unittest,0
 

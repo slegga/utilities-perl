@@ -35,6 +35,18 @@ remember to keep a secret',
     name     => 'paypal.com',
     grouping => 'unittest',
     fav      => 0,
+}, {
+    url      => 'http://uwish',
+    username => '',
+    password => '',
+    totp     => '',
+    extra    => "Når passordet har løpt ut så bytt på password.com og ikke password.org
+
+I tilfelle DNS trøbbel
+example.com 8.8.8.8",
+    name     => 'Longtext',
+    grouping => 'unittest',
+    fav      => 0
 }],'Data is as expected');
 
 

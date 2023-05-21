@@ -32,7 +32,9 @@ sub read($self, $file, $args) {
     my @hashes=();
     my @keys=();
     my $x = $args->{sep_char}//',';
+    my $quote_char = $args->{quote_char}//'"';
     my $inrow=0;
+    my $inquote=0;
     my $wheretoputextracolumns=$args->{column_with_extra};
     while (my $l =<$fh>) {
         chomp($l);
@@ -69,6 +71,31 @@ sub read($self, $file, $args) {
                 say "line: $l";
                 die "Keys: ".join('-',keys %{$hashes[-1]})." == " .join('-',@keys);
             }
+            next;
+        }
+        if ($inquote) {
+            my $i = keys %{$hashes[-1]};
+            $i -=1;
+            if ($i >$#keys) {
+                p $hashes[-1];
+                p $l;
+                die;
+            }
+            if(index($l, $quote_char.$x) == -1) {
+                $hashes[-1]{$keys[$i]} .= $l."\n";
+            } else {
+                $DB::single=2;
+                my $data;
+                ($data,$l) = split(/$quote_char$x/, $l, 2);
+                $hashes[-1]{$keys[$i]} .= $data;
+                $i++;
+                my @vals = split(/$x/,$l);
+                for my $j($i .. $#keys) {
+                    $hashes[-1]{$keys[$j]} = $vals[$j-$i];
+                }
+                $inquote=0;
+            }
+            
             next;
         }
         next if !$l;
@@ -112,13 +139,32 @@ sub read($self, $file, $args) {
         elsif (scalar @keys > scalar @vals) {
             # multiline row
             p $l;
-
-            $inrow=1;
-            my $row={};
-            for my $i(0 .. $#vals) {
-                $row->{$keys[$i]} = $vals[$i];
+            if( index($l,$x.$quote_char)>=0 ) {
+                if (index($l,$quote_char.$x)>=0) {
+                    say "No support for quote on same line yet";
+                    ...;
+                }
+                $inquote=1;
+                #my($l,$data) = split(/$x.$quote_char/, $l,2);
+                my $row = {};
+                $DB::single=2;
+                @vals = split(/$x/, $l);
+                for my $i(0 .. $#vals) {
+                    if ($i == $#vals) {
+                        $vals[$i] = substr($vals[$i],1);
+                    }
+                    $row->{$keys[$i]} = $vals[$i];
+                }
+                $row->{$keys[$#vals]} .= "\n";
+                push @hashes, $row;
+            } else {
+                $inrow=1;
+                my $row = {};
+                for my $i(0 .. $#vals) {
+                    $row->{$keys[$i]} = $vals[$i];
+                }
+                push @hashes, $row;
             }
-            push @hashes, $row;
             next;
         }
     }
