@@ -46,7 +46,7 @@ sub read($self, $file, $args) {
                 p $l;
                 die;
             }
-            my @vals = split(/$x/, $l);
+            my @vals = split(/$x/, $l, -1);
             $hashes[-1]{$keys[$i]} .= ($hashes[-1]{$keys[$i]} ? "\n":"") . $vals[0];
             if (@vals == 1) {
                 next;
@@ -84,12 +84,11 @@ sub read($self, $file, $args) {
             if(index($l, $quote_char.$x) == -1) {
                 $hashes[-1]{$keys[$i]} .= $l."\n";
             } else {
-                $DB::single=2;
                 my $data;
                 ($data,$l) = split(/$quote_char$x/, $l, 2);
                 $hashes[-1]{$keys[$i]} .= $data;
                 $i++;
-                my @vals = split(/$x/,$l);
+                my @vals = split(/$x/,$l,-1);
                 for my $j($i .. $#keys) {
                     $hashes[-1]{$keys[$j]} = $vals[$j-$i];
                 }
@@ -105,6 +104,62 @@ sub read($self, $file, $args) {
             $first_line=0;
             next;
         }
+
+        if( index($l,$x.$quote_char)>=0 || substr($l,0,1) eq $quote_char ) {
+            my $row={};
+            my $i=-1;
+            if (index($l,$quote_char.$x)>=0) {
+                my ($prerest, $rest);
+                $rest=$l;
+                $DB::single=2;
+                my @vals;
+                 if(index($l,$x.$quote_char)>=0) {
+                    ($prerest, $rest) = split (/$x$quote_char/, $l,2);
+                 } 
+                 else {
+                    ($prerest, $rest) = split (/$quote_char/, $l,2);
+                 }
+                 # prerest = ABC ,"def",ghi
+                if ($prerest) {
+                    my @vals = split(/$x/, $prerest,-1);
+                    for my $i(0 .. $#vals) {
+                        $row->{$keys[$i]} = $vals[$i];
+                    }
+                    $i= $#vals;
+                }
+                
+                 # quote = abc ,"DEF",ghi
+                 my $quote;
+                 ($quote, $rest) = split (/$quote_char$x/, $rest, 2);
+                $i++;
+                $row->{$keys[$i]} = $quote;
+
+                 # rest = abc ,"def",GHI
+                
+                $i++;
+                @vals = split(/$x/, $rest,-1);
+                for my $j($0 .. $#vals) {
+                    $row->{$keys[$i+$j]} = $vals[$j];
+                }
+                p $row;
+                push @hashes, $row;
+                $inquote=0;
+                next;
+            }
+            else {
+                $inquote=1;
+                my($rest,$data) = split(/$x?$quote_char/, $l,2);
+                my $row = {};
+                my @vals = split(/$x/, $rest,-1);
+                for my $i(0 .. $#vals) {
+                    $row->{$keys[$i]} = $vals[$i];
+                }
+                $row->{$keys[$#vals+1]} .= "$data\n";
+                push @hashes, $row;
+                next;
+            }
+        }
+
         my @vals = split(/$x/,$l);
         if (scalar @keys == scalar @vals) {
             my $row={};
@@ -139,32 +194,12 @@ sub read($self, $file, $args) {
         elsif (scalar @keys > scalar @vals) {
             # multiline row
             p $l;
-            if( index($l,$x.$quote_char)>=0 ) {
-                if (index($l,$quote_char.$x)>=0) {
-                    say "No support for quote on same line yet";
-                    ...;
-                }
-                $inquote=1;
-                #my($l,$data) = split(/$x.$quote_char/, $l,2);
-                my $row = {};
-                $DB::single=2;
-                @vals = split(/$x/, $l);
-                for my $i(0 .. $#vals) {
-                    if ($i == $#vals) {
-                        $vals[$i] = substr($vals[$i],1);
-                    }
-                    $row->{$keys[$i]} = $vals[$i];
-                }
-                $row->{$keys[$#vals]} .= "\n";
-                push @hashes, $row;
-            } else {
                 $inrow=1;
                 my $row = {};
                 for my $i(0 .. $#vals) {
                     $row->{$keys[$i]} = $vals[$i];
                 }
                 push @hashes, $row;
-            }
             next;
         }
     }

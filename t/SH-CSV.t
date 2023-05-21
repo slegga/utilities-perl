@@ -47,7 +47,17 @@ example.com 8.8.8.8",
     name     => 'Longtext',
     grouping => 'unittest',
     fav      => 0
-}],'Data is as expected');
+},{
+    url      => "https://id.circlekeurope.com/customer/#/registerUserStepTwo/?redirect=%7B%22name%22:%22main.authorizeApp%22,%22params%22:%7B%22clientId%22:%220852548c-20db-38be-8611-c85d160f0722%22,%22scope%22:%22USER%22,%22state%22:null,%22redirectUrl%22:null%7D%7D&ui_customization=extra2",
+    username => 'user@example.com',
+    password => 'secret',
+        totp     => '',
+    extra    => '',
+    name     => 'circlekeurope.com',
+    grouping => 'unittest',
+    fav      => 0
+}
+],'Data is as expected');
 
 
 done_testing;
