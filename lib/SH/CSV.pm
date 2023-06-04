@@ -94,7 +94,7 @@ sub read($self, $file, $args) {
                 }
                 $inquote=0;
             }
-            
+
             next;
         }
         next if !$l;
@@ -115,7 +115,7 @@ sub read($self, $file, $args) {
                 my @vals;
                  if(index($l,$x.$quote_char)>=0) {
                     ($prerest, $rest) = split (/$x$quote_char/, $l,2);
-                 } 
+                 }
                  else {
                     ($prerest, $rest) = split (/$quote_char/, $l,2);
                  }
@@ -127,7 +127,7 @@ sub read($self, $file, $args) {
                     }
                     $i= $#vals;
                 }
-                
+
                  # quote = abc ,"DEF",ghi
                  my $quote;
                  ($quote, $rest) = split (/$quote_char$x/, $rest, 2);
@@ -135,10 +135,10 @@ sub read($self, $file, $args) {
                 $row->{$keys[$i]} = $quote;
 
                  # rest = abc ,"def",GHI
-                
+
                 $i++;
                 @vals = split(/$x/, $rest,-1);
-                for my $j($0 .. $#vals) {
+                for my $j(0 .. $#vals) {
                     $row->{$keys[$i+$j]} = $vals[$j];
                 }
                 p $row;
