@@ -24,6 +24,14 @@ This module is the interface for pass code to store password and secrets.
 
 This module finds password/secrets in SH::PassCode::File objects. Se perldoc SH::PassCode::File for more info
 
+=head1 PREQUERIES
+
+Installation of pass - https://www.passwordstore.org/
+
+Installation of pass code - https://github.com/alpernebbi/pass-code
+
+Initialzation of pass code:
+
 =head1 ATTRIBUTES
 
 =head2 dir - The path to the password store directory.
