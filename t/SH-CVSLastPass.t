@@ -1,7 +1,7 @@
 use Test::More;
-use SH::CSV;
+use SH::CSVLastPass;
 
-my $csv = SH::CSV->new;
+my $csv = SH::CSVLastPass->new;
 
 my $csvdata = $csv->read('t/data/testdata.csv',{sep_char=>','});
 is_deeply($csvdata,[{
@@ -57,7 +57,39 @@ example.com 8.8.8.8",
     grouping => 'unittest',
     fav      => 0
 }
-],'Data is as expected');
+,{
+    url      => "http://sn",
+    username => '',
+    password => '',
+        totp     => '',
+    extra    => 'NoteType:Address
+Title:
+First Name:John
+Middle Name:
+Last Name:Doe
+Username:
+Gender:
+Birthday:
+Company:
+Address 1:Street road 1
+Address 2:
+Address 3:
+City / Town:Heaven
+County:
+State:
+Zip / Postal Code:12345
+Country:US
+Timezone:
+Email Address:
+Phone:{""num"":"""",""cc3l"":"""",""ext"":""""}
+Evening Phone:
+Mobile Phone:
+Fax:',
+    name     => 'John Doe',
+    grouping => 'unittest',
+    fav      => 0
+}
+],'Data is as expected2');
 
 
 done_testing;

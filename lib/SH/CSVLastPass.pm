@@ -1,15 +1,15 @@
-package SH::CSV;
+package SH::CSVLastPass;
 use Mojo::Base -base, -signatures;
 use Data::Printer;
 
 
 =head1 NAME
 
-SH::CSV - Home made CSV to handle return in field
+SH::CSVLastPass - Home made CSV to handle return in field
 
 =head1 SYNOPSIS
 
-    my $hashes = SH::CSV->new->read('file.csv',{sep_char=>','});
+    my $hashes = SH::CSVLastPass->new->read('file.csv',{sep_char=>','});
 
 =head1 DESCRIPTION
 
@@ -19,7 +19,7 @@ Currently only reads a CSV file.
 
 =head2 read
 
-    my $csv= SH::CSV->new;
+    my $csv= SH::CSVLastPass->new;
     $csv->read('filename',{sep_char=>',',column_with_extra=>['column1']});
 
 Read CSV file and return data.
@@ -38,6 +38,9 @@ sub read($self, $file, $args) {
     my $wheretoputextracolumns=$args->{column_with_extra};
     while (my $l =<$fh>) {
         chomp($l);
+        if ($l eq 'Fax:') {
+            $DB::single=2;
+        }
         if ($inrow) {
             my $i = keys %{$hashes[-1]};
             $i -=1;
@@ -66,6 +69,7 @@ sub read($self, $file, $args) {
                 $inrow=0;
             }
             else {
+                say STDERR "Error dump start";
                 p $hashes[-1];
                 p @vals;
                 say "line: $l";
@@ -81,11 +85,20 @@ sub read($self, $file, $args) {
                 p $l;
                 die;
             }
-            if(index($l, $quote_char.$x) == -1) {
+            if( $l !~/(?<!$quote_char)$quote_char$x/ ) {
                 $hashes[-1]{$keys[$i]} .= $l."\n";
             } else {
                 my $data;
-                ($data,$l) = split(/$quote_char$x/, $l, 2);
+                $DB::single=2;
+                ($data,$l) = split(/(?<!$quote_char)$quote_char$x/, $l, 2);
+             #   my $prechar = $1;
+             #   $data .= $prechar;
+
+                # Handle "", in string
+            #    if ($prechar eq $quote_char) { # undo quote end.
+
+            #    }
+
                 $hashes[-1]{$keys[$i]} .= $data;
                 $i++;
                 my @vals = split(/$x/,$l,-1);
@@ -111,7 +124,6 @@ sub read($self, $file, $args) {
             if (index($l,$quote_char.$x)>=0) {
                 my ($prerest, $rest);
                 $rest=$l;
-                $DB::single=2;
                 my @vals;
                  if(index($l,$x.$quote_char)>=0) {
                     ($prerest, $rest) = split (/$x$quote_char/, $l,2);

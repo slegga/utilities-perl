@@ -1,12 +1,12 @@
 package SH::Transform::Plugin::Importer::CSV;
 use Mojo::Base 'SH::Transform::Importer', -signatures;
 use Mojo::File 'path';
-use SH::CSV;
+use SH::CSVLastPass;
 use Data::Printer;
 
 =head1 NAME
 
-SH::Transform::Plugin::Importer::CSV - Import from a CSV file. Use SH::CSV designed to import from a Lastpass export.
+SH::Transform::Plugin::Importer::CSV - Import from a CSV file. Use SH::CSVLastPass designed to import from a Lastpass export.
 
 =head1 SYNOPSIS
 
@@ -47,7 +47,7 @@ sub importx($self,$args) {
     delete $c->{file};
     $c->{column_with_extra}='url';
 #    p $c;
-    my $return = SH::CSV->new({ binary => 1} )->read($args->{file},$c);
+    my $return = SH::CSVLastPass->new({ binary => 1} )->read($args->{file},$c);
              #headers => "auto"  , %$c);   # as array of hash  #
 
     return $return;
