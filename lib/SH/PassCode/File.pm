@@ -133,7 +133,8 @@ Write to file. Replace existing.
 
 sub to_file($self) {
 
-    if (! $self->password) {
+    if (! $self->password &&  $self->url ne 'http://sn') {
+        say "ERROR:";
         p $self;
         die "Missing password";
     }
