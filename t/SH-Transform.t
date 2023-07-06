@@ -2,10 +2,12 @@ use Test::More;
 use SH::Transform;
 use Mojo::File qw'curfile path';
 use Carp::Always;
+use Data::Printer;
 
 {
     my $trans=SH::Transform->new();
     my $exportfile=path('t/temp/test.yaml');
+    $exportfile->dirname->make_path;
     $exportfile->remove;
     $trans->transform({file=>'t/data/test.json'},{file=>$exportfile});
     ok(-e "$exportfile","Export file exists");
@@ -23,6 +25,8 @@ use Carp::Always;
     my $passcode = SH::PassCode->new;
     my $trans = SH::Transform->new();
     my @unittestfiles = $passcode->list('unittest');
+    p @unittestfiles;
+    ...;
     $_->delete for @unittestfiles;
     $trans->transform({file=>'t/data/testdata.csv', sep_char => ","},{type => 'PassCode'});
     @unittestfiles = $passcode->list('unittest');

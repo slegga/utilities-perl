@@ -1,4 +1,4 @@
-package SH::Transform::Plugin::Importer::CSV;
+package SH::Transform::Plugin::Importer::CSVLastPass;
 use Mojo::Base 'SH::Transform::Importer', -signatures;
 use Mojo::File 'path';
 use SH::CSVLastPass;
@@ -6,12 +6,12 @@ use Data::Printer;
 
 =head1 NAME
 
-SH::Transform::Plugin::Importer::CSV - Import from a CSV file. Use SH::CSVLastPass designed to import from a Lastpass export.
+SH::Transform::Plugin::Importer::CSVLastPass - Import from a CSV file. Use SH::CSVLastPass designed to import from a Lastpass export.
 
 =head1 SYNOPSIS
 
-    use SH::Transform::Plugin::Importer::CSV;
-    my $imp =  SH::Transform::Plugin::Importer::CSV->new;
+    use SH::Transform::Plugin::Importer::CSVLastPass;
+    my $imp =  SH::Transform::Plugin::Importer::CSVLastPass->new;
     my $args={file=>'data.csv'};
     my $ok = $imp->is_accepted($args);
     if ($ok) {
@@ -20,7 +20,7 @@ SH::Transform::Plugin::Importer::CSV - Import from a CSV file. Use SH::CSVLastPa
 
 =head1 DESCRIPTION
 
-Import data as hashes ref from a JSON file.
+Import data as hashes ref from a CSV LastPass style file.
 
 =head1 METHODS
 

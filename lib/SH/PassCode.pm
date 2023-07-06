@@ -62,6 +62,9 @@ sub list($self, $path) {
     if ($rcode>1) {
         warn " $rcode: $stderr";
     }
+    if ($stderr) {
+        warn $stderr;
+    }
 
     return if ! $stdout;
     p $stdout;
