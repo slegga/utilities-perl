@@ -1,18 +1,17 @@
 package SH::ScriptX;
-use 5.36.0;
+use 5.24.1;
 
 use autodie;
 use Carp;
 use List::MoreUtils q(any);
 use Pod::Text::Termcap;
 use File::Basename;
-use Mojo::Base -base,-signatures;
+use Mojo::Base -strict,-base,-signatures;
 use Mojo::Util;
 use Encode::Locale qw(decode_argv);
 use IO::Interactive;
-use 5.24.1;
 no warnings "experimental::signatures";
-use feature qw/signatures/;
+use feature qw/signatures say/;
 use Data::Dumper;
 use Data::Printer;
 
