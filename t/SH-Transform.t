@@ -26,7 +26,7 @@ use Data::Printer;
     my $trans = SH::Transform->new();
     my @unittestfiles = $passcode->list('unittest');
     p @unittestfiles;
-    ...;
+#    ...;
     $_->delete for @unittestfiles;
     $trans->transform({file=>'t/data/testdata.csv', sep_char => ","},{type => 'PassCode'});
     @unittestfiles = $passcode->list('unittest');
