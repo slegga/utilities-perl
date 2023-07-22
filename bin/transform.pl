@@ -40,6 +40,7 @@ transform.pl - Read from source write to destination. Transform data to another 
     $ transform.pl --source_file abc.json
     # List data from abc.json
 
+    $ transform.pl
 =head1 DESCRIPTION
 
 Made for take a file, database etc and transform it to a new file database etc on another format.
@@ -59,6 +60,7 @@ option 'source_type=s',      'Give the source type';
 option 'source_table=s',      'Give the source table';
 option 'destination_file=s', 'Give the destination file';
 option 'destination_type=s', 'Give the destination type';
+option 'pluginshelp!',       'Show all plugin help text'; #... need TODO: more to do
 
 
 sub main {
