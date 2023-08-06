@@ -50,6 +50,12 @@ sub export($self,$args,$data) {
         # url,username,password,totp,extra,name,grouping,fav
         for my $r(@$data) {
             my $nr;
+            my @accepted_keys= qw/grouping name password username url totp fav extra/;
+            for my $k(keys  %$r) {
+                if (! grep{$k eq $_} @accepted_keys) {
+                    die "Unknown key: $k in Last Pass format";
+                }
+            }
 
             $nr->{filepath} = $r->{grouping} ? $r->{grouping}."/".$r->{name} : $r->{name};
             for my $k(qw/ password username url/) {
@@ -65,10 +71,34 @@ sub export($self,$args,$data) {
 
     }
     elsif(exists $data->[0]->{SYSTEM}) {
-        #if sqlite3
-        ...;
-        #select * from passord3 where 1=1 and ( 1=0  or SYSTEM regexp ? or URL regexp ? or BRUKER regexp ? or PASSORD regexp ? or BESKRIVELSE regexp ? ) ORDER BY SYSTEM,BRUKER
-        # id  DOMENE SYSTEM                   URL                                             BRUKER                   PASSORD  BESKRIVELSE                  BYTTE
+        for my $r(@$data) {
+            my $nr;
+
+            my @accepted_keys= qw/id  DOMENE GRUPPERING SYSTEM URL BRUKER PASSORD BESKRIVELSE BYTTE/;
+            for my $k(keys  %$r) {
+                if (! grep{$k eq $_} @accepted_keys) {
+                    die "Unknown key: $k in passordfil format";
+                }
+            }
+            my $filename=($r->{SYSTEM}//$r->{url}//die encode_json($r));
+            $filename =~ s/\s/_/g;
+            $filename =~ s/^https?+:\/\///g;
+            $filename =~ s/[\/:].*//;
+            if (! $filename) {
+                p $r;
+                die "No filename"
+            }
+
+
+            $nr->{filepath} = $r->{DOMENE}.'/'.($r->{GRUPPERING} ? $r->{GRUPPERING}."/":'').$filename;
+            $nr->{password} = $r->{PASSORD};
+            $nr->{username} = $r->{USERNAME};
+            $nr->{url} =      $r->{URL};
+            $nr->{changed} =  $r->{BYTTE};
+            $nr->{comment} = $r->{BESKRIVELSE};
+            $nr->{dir} = $args->{dir} if $args->{dir};
+            push @formated_data, $nr;
+        }
     }
 
     for my $f (@formated_data) {
