@@ -63,7 +63,7 @@ sub export($self,$args,$data) {
             }
             $nr->{changed} = my $date = strftime '%Y-%m-%d', localtime;
             $nr->{comment} = $r->{extra};
-            $nr->{comment} .= ',topt:'.$r->{topt} if $r->{topt};
+            $nr->{comment} .= ',totp:'.$r->{totp} if $r->{totp};
             $nr->{comment} .= ',fav:'.$r->{fav} if $r->{fav};
             $nr->{dir} = $args->{dir} if $args->{dir};
             push @formated_data, $nr;
