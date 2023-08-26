@@ -156,11 +156,14 @@ sub to_file($self) {
         $dir = $self->dir;
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
     }
+p $self;
+p $subdir;
 
     my $stdin = $cont;
     my $rcode = run [ "pass", "code", "insert", "-m", "-f", $self->filepath ],
     \$stdin, \my $stdout, \my $stderr,init =>$subdir;
 
+p $stdin;
     if ($rcode>1) {
         warn "$rcode $stderr";
     }

@@ -73,7 +73,7 @@ sub export($self,$args,$data) {
     elsif(exists $data->[0]->{SYSTEM}) {
         for my $r(@$data) {
             my $nr;
-
+            next if ($r->{DOMENE} =~ /jobb/i); # import only private passwords
             my @accepted_keys= qw/id  DOMENE GRUPPERING SYSTEM URL BRUKER PASSORD BESKRIVELSE BYTTE/;
             for my $k(keys  %$r) {
                 if (! grep{$k eq $_} @accepted_keys) {
@@ -90,9 +90,9 @@ sub export($self,$args,$data) {
             }
 
 
-            $nr->{filepath} = $r->{DOMENE}.'/'.($r->{GRUPPERING} ? $r->{GRUPPERING}."/":'').$filename;
+            $nr->{filepath} = ($r->{GRUPPERING} ? $r->{GRUPPERING}."/":'').$filename;
             $nr->{password} = $r->{PASSORD};
-            $nr->{username} = $r->{USERNAME};
+            $nr->{username} = $r->{BRUKER};
             $nr->{url} =      $r->{URL};
             $nr->{changed} =  $r->{BYTTE};
             $nr->{comment} = $r->{BESKRIVELSE};
@@ -117,7 +117,10 @@ sub export($self,$args,$data) {
             }
             $ex->to_file;
         }
+
         else {
+           # p $f;
+           # die;
             my $x = SH::PassCode::File->new(%$f)->to_file;
         }
     }
