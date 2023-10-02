@@ -21,7 +21,10 @@ use Data::Printer;
     ok(-e "$exportfile","Export file exists");
 }
 
-{
+
+SKIP: {
+    skip "pass is not is installed", 1 unless `which pass`;
+
     my $passcode = SH::PassCode->new;
     my $trans = SH::Transform->new();
     my @unittestfiles = $passcode->list('unittest');
