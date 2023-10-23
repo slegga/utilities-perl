@@ -20,7 +20,11 @@ SH::Transform::Plugin::Exporter::PassCode - create files and fills them with pas
 
 =head1 DESCRIPTION
 
-Enable export to yaml formated file.
+Enable export to passcode. Split work and personal passwords.
+
+Personal password is exported to ~/.password-store
+
+Work password is exported to ~/.work-password-store
 
 =head1 METHODS
 
