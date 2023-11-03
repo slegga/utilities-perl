@@ -15,7 +15,7 @@ SH::PassCode::File;
 
 =head1 DESCRIPTION
 
-Desgined to be a sub utility class for making easier for SS::PassCode to manipulate password files.
+Designed to be a sub utility class for making easier for SH::PassCode to manipulate password files.
 
 =head1 ATTRBIUTES
 
@@ -32,6 +32,8 @@ Desgined to be a sub utility class for making easier for SS::PassCode to manipul
 =head2 comment
 
 =head2 extra - {secrect question: secret answer}
+
+=head dir - Alternative password dir
 
 ENVIRONMENT VARIABLES
 
