@@ -34,7 +34,7 @@ Decide if moduke is usable for the task or not.
 
 =head2 export
 
-Verify data, transform and write to a pass code directory.
+Verify data, transform and write to a pass code directory for private and work. See perl code for criteria for which password is marked as private and which is work.
 
 =cut
 
@@ -48,6 +48,7 @@ sub is_accepted($self, $args) {
 sub export($self,$args,$data) {
     # TRANSFORM
     my @formated_data; # ({filepath,password,username,url,change,comment,{extra}})
+    my @work_formated_data; # ({filepath,password,username,url,change,comment,{extra}})
     #if lastpass
     if(exists $data->[0]->{name} && $data->[0]->{name}) {
 
@@ -70,10 +71,16 @@ sub export($self,$args,$data) {
             $nr->{comment} .= ',totp:'.$r->{totp} if $r->{totp};
             $nr->{comment} .= ',fav:'.$r->{fav} if $r->{fav};
             $nr->{dir} = $args->{dir} if $args->{dir};
-            push @formated_data, $nr;
+            if($nr->{filepath} =~/jobb|Business/i) {
+                push @work_formated_data, $nr;
+            }
+            else {
+                push @formated_data, $nr;
+            }
         }
 
     }
+    # passordfil
     elsif(exists $data->[0]->{SYSTEM}) {
         for my $r(@$data) {
             my $nr;
@@ -101,7 +108,12 @@ sub export($self,$args,$data) {
             $nr->{changed} =  $r->{BYTTE};
             $nr->{comment} = $r->{BESKRIVELSE};
             $nr->{dir} = $args->{dir} if $args->{dir};
-            push @formated_data, $nr;
+            if($nr->{filepath} =~/jobb|Business/i ) {
+                push @work_formated_data, $nr;
+            }
+            else {
+                push @formated_data, $nr;
+            }
         }
     }
 
@@ -128,6 +140,33 @@ sub export($self,$args,$data) {
             my $x = SH::PassCode::File->new(%$f)->to_file;
         }
     }
+
+    for my $f (@work_formated_data) {
+        if (! $f->{filepath}) {
+            p $f;
+            die "Missing filepath";
+        }
+        my %tmpargs =%$args;
+        $tmpargs{dir} = $ENV{HOME}.'/'.'password-store-work';
+        my $ex = SH::PassCode::File->from_file($f->{filepath},\%tmpargs);
+        if ( $ex) {
+            # enrich
+            for my $k( SH::PassCode::File->okeys ) {
+                if ($f->{$k}) {
+                    my $x = $f->{$k};
+                    $ex->$k($x);
+                }
+            }
+            $ex->to_file;
+        }
+
+        else {
+           # p $f;
+           # die;
+            my $x = SH::PassCode::File->new(%$f, dir=>$tmpargs{dir})->to_file;
+        }
+    }
+
 #    p @formated_data;
 #    ...;
     # PRODUCE PASS CODE
