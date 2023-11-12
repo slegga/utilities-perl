@@ -5,7 +5,7 @@ use Mojo::JSON qw/encode_json/;
 use POSIX 'strftime';
 use Data::Printer;
 use SH::PassCode;
-
+use File::Basename;
 
 
 =head1 NAME
@@ -55,7 +55,7 @@ sub export($self,$args,$data) {
         # url,username,password,totp,extra,name,grouping,fav
         for my $r(@$data) {
             my $nr;
-            my @accepted_keys= qw/grouping name password username url totp fav extra/;
+            my @accepted_keys = qw/grouping name password username url totp fav extra/;
             for my $k(keys  %$r) {
                 if (! grep{$k eq $_} @accepted_keys) {
                     die "Unknown key: $k in Last Pass format";
@@ -72,6 +72,7 @@ sub export($self,$args,$data) {
             $nr->{comment} .= ',fav:'.$r->{fav} if $r->{fav};
             $nr->{dir} = $args->{dir} if $args->{dir};
             if($nr->{filepath} =~/jobb|Business/i) {
+               $nr->{filepath} = basename($nr->{filepath});
                 push @work_formated_data, $nr;
             }
             else {
@@ -84,13 +85,13 @@ sub export($self,$args,$data) {
     elsif(exists $data->[0]->{SYSTEM}) {
         for my $r(@$data) {
             my $nr;
-            my @accepted_keys= qw/id  DOMENE GRUPPERING SYSTEM URL BRUKER PASSORD BESKRIVELSE BYTTE/;
+            my @accepted_keys = qw/id  DOMENE GRUPPERING SYSTEM URL BRUKER PASSORD BESKRIVELSE BYTTE/;
             for my $k(keys  %$r) {
                 if (! grep{$k eq $_} @accepted_keys) {
                     die "Unknown key: $k in passordfil format";
                 }
             }
-            my $filename=($r->{SYSTEM}//$r->{url}//die encode_json($r));
+            my $filename = ($r->{SYSTEM}//$r->{url}//die encode_json($r));
             $filename =~ s/\s/_/g;
             $filename =~ s/^https?+:\/\///g;
             $filename =~ s/[\/:].*//;
@@ -108,6 +109,7 @@ sub export($self,$args,$data) {
             $nr->{comment} = $r->{BESKRIVELSE};
             $nr->{dir} = $args->{dir} if $args->{dir};
             if($nr->{filepath} =~/jobb|Business/i ) {
+                $nr->{filepath} = basename($nr->{filepath});
                 push @work_formated_data, $nr;
             }
             else {

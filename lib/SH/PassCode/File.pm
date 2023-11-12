@@ -61,8 +61,8 @@ Return a SH::PassCode::File if file is found. Else return undef
 
 =cut
 
-sub from_file($class,$filepath, $args=undef) {
-    my $subdir=sub{};
+sub from_file($class,$filepath, $args = undef) {
+    my $subdir = sub{};
     if ($args->{dir}) {
         my $dir = $args->{dir};
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
@@ -105,7 +105,7 @@ sub from_file($class,$filepath, $args=undef) {
             $hash->{extra}->{$key} .= ($hash->{extra}->{$key} ? "\n" : '') . $value;
         }
 
-        $lastkey= $key if $key;
+        $lastkey = $key if $key;
     }
 
     $hash->{dir} = $args->{dir} if $args->{dir};
@@ -152,7 +152,7 @@ sub to_file($self) {
         }
     }
     my $dir;
-    my $subdir=sub{};
+    my $subdir = sub{};
 
     if ($self->dir) {
         $dir = $self->dir;
@@ -181,7 +181,7 @@ Remove the password file.
 =cut
 
 sub delete($self) {
-    my $subdir=sub{};
+    my $subdir = sub{};
     if ($self->{dir}) {
         my $dir = $self->dir;
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
