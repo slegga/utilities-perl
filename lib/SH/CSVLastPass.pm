@@ -38,7 +38,7 @@ sub read($self, $file, $args) {
     my $wheretoputextracolumns = $args->{column_with_extra};
     while (my $l =<$fh>) {
         chomp($l);
-        if ($l eq 'Fax:') {
+        if ($l =~ /aliexpress/) {
             $DB::single = 2;
         }
         if ($inrow) {
@@ -50,6 +50,10 @@ sub read($self, $file, $args) {
                 die;
             }
             my @vals = split(/$x/, $l, -1);
+            if (! @vals) {
+                $hashes[-1]{$keys[$i]} .= ($hashes[-1]{$keys[$i]} ? "\n":"");
+                next;
+            }
             $hashes[-1]{$keys[$i]} .= ($hashes[-1]{$keys[$i]} ? "\n":"") . $vals[0];
             if (@vals == 1) {
                 next;
@@ -189,19 +193,22 @@ sub read($self, $file, $args) {
                 p $l;
                 die "To many columns do not know what to do";
             }
+            my $row = {};
             for my $i (0 .. $#vals) {
                 if ($keys[$j] ne $wheretoputextracolumns) {
-                    $keys[$j]=$vals[$i];
+                    $row->{$keys[$j]} = $vals[$i];
                 }
                 else {
-                    $keys[$j].=$vals[$i];
-                    $extra--;
-                    if (!$extra) {
+                    $row->{$keys[$j]} .= $vals[$i];
+                    if ($extra) {
                         next;
                     }
+                    $extra--;
                 }
                 $j++;
             }
+            push @hashes, $row;
+            next;
         }
         elsif (scalar @keys > scalar @vals) {
             # multiline row
