@@ -76,6 +76,13 @@ sub export($self,$args,$data) {
                 push @work_formated_data, $nr;
             }
             else {
+                if (! exists $nr->{filepath} || ! $nr->{filepath} ) {
+                    next if  (grep {defined $_} values %$nr) == 2; # ignore no secrets
+                    say "---";
+                    p $nr;
+                    p $r;
+                    die "Missing file path";
+                }
                 push @formated_data, $nr;
             }
         }
@@ -96,6 +103,7 @@ sub export($self,$args,$data) {
             $filename =~ s/^https?+:\/\///g;
             $filename =~ s/[\/:].*//;
             if (! $filename) {
+                next if ! $r->{password};
                 p $r;
                 die "No filename"
             }
@@ -113,13 +121,20 @@ sub export($self,$args,$data) {
                 push @work_formated_data, $nr;
             }
             else {
+                if (! exists $nr->{filepath} || ! $nr->{filepath} ) {
+                    p $nr;
+                    p $r;
+                    die "Missing file path";
+                }
                 push @formated_data, $nr;
             }
         }
     }
 
+    say "***";
     for my $f (@formated_data) {
         if (! $f->{filepath}) {
+            say "---";
             p $f;
             die "Missing filepath";
         }

@@ -72,7 +72,10 @@ sub from_file($class,$filepath, $args = undef) {
     \my $stdin, \my $stdout, \my $stderr, init => $subdir;
 
     if ($rcode>1) {
-        warn " $rcode: $stderr";
+        die "$rcode $stderr";
+    }
+    if ($stderr) {
+        die "$rcode $stderr";
     }
 
     return if ! $stdout;
@@ -167,7 +170,10 @@ p $subdir;
 
 p $stdin;
     if ($rcode>1) {
-        warn "$rcode $stderr";
+        die "$rcode $stderr";
+    }
+    if ($stderr) {
+        die "$rcode $stderr";
     }
 
     $stdin = $cont;
@@ -191,8 +197,12 @@ sub delete($self) {
     \my $stdin, \my $stdout, \my $stderr, init => $subdir;
 
     if ($rcode>1) {
-        warn " $rcode: $stderr";
+        die "$rcode $stderr";
     }
+    if ($stderr) {
+        die "$rcode $stderr";
+    }
+
     if ($stdout) {
         return SH::PassCode::File->new;
     }
