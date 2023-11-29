@@ -93,7 +93,6 @@ sub read($self, $file, $args) {
                 $hashes[-1]{$keys[$i]} .= $l."\n";
             } else {
                 my $data;
-                $DB::single = 2;
                 ($data,$l) = split(/(?<!$quote_char)$quote_char$x/, $l, 2);
              #   my $prechar = $1;
              #   $data .= $prechar;

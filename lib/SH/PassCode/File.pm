@@ -1,7 +1,7 @@
 package SH::PassCode::File;
 use Mojo::Base -base, -signatures;
 use Data::Printer;
-use IPC::Run qw/run/;
+use IPC::Run qw/start pump finish/;
 
 =head1 NAME
 
@@ -68,7 +68,7 @@ sub from_file($class,$filepath, $args = undef) {
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
     }
 
-    my $stdout = _xrun($subdir, {ok_errors => ['Could not decrypt pass-code store']}, "pass", "code", "show", $filepath);
+    my $stdout = _xrun($subdir, {ok_errors => ['is not in the password store.']}, "pass", "code", "show", $filepath);
     return if ! $stdout;
     p $stdout;
 
@@ -110,6 +110,7 @@ sub from_file($class,$filepath, $args = undef) {
 =head2 okeys
 
 Return array of object keys
+
 
 =cut
 
@@ -155,7 +156,6 @@ sub to_file($self) {
 p $self;
 p $subdir;
 
-    my $stdin = $cont;
     _xrun($subdir, {stdin=>$cont},"pass", "code", "insert", "-m", "-f", $self->filepath);
 #     \$stdin, \my $stdout, \my $stderr,init =>$subdir;
 #
@@ -196,9 +196,16 @@ sub _xrun($subdir, @cmd) {
         $config = shift @cmd;
     }
     my $stdin;
-    $stdin = $config->{stdin} if exists $config->{stdin};
-    my $rcode = run \@cmd,
+    my $h = start \@cmd,
     \$stdin, \my $stdout, \my $stderr, init => $subdir;
+
+    if (exists $config->{stdin}) {
+        $DB::single = 2;
+        say "cmd: ".join(' ', @cmd);
+        $stdin = $config->{stdin};
+        pump $h;
+    }
+    my $rcode = finish $h;
 
     if ($rcode>1) {
         die "$rcode $stderr";
@@ -207,13 +214,14 @@ sub _xrun($subdir, @cmd) {
         my $err = $stderr;
         chomp($err);
         if ($config && $config->{ok_errors}) {
-            if (grep {$err eq $_} @{$config->{ok_errors}}) {
+            if (grep {$err =~ /$_/} @{$config->{ok_errors}}) {
                 return $stdout;
             }
         }
         say "Error with command: ".join(' ', @cmd);
         die "$rcode $stderr";
     }
-    return $stdout;
+    return $stdout if ! exists $config->{stdin};
+    $stdin = $config->{stdin} ;
 }
 1;

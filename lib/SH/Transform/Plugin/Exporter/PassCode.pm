@@ -71,18 +71,18 @@ sub export($self,$args,$data) {
             $nr->{comment} .= ',totp:'.$r->{totp} if $r->{totp};
             $nr->{comment} .= ',fav:'.$r->{fav} if $r->{fav};
             $nr->{dir} = $args->{dir} if $args->{dir};
-            if($nr->{filepath} =~/jobb|Business/i) {
+            if (! exists $nr->{filepath} || ! $nr->{filepath} ) {
+                next if  (grep {defined $_} values %$nr) == 2; # ignore no secrets
+                say "---";
+                p $nr;
+                p $r;
+                die "Missing file path";
+            }
+            elsif($nr->{filepath} =~/jobb|Business/i) {
                $nr->{filepath} = basename($nr->{filepath});
                 push @work_formated_data, $nr;
             }
             else {
-                if (! exists $nr->{filepath} || ! $nr->{filepath} ) {
-                    next if  (grep {defined $_} values %$nr) == 2; # ignore no secrets
-                    say "---";
-                    p $nr;
-                    p $r;
-                    die "Missing file path";
-                }
                 push @formated_data, $nr;
             }
         }
@@ -157,6 +157,7 @@ sub export($self,$args,$data) {
         }
     }
 
+    say "****";
     for my $f (@work_formated_data) {
         if (! $f->{filepath}) {
             p $f;
