@@ -68,16 +68,7 @@ sub from_file($class,$filepath, $args = undef) {
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
     }
 
-    my $rcode = run [ "pass", "code", "show", $filepath ],
-    \my $stdin, \my $stdout, \my $stderr, init => $subdir;
-
-    if ($rcode>1) {
-        die "$rcode $stderr";
-    }
-    if ($stderr) {
-        die "$rcode $stderr";
-    }
-
+    my $stdout = >_xrun({ok_errors=>['Could not decrypt pass-code store']},@cmd)
     return if ! $stdout;
     p $stdout;
 
@@ -165,7 +156,7 @@ p $self;
 p $subdir;
 
     my $stdin = $cont;
-    my $rcode = run [ "pass", "code", "insert", "-m", "-f", $self->filepath ],
+    _xrun({stdin=>$cont},"pass", "code", "insert", "-m", "-f", $self->filepath);
     \$stdin, \my $stdout, \my $stderr,init =>$subdir;
 
 p $stdin;
@@ -192,19 +183,37 @@ sub delete($self) {
         my $dir = $self->dir;
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
     }
+    if (_xrun( "pass", "code", "rm","-f", $self->filepath ))     {
+        return SH::PassCode::File->new;
+    }
+    return;
+}
 
+sub _xrun(@cmd) {
+    die "Missing arguments" if ! @cmd;
+    my $config ;
+    if (ref $cmd[0]) {
+        $config = shift, @cmd;
+    }
+    my $stdin;
+    $stdin = $config->{stdin} if exists $config->{stdin};
     my $rcode = run [ "pass", "code", "rm","-f", $self->filepath ],
-    \my $stdin, \my $stdout, \my $stderr, init => $subdir;
+    \$stdin, \my $stdout, \my $stderr, init => $subdir;
 
     if ($rcode>1) {
         die "$rcode $stderr";
     }
-    if ($stderr) {
+    if ($stderr ) {
+        my $err = $stderr;
+        chomp($err);
+        if ($config && $config->{ok_errors}) {
+            if (grep {$err eq $_} @{$config->{ok_errors}}) {
+                return $stdout;
+            }
+        }
+        say "Error with command: ".join(' ', @cmd)
         die "$rcode $stderr";
     }
-
-    if ($stdout) {
-        return SH::PassCode::File->new;
-    }
+    return $stdout;
 }
 1;
