@@ -1,7 +1,7 @@
 package SH::PassCode::File;
 use Mojo::Base -base, -signatures;
 use Data::Printer;
-use IPC::Run qw/start pump finish/;
+use IPC::Run qw/timeout harness start pump finish/;
 
 =head1 NAME
 
@@ -199,18 +199,33 @@ sub _xrun($subdir, @cmd) {
     if ($subdir) {
         @configs = (init => $subdir);
     }
-    my ($stdin,$stdout,$stderr);
-    my $h = start \@cmd,
-    \$stdin, \$stdout, \$stderr, @configs;
-
-    if (exists $config->{stdin}) {
-#        $DB::single = 2;
-        say "cmd: ".join(' ', @cmd);
-        $stdin = $config->{stdin};
-        pump $h;
+    my ($stdin,$stdout,$stderr,$rcode);
+        my $h = harness \@cmd,
+        \$stdin, \$stdout, \$stderr, (my $t = timeout(5, exception => 'timeout')), @configs;
+        if (exists $config->{stdin}) {
+    #        $DB::single = 2;
+            say "cmd: ".join(' ', @cmd);
+            $stdin = $config->{stdin};
+            pump $h;
+        }
+    eval {
+        $rcode = finish $h;
+    };
+    if ( $@ ) {
+        my $x = $@;
+        chomp($x);
+        $h->kill_kill;
+        if ($x !~ /^timeout/ ) {
+            say "error: ".join(' ', @cmd);
+            say $stderr;
+            say $stdout;
+            die "die with error '$x'";
+        }
+        else {
+            say "timeout";
+            $rcode = 0;
+        }
     }
-    my $rcode = finish $h;
-
     if ($rcode>1) {
         die "$rcode $stderr";
     }
@@ -223,6 +238,9 @@ sub _xrun($subdir, @cmd) {
             }
         }
         say "Error with command: ".join(' ', @cmd);
+        if ($err eq 'Could not decrypt pass-code store') {
+            say "Try: run 'pass code ls' and when try again";
+        }
         die "$rcode $stderr";
     }
     return $stdout if ! exists $config->{stdin};
