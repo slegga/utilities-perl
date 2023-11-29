@@ -68,7 +68,7 @@ sub from_file($class,$filepath, $args = undef) {
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
     }
 
-    my $stdout = >_xrun({ok_errors=>['Could not decrypt pass-code store']},@cmd)
+    my $stdout = _xrun($subdir, {ok_errors => ['Could not decrypt pass-code store']}, "pass", "code", "show", $filepath);
     return if ! $stdout;
     p $stdout;
 
@@ -156,18 +156,18 @@ p $self;
 p $subdir;
 
     my $stdin = $cont;
-    _xrun({stdin=>$cont},"pass", "code", "insert", "-m", "-f", $self->filepath);
-    \$stdin, \my $stdout, \my $stderr,init =>$subdir;
-
-p $stdin;
-    if ($rcode>1) {
-        die "$rcode $stderr";
-    }
-    if ($stderr) {
-        die "$rcode $stderr";
-    }
-
-    $stdin = $cont;
+    _xrun($subdir, {stdin=>$cont},"pass", "code", "insert", "-m", "-f", $self->filepath);
+#     \$stdin, \my $stdout, \my $stderr,init =>$subdir;
+#
+# p $stdin;
+#     if ($rcode>1) {
+#         die "$rcode $stderr";
+#     }
+#     if ($stderr) {
+#         die "$rcode $stderr";
+#     }
+#
+#     $stdin = $cont;
 }
 
 
@@ -183,21 +183,21 @@ sub delete($self) {
         my $dir = $self->dir;
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
     }
-    if (_xrun( "pass", "code", "rm","-f", $self->filepath ))     {
+    if (_xrun( $subdir, "pass", "code", "rm","-f", $self->filepath ))     {
         return SH::PassCode::File->new;
     }
     return;
 }
 
-sub _xrun(@cmd) {
+sub _xrun($subdir, @cmd) {
     die "Missing arguments" if ! @cmd;
     my $config ;
-    if (ref $cmd[0]) {
-        $config = shift, @cmd;
+    if ( ref $cmd[0] ) {
+        $config = shift @cmd;
     }
     my $stdin;
     $stdin = $config->{stdin} if exists $config->{stdin};
-    my $rcode = run [ "pass", "code", "rm","-f", $self->filepath ],
+    my $rcode = run \@cmd,
     \$stdin, \my $stdout, \my $stderr, init => $subdir;
 
     if ($rcode>1) {
@@ -211,7 +211,7 @@ sub _xrun(@cmd) {
                 return $stdout;
             }
         }
-        say "Error with command: ".join(' ', @cmd)
+        say "Error with command: ".join(' ', @cmd);
         die "$rcode $stderr";
     }
     return $stdout;
