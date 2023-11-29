@@ -62,7 +62,7 @@ Return a SH::PassCode::File if file is found. Else return undef
 =cut
 
 sub from_file($class,$filepath, $args = undef) {
-    my $subdir = sub{};
+    my $subdir;
     if ($args->{dir}) {
         my $dir = $args->{dir};
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
@@ -128,7 +128,7 @@ Write to file. Replace existing.
 
 =cut
 
-sub to_file($self) {
+sub to_file($self, $args = undef) {
 
     if (! defined $self->password &&  $self->url ne 'http://sn') {
         say "ERROR:";
@@ -147,16 +147,16 @@ sub to_file($self) {
         }
     }
     my $dir;
-    my $subdir = sub{};
+    my $subdir;
 
-    if ($self->dir) {
-        $dir = $self->dir;
+    if ($args->{dir} || $self->dir) {
+        $dir = $self->dir || $self->dir;
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
     }
 p $self;
 p $subdir;
 
-    _xrun($subdir, {stdin=>$cont},"pass", "code", "insert", "-m", "-f", $self->filepath);
+    _xrun($subdir, {stdin=>$cont,ok_errors=>['tr\: write error']},"pass", "code", "insert", "-m", "-f", $self->filepath);
 #     \$stdin, \my $stdout, \my $stderr,init =>$subdir;
 #
 # p $stdin;
@@ -178,7 +178,7 @@ Remove the password file.
 =cut
 
 sub delete($self) {
-    my $subdir = sub{};
+    my $subdir;
     if ($self->{dir}) {
         my $dir = $self->dir;
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
@@ -195,12 +195,16 @@ sub _xrun($subdir, @cmd) {
     if ( ref $cmd[0] ) {
         $config = shift @cmd;
     }
-    my $stdin;
+    my @configs;
+    if ($subdir) {
+        @configs = (init => $subdir);
+    }
+    my ($stdin,$stdout,$stderr);
     my $h = start \@cmd,
-    \$stdin, \my $stdout, \my $stderr, init => $subdir;
+    \$stdin, \$stdout, \$stderr, @configs;
 
     if (exists $config->{stdin}) {
-        $DB::single = 2;
+#        $DB::single = 2;
         say "cmd: ".join(' ', @cmd);
         $stdin = $config->{stdin};
         pump $h;

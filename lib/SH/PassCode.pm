@@ -112,20 +112,5 @@ Create the file if not exists or update the file if exists with.
 
 =cut
 
-sub xsystem($self,$command) {
-    my ($stdout, $stderr)  = capture {
-        system($command);
-    };
-    if ($stderr) {
-        say "";
-        say "ERROR with: $command";
-        say "STDERR:";
-        say $stderr;
-        say "\nSTDOUT:";
-        say $stdout;
-        confess("OS command error");
-    }
-    return $stdout;
-}
 
 1;

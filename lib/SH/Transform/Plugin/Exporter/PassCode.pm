@@ -131,6 +131,7 @@ sub export($self,$args,$data) {
         }
     }
 
+        $DB::single =2;
     say "***";
     for my $f (@formated_data) {
         if (! $f->{filepath}) {
@@ -153,7 +154,8 @@ sub export($self,$args,$data) {
         else {
            # p $f;
            # die;
-            my $x = SH::PassCode::File->new(%$f)->to_file;
+            $DB::single = 2;
+            my $x = SH::PassCode::File->new(%$f)->to_file($args);
         }
     }
 
@@ -180,7 +182,7 @@ sub export($self,$args,$data) {
         else {
            # p $f;
            # die;
-            my $x = SH::PassCode::File->new(%$f, dir=>$tmpargs{dir})->to_file;
+            my $x = SH::PassCode::File->new(%$f, dir=>$tmpargs{dir})->to_file(\%tmpargs);
         }
     }
 
