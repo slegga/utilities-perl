@@ -30,7 +30,6 @@ API to mark if args require this to be used.
 =cut
 
 sub is_accepted($self, $args) {
-    $DB::single=2;
     return 1 if exists $args->{type} && lc($args->{type}) eq 'sqlitetable';
     return 0;
 }

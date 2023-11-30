@@ -5,7 +5,7 @@ use Mojo::JSON qw/encode_json/;
 use POSIX 'strftime';
 use Data::Printer;
 use SH::PassCode;
-
+use File::Basename;
 
 
 =head1 NAME
@@ -20,7 +20,11 @@ SH::Transform::Plugin::Exporter::PassCode - create files and fills them with pas
 
 =head1 DESCRIPTION
 
-Enable export to yaml formated file.
+Enable export to passcode. Split work and personal passwords.
+
+Personal password is exported to ~/.password-store
+
+Work password is exported to ~/.work-password-store
 
 =head1 METHODS
 
@@ -30,7 +34,7 @@ Decide if moduke is usable for the task or not.
 
 =head2 export
 
-Verify data, transform and write to a pass code directory.
+Verify data, transform and write to a pass code directory for private and work. See perl code for criteria for which password is marked as private and which is work.
 
 =cut
 
@@ -44,13 +48,14 @@ sub is_accepted($self, $args) {
 sub export($self,$args,$data) {
     # TRANSFORM
     my @formated_data; # ({filepath,password,username,url,change,comment,{extra}})
+    my @work_formated_data; # ({filepath,password,username,url,change,comment,{extra}})
     #if lastpass
     if(exists $data->[0]->{name} && $data->[0]->{name}) {
 
         # url,username,password,totp,extra,name,grouping,fav
         for my $r(@$data) {
             my $nr;
-            my @accepted_keys= qw/grouping name password username url totp fav extra/;
+            my @accepted_keys = qw/grouping name password username url totp fav extra/;
             for my $k(keys  %$r) {
                 if (! grep{$k eq $_} @accepted_keys) {
                     die "Unknown key: $k in Last Pass format";
@@ -66,43 +71,71 @@ sub export($self,$args,$data) {
             $nr->{comment} .= ',totp:'.$r->{totp} if $r->{totp};
             $nr->{comment} .= ',fav:'.$r->{fav} if $r->{fav};
             $nr->{dir} = $args->{dir} if $args->{dir};
-            push @formated_data, $nr;
+            if (! exists $nr->{filepath} || ! $nr->{filepath} ) {
+                next if  (grep {defined $_} values %$nr) == 2; # ignore no secrets
+                say "---";
+                p $nr;
+                p $r;
+                die "Missing file path";
+            }
+            elsif($nr->{filepath} =~/jobb|Business/i) {
+               $nr->{filepath} = basename($nr->{filepath});
+                push @work_formated_data, $nr;
+            }
+            else {
+                push @formated_data, $nr;
+            }
         }
 
     }
+    # passordfil
     elsif(exists $data->[0]->{SYSTEM}) {
         for my $r(@$data) {
             my $nr;
-            next if ($r->{DOMENE} =~ /jobb/i); # import only private passwords
-            my @accepted_keys= qw/id  DOMENE GRUPPERING SYSTEM URL BRUKER PASSORD BESKRIVELSE BYTTE/;
+            my @accepted_keys = qw/id  DOMENE GRUPPERING SYSTEM URL BRUKER PASSORD BESKRIVELSE BYTTE/;
             for my $k(keys  %$r) {
                 if (! grep{$k eq $_} @accepted_keys) {
                     die "Unknown key: $k in passordfil format";
                 }
             }
-            my $filename=($r->{SYSTEM}//$r->{url}//die encode_json($r));
+            my $filename = ($r->{SYSTEM}//$r->{url}//die encode_json($r));
             $filename =~ s/\s/_/g;
             $filename =~ s/^https?+:\/\///g;
             $filename =~ s/[\/:].*//;
             if (! $filename) {
+                next if ! $r->{password};
                 p $r;
                 die "No filename"
             }
 
 
-            $nr->{filepath} = ($r->{GRUPPERING} ? $r->{GRUPPERING}."/":'').$filename;
+            $nr->{filepath} = ($r->{GRUPPERING} ? $r->{GRUPPERING} : $r->{DOMENE}).'/'.$filename;
             $nr->{password} = $r->{PASSORD};
             $nr->{username} = $r->{BRUKER};
             $nr->{url} =      $r->{URL};
             $nr->{changed} =  $r->{BYTTE};
             $nr->{comment} = $r->{BESKRIVELSE};
             $nr->{dir} = $args->{dir} if $args->{dir};
-            push @formated_data, $nr;
+            if($nr->{filepath} =~/jobb|Business/i ) {
+                $nr->{filepath} = basename($nr->{filepath});
+                push @work_formated_data, $nr;
+            }
+            else {
+                if (! exists $nr->{filepath} || ! $nr->{filepath} ) {
+                    p $nr;
+                    p $r;
+                    die "Missing file path";
+                }
+                push @formated_data, $nr;
+            }
         }
     }
 
+        $DB::single =2;
+    say "***";
     for my $f (@formated_data) {
         if (! $f->{filepath}) {
+            say "---";
             p $f;
             die "Missing filepath";
         }
@@ -121,9 +154,38 @@ sub export($self,$args,$data) {
         else {
            # p $f;
            # die;
-            my $x = SH::PassCode::File->new(%$f)->to_file;
+            $DB::single = 2;
+            my $x = SH::PassCode::File->new(%$f)->to_file($args);
         }
     }
+
+    say "****";
+    for my $f (@work_formated_data) {
+        if (! $f->{filepath}) {
+            p $f;
+            die "Missing filepath";
+        }
+        my %tmpargs =%$args;
+        $tmpargs{dir} = $ENV{HOME}.'/'.'.password-store-work';
+        my $ex = SH::PassCode::File->from_file($f->{filepath},\%tmpargs);
+        if ( $ex) {
+            # enrich
+            for my $k( SH::PassCode::File->okeys ) {
+                if ($f->{$k}) {
+                    my $x = $f->{$k};
+                    $ex->$k($x);
+                }
+            }
+            $ex->to_file;
+        }
+
+        else {
+           # p $f;
+           # die;
+            my $x = SH::PassCode::File->new(%$f, dir=>$tmpargs{dir})->to_file(\%tmpargs);
+        }
+    }
+
 #    p @formated_data;
 #    ...;
     # PRODUCE PASS CODE

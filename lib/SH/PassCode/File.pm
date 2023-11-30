@@ -1,11 +1,11 @@
 package SH::PassCode::File;
 use Mojo::Base -base, -signatures;
 use Data::Printer;
-use IPC::Run qw/run/;
+use IPC::Run qw/timeout harness start pump finish/;
 
 =head1 NAME
 
-SH::PassCode::File;
+SH::PassCode::File
 
 =head1 SYNOPSIS
 
@@ -15,7 +15,7 @@ SH::PassCode::File;
 
 =head1 DESCRIPTION
 
-Desgined to be a sub utility class for making easier for SS::PassCode to manipulate password files.
+Designed to be a sub utility class for making easier for SH::PassCode to manipulate password files.
 
 =head1 ATTRBIUTES
 
@@ -32,6 +32,8 @@ Desgined to be a sub utility class for making easier for SS::PassCode to manipul
 =head2 comment
 
 =head2 extra - {secrect question: secret answer}
+
+=head2 dir - Alternative password dir
 
 ENVIRONMENT VARIABLES
 
@@ -59,20 +61,14 @@ Return a SH::PassCode::File if file is found. Else return undef
 
 =cut
 
-sub from_file($class,$filepath, $args=undef) {
-    my $subdir=sub{};
+sub from_file($class,$filepath, $args = undef) {
+    my $subdir;
     if ($args->{dir}) {
         my $dir = $args->{dir};
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
     }
 
-    my $rcode = run [ "pass", "code", "show", $filepath ],
-    \my $stdin, \my $stdout, \my $stderr, init => $subdir;
-
-    if ($rcode>1) {
-        warn " $rcode: $stderr";
-    }
-
+    my $stdout = _xrun($subdir, {ok_errors => ['is not in the password store.']}, "pass", "code", "show", $filepath);
     return if ! $stdout;
     p $stdout;
 
@@ -103,7 +99,7 @@ sub from_file($class,$filepath, $args=undef) {
             $hash->{extra}->{$key} .= ($hash->{extra}->{$key} ? "\n" : '') . $value;
         }
 
-        $lastkey= $key if $key;
+        $lastkey = $key if $key;
     }
 
     $hash->{dir} = $args->{dir} if $args->{dir};
@@ -114,6 +110,7 @@ sub from_file($class,$filepath, $args=undef) {
 =head2 okeys
 
 Return array of object keys
+
 
 =cut
 
@@ -131,7 +128,7 @@ Write to file. Replace existing.
 
 =cut
 
-sub to_file($self) {
+sub to_file($self, $args = undef) {
 
     if (! defined $self->password &&  $self->url ne 'http://sn') {
         say "ERROR:";
@@ -150,25 +147,27 @@ sub to_file($self) {
         }
     }
     my $dir;
-    my $subdir=sub{};
+    my $subdir;
 
-    if ($self->dir) {
-        $dir = $self->dir;
+    if ($args->{dir} || $self->dir) {
+        $dir = $self->dir || $self->dir;
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
     }
 p $self;
 p $subdir;
 
-    my $stdin = $cont;
-    my $rcode = run [ "pass", "code", "insert", "-m", "-f", $self->filepath ],
-    \$stdin, \my $stdout, \my $stderr,init =>$subdir;
-
-p $stdin;
-    if ($rcode>1) {
-        warn "$rcode $stderr";
-    }
-
-    $stdin = $cont;
+    _xrun($subdir, {stdin=>$cont,ok_errors=>['tr\: write error']},"pass", "code", "insert", "-m", "-f", $self->filepath);
+#     \$stdin, \my $stdout, \my $stderr,init =>$subdir;
+#
+# p $stdin;
+#     if ($rcode>1) {
+#         die "$rcode $stderr";
+#     }
+#     if ($stderr) {
+#         die "$rcode $stderr";
+#     }
+#
+#     $stdin = $cont;
 }
 
 
@@ -179,20 +178,72 @@ Remove the password file.
 =cut
 
 sub delete($self) {
-    my $subdir=sub{};
+    my $subdir;
     if ($self->{dir}) {
         my $dir = $self->dir;
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
     }
-
-    my $rcode = run [ "pass", "code", "rm","-f", $self->filepath ],
-    \my $stdin, \my $stdout, \my $stderr, init => $subdir;
-
-    if ($rcode>1) {
-        warn " $rcode: $stderr";
-    }
-    if ($stdout) {
+    if (_xrun( $subdir, "pass", "code", "rm","-f", $self->filepath ))     {
         return SH::PassCode::File->new;
     }
+    return;
+}
+
+sub _xrun($subdir, @cmd) {
+    die "Missing arguments" if ! @cmd;
+    my $config ;
+    if ( ref $cmd[0] ) {
+        $config = shift @cmd;
+    }
+    my @configs;
+    if ($subdir) {
+        @configs = (init => $subdir);
+    }
+    my ($stdin,$stdout,$stderr,$rcode);
+        my $h = harness \@cmd,
+        \$stdin, \$stdout, \$stderr, (my $t = timeout(5, exception => 'timeout')), @configs;
+        if (exists $config->{stdin}) {
+    #        $DB::single = 2;
+            say "cmd: ".join(' ', @cmd);
+            $stdin = $config->{stdin};
+            pump $h;
+        }
+    eval {
+        $rcode = finish $h;
+    };
+    if ( $@ ) {
+        my $x = $@;
+        chomp($x);
+        $h->kill_kill;
+        if ($x !~ /^timeout/ ) {
+            say "error: ".join(' ', @cmd);
+            say $stderr;
+            say $stdout;
+            die "die with error '$x'";
+        }
+        else {
+            say "timeout";
+            $rcode = 0;
+        }
+    }
+    if ($rcode>1) {
+        die "$rcode $stderr";
+    }
+    if ($stderr ) {
+        my $err = $stderr;
+        chomp($err);
+        if ($config && $config->{ok_errors}) {
+            if (grep {$err =~ /$_/} @{$config->{ok_errors}}) {
+                return $stdout;
+            }
+        }
+        say "Error with command: ".join(' ', @cmd);
+        if ($err eq 'Could not decrypt pass-code store') {
+            say "Try: run 'pass code ls' and when try again";
+        }
+        die "$rcode $stderr";
+    }
+    return $stdout if ! exists $config->{stdin};
+    $stdin = $config->{stdin} ;
 }
 1;

@@ -28,18 +28,18 @@ Read CSV file and return data.
 
 sub read($self, $file, $args) {
     open my $fh, "<", $file or die "Could not open $file";
-    my $first_line=1;
-    my @hashes=();
-    my @keys=();
+    my $first_line = 1;
+    my @hashes = ();
+    my @keys = ();
     my $x = $args->{sep_char}//',';
     my $quote_char = $args->{quote_char}//'"';
-    my $inrow=0;
-    my $inquote=0;
-    my $wheretoputextracolumns=$args->{column_with_extra};
+    my $inrow = 0;
+    my $inquote = 0;
+    my $wheretoputextracolumns = $args->{column_with_extra};
     while (my $l =<$fh>) {
         chomp($l);
-        if ($l eq 'Fax:') {
-            $DB::single=2;
+        if ($l =~ /aliexpress/) {
+            $DB::single = 2;
         }
         if ($inrow) {
             my $i = keys %{$hashes[-1]};
@@ -50,6 +50,10 @@ sub read($self, $file, $args) {
                 die;
             }
             my @vals = split(/$x/, $l, -1);
+            if (! @vals) {
+                $hashes[-1]{$keys[$i]} .= ($hashes[-1]{$keys[$i]} ? "\n":"");
+                next;
+            }
             $hashes[-1]{$keys[$i]} .= ($hashes[-1]{$keys[$i]} ? "\n":"") . $vals[0];
             if (@vals == 1) {
                 next;
@@ -66,7 +70,7 @@ sub read($self, $file, $args) {
 #            p $hashes[-1];
 #            ...; # setningen under må fikses slik at det blir rett.
             if (keys %{$hashes[-1]} == @keys) {
-                $inrow=0;
+                $inrow = 0;
             }
             else {
                 say STDERR "Error dump start";
@@ -89,7 +93,6 @@ sub read($self, $file, $args) {
                 $hashes[-1]{$keys[$i]} .= $l."\n";
             } else {
                 my $data;
-                $DB::single=2;
                 ($data,$l) = split(/(?<!$quote_char)$quote_char$x/, $l, 2);
              #   my $prechar = $1;
              #   $data .= $prechar;
@@ -105,7 +108,7 @@ sub read($self, $file, $args) {
                 for my $j($i .. $#keys) {
                     $hashes[-1]{$keys[$j]} = $vals[$j-$i];
                 }
-                $inquote=0;
+                $inquote = 0;
             }
 
             next;
@@ -114,16 +117,16 @@ sub read($self, $file, $args) {
         if ($first_line) {
 
             @keys = split(/$x/, $l);
-            $first_line=0;
+            $first_line = 0;
             next;
         }
 
         if( index($l,$x.$quote_char)>=0 || substr($l,0,1) eq $quote_char ) {
-            my $row={};
-            my $i=-1;
+            my $row = {};
+            my $i = -1;
             if (index($l,$quote_char.$x)>=0) {
                 my ($prerest, $rest);
-                $rest=$l;
+                $rest = $l;
                 my @vals;
                  if(index($l,$x.$quote_char)>=0) {
                     ($prerest, $rest) = split (/$x$quote_char/, $l,2);
@@ -137,7 +140,7 @@ sub read($self, $file, $args) {
                     for my $i(0 .. $#vals) {
                         $row->{$keys[$i]} = $vals[$i];
                     }
-                    $i= $#vals;
+                    $i = $#vals;
                 }
 
                  # quote = abc ,"DEF",ghi
@@ -155,11 +158,11 @@ sub read($self, $file, $args) {
                 }
                 p $row;
                 push @hashes, $row;
-                $inquote=0;
+                $inquote =0;
                 next;
             }
             else {
-                $inquote=1;
+                $inquote = 1;
                 my($rest,$data) = split(/$x?$quote_char/, $l,2);
                 my $row = {};
                 my @vals = split(/$x/, $rest,-1);
@@ -174,7 +177,7 @@ sub read($self, $file, $args) {
 
         my @vals = split(/$x/,$l);
         if (scalar @keys == scalar @vals) {
-            my $row={};
+            my $row = {};
             for my $i(0 .. $#keys) {
                 $row->{$keys[$i]} = $vals[$i];
             }
@@ -184,29 +187,32 @@ sub read($self, $file, $args) {
             # to many separators. Need to look for escape
             p $l;
             my $extra = scalar @vals - scalar @keys;
-            my $j=0;
+            my $j = 0;
             if (! $wheretoputextracolumns) {
                 p $l;
                 die "To many columns do not know what to do";
             }
+            my $row = {};
             for my $i (0 .. $#vals) {
                 if ($keys[$j] ne $wheretoputextracolumns) {
-                    $keys[$j]=$vals[$i];
+                    $row->{$keys[$j]} = $vals[$i];
                 }
                 else {
-                    $keys[$j].=$vals[$i];
-                    $extra--;
-                    if (!$extra) {
+                    $row->{$keys[$j]} .= $vals[$i];
+                    if ($extra) {
                         next;
                     }
+                    $extra--;
                 }
                 $j++;
             }
+            push @hashes, $row;
+            next;
         }
         elsif (scalar @keys > scalar @vals) {
             # multiline row
             p $l;
-                $inrow=1;
+                $inrow = 1;
                 my $row = {};
                 for my $i(0 .. $#vals) {
                     $row->{$keys[$i]} = $vals[$i];
