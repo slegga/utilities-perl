@@ -1,5 +1,5 @@
 package SH::ScriptX;
-use 5.36.0;
+use 5.34.0;
 
 use autodie;
 use Carp;
