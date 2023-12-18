@@ -153,21 +153,8 @@ sub to_file($self, $args = undef) {
         $dir = $self->dir || $self->dir;
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
     }
-p $self;
-p $subdir;
 
     _xrun($subdir, {stdin=>$cont,ok_errors=>['tr\: write error']},"pass", "code", "insert", "-m", "-f", $self->filepath);
-#     \$stdin, \my $stdout, \my $stderr,init =>$subdir;
-#
-# p $stdin;
-#     if ($rcode>1) {
-#         die "$rcode $stderr";
-#     }
-#     if ($stderr) {
-#         die "$rcode $stderr";
-#     }
-#
-#     $stdin = $cont;
 }
 
 
@@ -201,7 +188,7 @@ sub _xrun($subdir, @cmd) {
     }
     my ($stdin,$stdout,$stderr,$rcode);
         my $h = harness \@cmd,
-        \$stdin, \$stdout, \$stderr, (my $t = timeout(5, exception => 'timeout')), @configs;
+        \$stdin, \$stdout, \$stderr, @configs, (my $t = timeout(5, exception => 'timeout'));
         if (exists $config->{stdin}) {
     #        $DB::single = 2;
             say "cmd: ".join(' ', @cmd);
