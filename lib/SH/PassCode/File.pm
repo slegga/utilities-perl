@@ -186,7 +186,7 @@ sub _xrun($subdir, @cmd) {
     if ($subdir) {
         @configs = (init => $subdir);
     }
-    say join(" ", @cmd);
+
     my ($stdin,$stdout,$stderr,$rcode);
         my $h = start \@cmd,
         \$stdin, \$stdout, \$stderr, @configs;#, (my $t = timeout(5, exception => 'timeout'));
