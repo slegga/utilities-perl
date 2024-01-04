@@ -3,7 +3,7 @@ use 5.34.0;
 
 use autodie;
 use Carp;
-use List::MoreUtils q(any);
+use List::MoreUtils qw(any uniq);
 use Pod::Text::Termcap;
 use File::Basename;
 use Mojo::Base -strict,-base,-signatures;
@@ -154,7 +154,7 @@ sub new {
 
 
     my %options;
-    my @options_spec = map{$_->[0]} (@{$_options}, $self->_default_options);
+    my @options_spec = uniq map{$_->[0]} (@{$_options}, $self->_default_options);
     my $glp = Getopt::Long::Parser->new(config => [qw(no_auto_help no_auto_version pass_through)]);
     unless ( $glp->getoptions(\%options, @options_spec ) ) {
 		die "Something is wrong"
