@@ -2,6 +2,7 @@ package SH::PassCode::File;
 use Mojo::Base -base, -signatures;
 use Data::Printer;
 use IPC::Run qw/timeout harness start pump finish/;
+use Carp qw/confess/ ;
 
 =head1 NAME
 
@@ -190,18 +191,19 @@ sub delete($self) {
 }
 
 sub _xrun($subdir, @cmd) {
-    die "Missing arguments" if ! @cmd;
     my $config ;
     if ( ref $cmd[0] ) {
         $config = shift @cmd;
     }
+    confess("Missing arguments") if ! @cmd;
     my @configs;
     if ($subdir) {
+        $DB::single = 2;
         @configs = (init => $subdir);
     }
     my ($stdin,$stdout,$stderr,$rcode);
-        my $h = harness \@cmd,
-        \$stdin, \$stdout, \$stderr, (my $t = timeout(5, exception => 'timeout')), @configs;
+        my $h = start \@cmd,
+        \$stdin, \$stdout, \$stderr, @configs, (my $t = timeout(5, exception => 'timeout'));
         if (exists $config->{stdin}) {
     #        $DB::single = 2;
             say "cmd: ".join(' ', @cmd);
