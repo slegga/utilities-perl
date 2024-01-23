@@ -5,8 +5,8 @@ use Carp::Always;
 use Data::Printer;
 
 {
-    my $trans=SH::Transform->new();
-    my $exportfile=path('t/temp/test.yaml');
+    my $trans = SH::Transform->new();
+    my $exportfile = path('t/temp/test.yaml');
     $exportfile->dirname->make_path;
     $exportfile->remove;
     $trans->transform({file=>'t/data/test.json'},{file=>$exportfile});
@@ -15,7 +15,7 @@ use Data::Printer;
 
 {
     my $trans = SH::Transform->new();
-    my $exportfile=path('t/temp/test2.yaml');
+    my $exportfile = path('t/temp/test2.yaml');
     $exportfile->remove;
     $trans->transform({file=>'t/data/testdata.csv', sep_char => ","},{file=>$exportfile});
     ok(-e "$exportfile","Export file exists");

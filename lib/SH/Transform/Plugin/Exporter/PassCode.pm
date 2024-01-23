@@ -116,6 +116,7 @@ sub export($self,$args,$data) {
             $nr->{changed} =  $r->{BYTTE};
             $nr->{comment} = $r->{BESKRIVELSE};
             $nr->{dir} = $args->{dir} if $args->{dir};
+            
             if($nr->{filepath} =~/jobb|Business/i ) {
                 $nr->{filepath} = basename($nr->{filepath});
                 push @work_formated_data, $nr;
@@ -151,13 +152,16 @@ sub export($self,$args,$data) {
         }
 
         else {
+            # Save new password
            # p $f;
            # die;
-            $DB::single = 2;
+#            $DB::single = 2;
             my $x = SH::PassCode::File->new(%$f)->to_file($args);
+ #           p $x;
         }
     }
     say "****";
+    $DB::single =2;
     for my $f (@work_formated_data) {
         if (! $f->{filepath}) {
             p $f;
