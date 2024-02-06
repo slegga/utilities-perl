@@ -27,3 +27,4 @@ t/logs/FilBackupLog.txt
 t/etc/file-forwarder.done.yml
 t/temp/*
 /.vscode/
+*.bak

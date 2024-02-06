@@ -1,5 +1,5 @@
 package SH::Transform::Plugin::Exporter::PassCode;
-use Mojo::Base 'SH::Transform::Exporter',-signatures;
+use Mojo::Base 'SH::Transform::Exporter', -signatures;
 use Mojo::File 'path';
 use Mojo::JSON qw/encode_json/;
 use POSIX 'strftime';
@@ -38,48 +38,49 @@ Verify data, transform and write to a pass code directory for private and work. 
 
 =cut
 
-has passcode => sub {SH::PassCode->new};
+has passcode => sub { SH::PassCode->new };
 
-sub is_accepted($self, $args) {
+sub is_accepted ($self, $args) {
     return 1 if exists $args->{type} && lc($args->{type}) eq 'passcode';
     return 0;
 }
 
-sub export($self,$args,$data) {
+sub export ($self, $args, $data) {
+
     # TRANSFORM
-    my @formated_data; # ({filepath,password,username,url,change,comment,{extra}})
-    my @work_formated_data; # ({filepath,password,username,url,change,comment,{extra}})
-    #if lastpass
-    if(exists $data->[0]->{name} && $data->[0]->{name}) {
+    my @formated_data;         # ({filepath,password,username,url,change,comment,{extra}})
+    my @work_formated_data;    # ({filepath,password,username,url,change,comment,{extra}})
+                               #if lastpass
+    if (exists $data->[0]->{name} && $data->[0]->{name}) {
 
         # url,username,password,totp,extra,name,grouping,fav
-        for my $r(@$data) {
+        for my $r (@$data) {
             my $nr;
             my @accepted_keys = qw/grouping name password username url totp fav extra/;
-            for my $k(keys  %$r) {
-                if (! grep{$k eq $_} @accepted_keys) {
+            for my $k (keys %$r) {
+                if (!grep { $k eq $_ } @accepted_keys) {
                     die "Unknown key: $k in Last Pass format";
                 }
             }
 
-            $nr->{filepath} = $r->{grouping} ? $r->{grouping}."/".$r->{name} : $r->{name};
-            for my $k(qw/ password username url/) {
+            $nr->{filepath} = $r->{grouping} ? $r->{grouping} . "/" . $r->{name} : $r->{name};
+            for my $k (qw/ password username url/) {
                 $nr->{$k} = $r->{$k};
             }
             $nr->{changed} = my $date = strftime '%Y-%m-%d', localtime;
             $nr->{comment} = $r->{extra};
-            $nr->{comment} .= ',totp:'.$r->{totp} if $r->{totp};
-            $nr->{comment} .= ',fav:'.$r->{fav} if $r->{fav};
+            $nr->{comment} .= ',totp:' . $r->{totp} if $r->{totp};
+            $nr->{comment} .= ',fav:' . $r->{fav}   if $r->{fav};
             $nr->{dir} = $args->{dir} if $args->{dir};
-            if (! exists $nr->{filepath} || ! $nr->{filepath} ) {
-                next if  (grep {defined $_} values %$nr) == 2; # ignore no secrets
+            if (!exists $nr->{filepath} || !$nr->{filepath}) {
+                next if (grep { defined $_ } values %$nr) == 2;    # ignore no secrets
                 say "---";
                 p $nr;
                 p $r;
                 die "Missing file path";
             }
-            elsif($nr->{filepath} =~/jobb|Business/i) {
-               $nr->{filepath} = basename($nr->{filepath});
+            elsif ($nr->{filepath} =~ /jobb|Business/i) {
+                $nr->{filepath} = basename($nr->{filepath});
                 push @work_formated_data, $nr;
             }
             else {
@@ -88,41 +89,42 @@ sub export($self,$args,$data) {
         }
 
     }
+
     # passordfil
-    elsif(exists $data->[0]->{SYSTEM}) {
-        for my $r(@$data) {
+    elsif (exists $data->[0]->{SYSTEM}) {
+        for my $r (@$data) {
             my $nr;
             my @accepted_keys = qw/id  DOMENE GRUPPERING SYSTEM URL BRUKER PASSORD BESKRIVELSE BYTTE/;
-            for my $k(keys  %$r) {
-                if (! grep{$k eq $_} @accepted_keys) {
+            for my $k (keys %$r) {
+                if (!grep { $k eq $_ } @accepted_keys) {
                     die "Unknown key: $k in passordfil format";
                 }
             }
-            my $filename = ($r->{SYSTEM}//$r->{url}//die encode_json($r));
+            my $filename = ($r->{SYSTEM} // $r->{url} // die encode_json($r));
             $filename =~ s/\s/_/g;
             $filename =~ s/^https?+:\/\///g;
             $filename =~ s/[\/:].*//;
-            if (! $filename) {
-                next if ! $r->{password};
+            if (!$filename) {
+                next if !$r->{password};
                 p $r;
-                die "No filename"
+                die "No filename";
             }
 
 
-            $nr->{filepath} = ($r->{GRUPPERING} ? $r->{GRUPPERING} : $r->{DOMENE}).'/'.$filename;
+            $nr->{filepath} = ($r->{GRUPPERING} ? $r->{GRUPPERING} : $r->{DOMENE}) . '/' . $filename;
             $nr->{password} = $r->{PASSORD};
             $nr->{username} = $r->{BRUKER};
-            $nr->{url} =      $r->{URL};
-            $nr->{changed} =  $r->{BYTTE};
-            $nr->{comment} = $r->{BESKRIVELSE};
-            $nr->{dir} = $args->{dir} if $args->{dir};
-            
-            if($nr->{filepath} =~/jobb|Business/i ) {
+            $nr->{url}      = $r->{URL};
+            $nr->{changed}  = $r->{BYTTE};
+            $nr->{comment}  = $r->{BESKRIVELSE};
+            $nr->{dir}      = $args->{dir} if $args->{dir};
+
+            if ($nr->{filepath} =~ /jobb|Business/i) {
                 $nr->{filepath} = basename($nr->{filepath});
                 push @work_formated_data, $nr;
             }
             else {
-                if (! exists $nr->{filepath} || ! $nr->{filepath} ) {
+                if (!exists $nr->{filepath} || !$nr->{filepath}) {
                     p $nr;
                     p $r;
                     die "Missing file path";
@@ -134,45 +136,88 @@ sub export($self,$args,$data) {
 
     say "***";
     for my $f (@formated_data) {
-        if (! $f->{filepath}) {
+        if (!$f->{filepath}) {
             say "---";
             p $f;
             die "Missing filepath";
         }
-        my $ex = SH::PassCode::File->from_file($f->{filepath},$args);
-        if ( $ex) {
-            # enrich
-            for my $k( SH::PassCode::File->okeys ) {
-                if ($f->{$k}) {
-                    my $x = $f->{$k};
-                    $ex->$k($x);
+        my $ex = SH::PassCode::File->from_file($f->{filepath}, $args);
+        if ($ex) {
+
+            # check if nothing is changed if so next else ask user.
+            my $diff = 0;
+            for my $k (SH::PassCode::File->okeys) {
+                if ($f->{$k} && $ex->{$k} ne $f->{$k}) {
+                    $diff = 1;
+                    last;
                 }
             }
-            $ex->to_file;
-        }
+            last if (!$diff);
 
+            if ($ex->{changed} && $f->{changed}) {
+                if ($ex->{changed} > $f->{changed}) {
+                    say "DUPLICATE IGNORE OLDEST:";
+                    p $f;
+                    next;
+                }
+                elsif ($ex->{changed} eq $f->{changed}) {
+                    say "Duplicate equal dates. Ask user (keep first,last or rename one of them)";
+                    p $ex;
+                    p $f;
+                    ...;
+                }
+
+                # enrich
+                for my $k (SH::PassCode::File->okeys) {
+
+                    if ($f->{$k}) {
+                        my $x = $f->{$k};
+                        $ex->$k($x);
+                    }
+                }
+                $ex->to_file;
+            }
+        }
         else {
             # Save new password
-           # p $f;
-           # die;
+            # p $f;
+            # die;
 #            $DB::single = 2;
             my $x = SH::PassCode::File->new(%$f)->to_file($args);
- #           p $x;
+
+            #           p $x;
         }
     }
     say "****";
-    $DB::single =2;
+    $DB::single = 2;
     for my $f (@work_formated_data) {
-        if (! $f->{filepath}) {
+        if (!$f->{filepath}) {
             p $f;
             die "Missing filepath";
         }
-        my %tmpargs =%$args;
-        $tmpargs{dir} = $ENV{HOME}.'/'.'.password-store-work';
-        my $ex = SH::PassCode::File->from_file($f->{filepath},\%tmpargs);
-        if ( $ex) {
+        my %tmpargs = %$args;
+        $tmpargs{dir} = $ENV{HOME} . '/' . '.password-store-work';
+
+        my $ex = SH::PassCode::File->from_file($f->{filepath}, \%tmpargs);
+        if ($ex) {
+
+            # check if nothing is changed if so next else ask user.
+            my $diff = 0;
+            for my $k (SH::PassCode::File->okeys) {
+                if ($f->{$k} && $ex->{$k} ne $f->{$k}) {
+                    $diff = 1;
+                    last;
+                }
+            }
+            last if (!$diff);
+
+            say "Ask user: Keep first, last or rename?";
+            p $ex;
+            p $f;
+            ...;
+
             # enrich
-            for my $k( SH::PassCode::File->okeys ) {
+            for my $k (SH::PassCode::File->okeys) {
                 if ($f->{$k}) {
                     my $x = $f->{$k};
                     $ex->$k($x);
@@ -182,24 +227,23 @@ sub export($self,$args,$data) {
         }
 
         else {
-           # p $f;
-           # die;
-            my $x = SH::PassCode::File->new(%$f, dir=>$tmpargs{dir})->to_file(\%tmpargs);
+            # p $f;
+            # die;
+            my $x = SH::PassCode::File->new(%$f, dir => $tmpargs{dir})->to_file(\%tmpargs);
         }
     }
-
 #    p @formated_data;
 #    ...;
-    # PRODUCE PASS CODE
-    # [password]
-    # filepath:
-    # changed:  YYYY.MM.DD
-    # username:
-    # url:
-    # comment:
-    # extra:
+        # PRODUCE PASS CODE
+        # [password]
+        # filepath:
+        # changed:  YYYY.MM.DD
+        # username:
+        # url:
+        # comment:
+        # extra:
 
-    # die "Missing argument file" . encode_json($args) if ! $args->{file};
-    # DumpFile($args->{file}, $data);
+        # die "Missing argument file" . encode_json($args) if ! $args->{file};
+        # DumpFile($args->{file}, $data);
 }
 1;
