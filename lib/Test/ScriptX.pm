@@ -66,7 +66,7 @@ my $t = Test::ScriptX->new('bin/script-to-be-tested.pl',main_sub=>'app', email_o
 sub new {
     my ($class, $scriptname) = (shift,shift);
     $scriptname = path($scriptname);
-    my $attributes={};
+    my $attributes = {};
     $attributes = {@_} if (@_);
     my $self = $class->SUPER::new( scriptname => $scriptname, attributes => $attributes );
 
@@ -89,14 +89,13 @@ EOF
         $self->roles( [ eval $1 ] );##no critic
     }
 
-    return $self->_test('is',$@,'',"eval of object " .$self->scriptname );
+    return $self->_test( 'is', $@, '', "eval of object " . $self->scriptname );
 }
 
 =head2 run
 
 Run script object with given key => value input.
 Store stdout and stderr out put and return value if any.
-
 
 =cut
 
