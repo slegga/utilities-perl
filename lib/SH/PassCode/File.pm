@@ -151,7 +151,7 @@ sub to_file($self, $args = undef) {
     my $subdir;
 
     if ($args->{dir} || $self->dir) {
-        $dir = $self->dir || $self->dir;
+        $dir = $args->{dir} || $self->dir;
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
     }
 

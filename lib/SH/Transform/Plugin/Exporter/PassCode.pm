@@ -6,7 +6,7 @@ use POSIX 'strftime';
 use Data::Printer;
 use SH::PassCode;
 use File::Basename;
-
+use SH::Ask qw /ask/;
 
 =head1 NAME
 
@@ -136,114 +136,122 @@ sub export ($self, $args, $data) {
 
     say "***";
     for my $f (@formated_data) {
-        if (!$f->{filepath}) {
-            say "---";
-            p $f;
-            die "Missing filepath";
-        }
-        my $ex = SH::PassCode::File->from_file($f->{filepath}, $args);
-        if ($ex) {
-
-            # check if nothing is changed if so next else ask user.
-            my $diff = 0;
-            for my $k (SH::PassCode::File->okeys) {
-                if ($f->{$k} && $ex->{$k} ne $f->{$k}) {
-                    $diff = 1;
-                    last;
-                }
-            }
-            last if (!$diff);
-
-            if ($ex->{changed} && $f->{changed}) {
-                if ($ex->{changed} > $f->{changed}) {
-                    say "DUPLICATE IGNORE OLDEST:";
-                    p $f;
-                    next;
-                }
-                elsif ($ex->{changed} eq $f->{changed}) {
-                    say "Duplicate equal dates. Ask user (keep first,last or rename one of them)";
-                    p $ex;
-                    p $f;
-                    ...;
-                }
-
-                # enrich
-                for my $k (SH::PassCode::File->okeys) {
-
-                    if ($f->{$k}) {
-                        my $x = $f->{$k};
-                        $ex->$k($x);
-                    }
-                }
-                $ex->to_file;
-            }
-        }
-        else {
-            # Save new password
-            # p $f;
-            # die;
-#            $DB::single = 2;
-            my $x = SH::PassCode::File->new(%$f)->to_file($args);
-
-            #           p $x;
-        }
+        $self->_check_duplicate_and_store_file($f, $args);
     }
     say "****";
     $DB::single = 2;
+    my %tmpargs = %$args;
+    $tmpargs{dir} = $ENV{HOME} . '/' . '.password-store-work';
     for my $f (@work_formated_data) {
-        if (!$f->{filepath}) {
-            p $f;
-            die "Missing filepath";
-        }
-        my %tmpargs = %$args;
-        $tmpargs{dir} = $ENV{HOME} . '/' . '.password-store-work';
-
-        my $ex = SH::PassCode::File->from_file($f->{filepath}, \%tmpargs);
-        if ($ex) {
-
-            # check if nothing is changed if so next else ask user.
-            my $diff = 0;
-            for my $k (SH::PassCode::File->okeys) {
-                if ($f->{$k} && $ex->{$k} ne $f->{$k}) {
-                    $diff = 1;
-                    last;
-                }
-            }
-            last if (!$diff);
-
-            say "Ask user: Keep first, last or rename?";
-            p $ex;
-            p $f;
-            ...;
-
-            # enrich
-            for my $k (SH::PassCode::File->okeys) {
-                if ($f->{$k}) {
-                    my $x = $f->{$k};
-                    $ex->$k($x);
-                }
-            }
-            $ex->to_file;
-        }
-
-        else {
-            # p $f;
-            # die;
-            my $x = SH::PassCode::File->new(%$f, dir => $tmpargs{dir})->to_file(\%tmpargs);
-        }
+        $self->_check_duplicate_and_store_file($f, \%tmpargs);
     }
+
 #    p @formated_data;
 #    ...;
-        # PRODUCE PASS CODE
-        # [password]
-        # filepath:
-        # changed:  YYYY.MM.DD
-        # username:
-        # url:
-        # comment:
-        # extra:
+    # PRODUCE PASS CODE
+    # [password]
+    # filepath:
+    # changed:  YYYY.MM.DD
+    # username:
+    # url:
+    # comment:
+    # extra:
 
-        # die "Missing argument file" . encode_json($args) if ! $args->{file};
-        # DumpFile($args->{file}, $data);
+    # die "Missing argument file" . encode_json($args) if ! $args->{file};
+    # DumpFile($args->{file}, $data);
 }
-1;
+
+# _check_duplicate_and_store_file ($self, $f, $args)
+# Internal method for checking if passord is a duplicate and handle what to do
+
+sub _check_duplicate_and_store_file ($self, $f, $args) {
+    if (!$f->{filepath}) {
+        say "---";
+        p $f;
+        die "Missing filepath";
+    }
+    my $ex = SH::PassCode::File->from_file($f->{filepath}, $args);
+    if ($ex) {
+
+        # check if nothing is changed if so next else ask user.
+        my $diff = 0;
+        for my $k (SH::PassCode::File->okeys) {
+            if ($f->{$k} && $ex->{$k} ne $f->{$k}) {
+                $diff = 1;
+                last;
+            }
+        }
+        return if (!$diff);    # next $f
+        say "Duplicate filename: " . $f->{filepath};
+        if ($ex->{changed} && $f->{changed}) {
+            if ($ex->{changed} gt $f->{changed}) {
+                say "The existing has newest changed value. Recommend to choose [1] below";
+            }
+            elsif ($ex->{changed} lt $f->{changed}) {
+                say "The last entry hasnewest changed value. Recommend to choose [2] below";
+            }
+        }
+
+        say '[1]';
+        p $ex;
+        say "\n[2]";
+        p $f;
+        my $keep = ask('Which one do you want to keep? [1, 2, b=both, e=edit-file-2, q=quit]: ', [1, 2, 'b', 'e', 'q']);
+        if ($keep eq 'q') {
+            say "User exit";
+            exit;
+        }
+        elsif ($keep eq '1') {
+            return;    #ignore the last one
+        }
+        elsif ($keep eq '2') {
+
+            # Continue. This will update the existing
+        }
+        elsif ($keep eq 'b') {
+            $f->{filepath} .= "-" . $f->{username};
+            if (SH::PassCode::File->from_file($f->{filepath}, $args)) {
+
+                # new filename exists. Ask user what to do again.
+                ...;
+            }
+        }
+        elsif ($keep eq 'e') {
+            my $old = basename($f->{filepath});
+            my $dir = dirname($f->{filepath});
+            say "Keep both. Alter the last entry $old";
+            my $new = ask("Enter new filename old is $old: ", qr/.*/);
+            if (!$new) {
+                say "Do not know what to do. Cancel Redo something else?";
+
+                # Cancel? Redo?
+                ...;
+            }
+            $f->{filepath} = ($dir ? $dir . '/' : '') . $new;
+            say "New filename is " . $f->{filepath};
+        }
+        else {
+            die "Wrong input";
+        }
+
+
+        # enrich
+        for my $k (SH::PassCode::File->okeys) {
+
+            if ($f->{$k}) {
+                my $x = $f->{$k};
+                $ex->$k($x);
+            }
+        }
+        $ex->to_file;
+    }
+    else {
+        # Save new password
+        # p $f;
+        # die;
+    #            $DB::single = 2;
+        my $x = SH::PassCode::File->new(%$f)->to_file($args);
+
+        #           p $x;
+    }
+} 1;
