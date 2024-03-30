@@ -20,11 +20,13 @@ SH::Transform::Plugin::Exporter::PassCode - create files and fills them with pas
 
 =head1 DESCRIPTION
 
-Enable export to passcode. Split work and personal passwords.
-
+Enable export to passcode.
 Personal password is exported to ~/.password-store
 
-Work password is exported to ~/.work-password-store
+TODO: Make another script to move from this to new.
+In an example move to work password is exported to ~/.work-password-store
+
+../other-repo/bin/passcode-move-regex.pl --source ~/.password-store --target ~/.work-password-store --passwords_rx business
 
 =head1 METHODS
 
@@ -34,7 +36,7 @@ Decide if moduke is usable for the task or not.
 
 =head2 export
 
-Verify data, transform and write to a pass code directory for private and work. See perl code for criteria for which password is marked as private and which is work.
+Verify data, transform and write to a pass code directory..
 
 =cut
 
@@ -49,7 +51,6 @@ sub export ($self, $args, $data) {
 
     # TRANSFORM
     my @formated_data;         # ({filepath,password,username,url,change,comment,{extra}})
-    my @work_formated_data;    # ({filepath,password,username,url,change,comment,{extra}})
                                #if lastpass
     if (exists $data->[0]->{name} && $data->[0]->{name}) {
 
@@ -80,8 +81,8 @@ sub export ($self, $args, $data) {
                 die "Missing file path";
             }
             elsif ($nr->{filepath} =~ /jobb|Business/i) {
-                $nr->{filepath} = basename($nr->{filepath});
-                push @work_formated_data, $nr;
+                $nr->{filepath} = 'jobb/' . basename($nr->{filepath});
+                push @formated_data, $nr;
             }
             else {
                 push @formated_data, $nr;
@@ -119,18 +120,12 @@ sub export ($self, $args, $data) {
             $nr->{comment}  = $r->{BESKRIVELSE};
             $nr->{dir}      = $args->{dir} if $args->{dir};
 
-            if ($nr->{filepath} =~ /jobb|Business/i) {
-                $nr->{filepath} = basename($nr->{filepath});
-                push @work_formated_data, $nr;
+            if (!exists $nr->{filepath} || !$nr->{filepath}) {
+                p $nr;
+                p $r;
+                die "Missing file path";
             }
-            else {
-                if (!exists $nr->{filepath} || !$nr->{filepath}) {
-                    p $nr;
-                    p $r;
-                    die "Missing file path";
-                }
-                push @formated_data, $nr;
-            }
+            push @formated_data, $nr;
         }
     }
 
@@ -140,11 +135,11 @@ sub export ($self, $args, $data) {
     }
     say "****";
     $DB::single = 2;
-    my %tmpargs = %$args;
-    $tmpargs{dir} = $ENV{HOME} . '/' . '.password-store-work';
-    for my $f (@work_formated_data) {
-        $self->_check_duplicate_and_store_file($f, \%tmpargs);
-    }
+#    my %tmpargs = %$args;
+#    $tmpargs{dir} = $ENV{HOME} . '/' . '.password-store-work';
+#    for my $f (@work_formated_data) {
+#        $self->_check_duplicate_and_store_file($f, \%tmpargs);
+#    }
 
 #    p @formated_data;
 #    ...;
