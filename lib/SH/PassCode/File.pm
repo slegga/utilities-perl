@@ -71,7 +71,7 @@ sub from_file($class,$filepath, $args = undef) {
 
     my $stdout = _xrun($subdir, {ok_errors => ['is not in the password store.']}, "pass", "code", "show", $filepath);
     return if ! $stdout;
-    p $stdout;
+  #  p $stdout;
 
     my $hash ={filepath => $filepath};
     my $lastkey;
@@ -97,6 +97,7 @@ sub from_file($class,$filepath, $args = undef) {
             $hash->{$key} .= ($hash->{$key} ? "\n" : '') . $value;
         }
         elsif (grep {$key eq $_} (qw/filepath username url changed/)) {
+            $value =~ s/\s+$//;
             $hash->{$key} = $value;
         }
         else {
@@ -179,6 +180,8 @@ sub delete($self) {
         p $self;
         die "filepath is undef";
     }
+#    my $filepath = $self->filepath ;
+#    $filepath =~ /\s+$/;
     if (_xrun( $subdir, "pass", "code", "rm","-f", $self->filepath ))     {
         return SH::PassCode::File->new;
     }
@@ -197,54 +200,56 @@ sub _xrun($subdir, @cmd) {
     }
 
     my ($stdin,$stdout,$stderr,$rcode);
-        my $h = harness \@cmd,
-        \$stdin, \$stdout, \$stderr, @configs, ( my $t = timeout 10 );#, (my $t = timeout(5, exception => 'timeout'));
-        start $h;
-        if (exists $config->{stdin}) {
-            cluck "cmd: ".join(' ', @cmd);
-    #        p $config;
-    #        $stdin = $config->{stdin};
-            $config->{stdin} =~ s/\s+$//mg;
-            $config->{stdin} .="\n";
-            my $end = $config->{stdin};
-            $end =~ s/.*\n//mg;
-            say STDERR "\$end $end";
-#            pump $h until ! length $stdin;
-            sleep(1);
-            my $prev_stdout = 'gfsgfbsgdbhbhgbh';
-            while ( $stdin || !$stdout || $prev_stdout ne $stdout) { #index($stout,$end) < 0) {
-                if (! $stdout) {
-                    pump $h;
-                    sleep 1;
-                    say STDERR 'a';
+    #    my $h = harness \@cmd,
+    #    \$stdin, \$stdout, \$stderr, @configs, ( my $t = timeout 10 );#, (my $t = timeout(5, exception => 'timeout'));
+    my $h = harness \@cmd, '<pty<', \$stdin, '>pty>', \$stdout, '2>', \$stderr, ( my $t = timeout 15 );
+    start $h;
+    if (exists $config->{stdin}) {
+        cluck "cmd: ".join(' ', @cmd)   if $ENV{DEBUG};
+        $config->{stdin} =~ s/\s+$//mg;
+        $config->{stdin} .="\n";
+        my $end = $config->{stdin};
+        $end =~ s/.*\n//mg;
+        say STDERR "\$end $end" if $ENV{DEBUG};
+        sleep(1);
+        my $prev_stdout = 'gfsgfbsgdbhbhgbh';
+        while ( $stdin || !$stdout || $prev_stdout ne $stdout) { #index($stout,$end) < 0) {
+            if (! $stdout) {
+                pump $h;
+                sleep 1;
+                say STDERR 'a'  if $ENV{DEBUG};
 
-                    next;
-                }
-                $prev_stdout = $stdout;
-                $stdin = $config->{stdin};
+                next;
+            }
+            $prev_stdout = $stdout;
+            $stdin = $config->{stdin};
 
-                say STDERR "X-'$stdout'";
-                say STDERR "stdin '$stdin'";
-                eval {
-                    pump $h;
-                } or do {
-                    say "$@";
-#                    pump $h
-                };
+            say STDERR "X-'$stdout'"  if $ENV{DEBUG};
+            say STDERR "stdin '$stdin'" if $ENV{DEBUG};
+            eval {
+                pump $h;
+            } or do {
+                say "$@";
+                die;
+            };
+            say STDERR "xy-$stdin"  if $ENV{DEBUG};
 #                say STDERR $stderr;
 #                say STDERR "stdout:'$stdout'";
-            }
-            say STDERR "after pump";
+            $stdin = "\004"; # Send CTRL-D
+            pump $h;
+            last;
         }
+        say STDERR "after pump" if $ENV{DEBUG};
+    }
     eval {
         $rcode = finish $h;
     };
-    say STDERR "after finish";
+    say STDERR "after finish"  if $ENV{DEBUG};
     if ( $@ ) {
         my $x = $@;
         chomp($x);
         $h->kill_kill;
-        if ($x !~ /^timeout/ ) {
+        if ($x !~ /timeout/ ) {
             say "error: ".join(' ', @cmd);
             say $stderr;
             say $stdout;
@@ -270,7 +275,7 @@ sub _xrun($subdir, @cmd) {
         if ($err eq 'Could not decrypt pass-code store') {
             say "Try: run 'pass code ls' and when try again";
         }
-        die "$rcode $stderr";
+        die "*$rcode* *$stderr*";
     }
     return $stdout if ! exists $config->{stdin};
     $stdin = $config->{stdin} ;
