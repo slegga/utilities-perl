@@ -2,7 +2,7 @@ package SH::PassCode::File;
 use Mojo::Base -base, -signatures;
 use Data::Printer;
 use IPC::Run qw/timeout harness start pump finish/;
-use Carp qw/confess/ ;
+use Carp qw/cluck confess/ ;
 
 =head1 NAME
 
@@ -73,12 +73,12 @@ sub from_file($class,$filepath, $args = undef) {
     return if ! $stdout;
     p $stdout;
 
-    my $hash ={};
+    my $hash ={filepath => $filepath};
     my $lastkey;
     my $key;
     my $value;
     for my $l( split(/\n/, $stdout) ) {
-        if (! keys %$hash) {
+        if (! grep {$_ ne 'filepath'} keys %$hash) {
             $hash->{password} = $l;
             next;
         }
@@ -93,8 +93,11 @@ sub from_file($class,$filepath, $args = undef) {
             say "errorline: $l";
             ...;
         }
-        if (grep {$key eq $_} (qw/filepath username url comment changed/)) {
+        if ($key eq 'comment') {
             $hash->{$key} .= ($hash->{$key} ? "\n" : '') . $value;
+        }
+        elsif (grep {$key eq $_} (qw/filepath username url changed/)) {
+            $hash->{$key} = $value;
         }
         else {
             $hash->{extra}->{$key} .= ($hash->{extra}->{$key} ? "\n" : '') . $value;
@@ -171,6 +174,11 @@ sub delete($self) {
         my $dir = $self->dir;
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
     }
+    if (! defined $self->filepath) {
+        $DB::single = 2;
+        p $self;
+        die "filepath is undef";
+    }
     if (_xrun( $subdir, "pass", "code", "rm","-f", $self->filepath ))     {
         return SH::PassCode::File->new;
     }
@@ -185,21 +193,53 @@ sub _xrun($subdir, @cmd) {
     confess("Missing arguments") if ! @cmd;
     my @configs;
     if ($subdir) {
-        $DB::single = 2;
         @configs = (init => $subdir);
     }
 
     my ($stdin,$stdout,$stderr,$rcode);
-        my $h = start \@cmd,
-        \$stdin, \$stdout, \$stderr, @configs;#, (my $t = timeout(5, exception => 'timeout'));
+        my $h = harness \@cmd,
+        \$stdin, \$stdout, \$stderr, @configs, ( my $t = timeout 10 );#, (my $t = timeout(5, exception => 'timeout'));
+        start $h;
         if (exists $config->{stdin}) {
-            say "cmd: ".join(' ', @cmd);
-            $stdin = $config->{stdin};
-            pump $h;
+            cluck "cmd: ".join(' ', @cmd);
+    #        p $config;
+    #        $stdin = $config->{stdin};
+            $config->{stdin} =~ s/\s+$//mg;
+            $config->{stdin} .="\n";
+            my $end = $config->{stdin};
+            $end =~ s/.*\n//mg;
+            say STDERR "\$end $end";
+#            pump $h until ! length $stdin;
+            sleep(1);
+            my $prev_stdout = 'gfsgfbsgdbhbhgbh';
+            while ( $stdin || !$stdout || $prev_stdout ne $stdout) { #index($stout,$end) < 0) {
+                if (! $stdout) {
+                    pump $h;
+                    sleep 1;
+                    say STDERR 'a';
+
+                    next;
+                }
+                $prev_stdout = $stdout;
+                $stdin = $config->{stdin};
+
+                say STDERR "X-'$stdout'";
+                say STDERR "stdin '$stdin'";
+                eval {
+                    pump $h;
+                } or do {
+                    say "$@";
+#                    pump $h
+                };
+#                say STDERR $stderr;
+#                say STDERR "stdout:'$stdout'";
+            }
+            say STDERR "after pump";
         }
     eval {
         $rcode = finish $h;
     };
+    say STDERR "after finish";
     if ( $@ ) {
         my $x = $@;
         chomp($x);

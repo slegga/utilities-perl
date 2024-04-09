@@ -171,7 +171,7 @@ sub _check_duplicate_and_store_file ($self, $f, $args) {
         # check if nothing is changed if so next else ask user.
         my $diff = 0;
         for my $k (SH::PassCode::File->okeys) {
-            if ($f->{$k} && $ex->{$k} ne $f->{$k}) {
+            if ($f->{$k} && $ex->{$k} && $ex->{$k} ne $f->{$k}) {
                 $diff = 1;
                 last;
             }
