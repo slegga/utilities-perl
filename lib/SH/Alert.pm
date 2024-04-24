@@ -94,7 +94,7 @@ Send a message to Groupme via a bot.
 
 =cut
 
-sub groupme($self, $message, $bot=undef) {
+sub groupme($self, $message, $bot = undef) {
     return if $message !~ /\w/;
     $bot //= $self->config->{default_bot};
     my $bot_id = $self->config->{bots}->{$bot}->{bot_id};
@@ -114,7 +114,7 @@ sub groupme($self, $message, $bot=undef) {
     if    ($tx->res->is_success)   { return 1 }
     elsif ($tx->res->is_error)     { die "Error: " . $tx->res->message }
     elsif (! $tx->res->can('code') || ! $tx->res->code )  {
-        p $tx->res;
+        p($tx->res);
         die "Error. Strange return: " . $tx->req->to_string;
     }
     elsif ($tx->res->code == 404)  { die "404 Path not found '" . $tx->req->url . "'" }
