@@ -22,10 +22,8 @@ use Mojo::UserAgent;
 use Sys::Hostname;
 use  YAML::Tiny;
 use Mojo::JSON 'encode_json';
+use Data::Printer;
 
-
-
-#use Carp::Always;
 
 =encoding utf8
 
