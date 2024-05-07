@@ -27,7 +27,12 @@ SKIP: {
 
     my $passcode = SH::PassCode->new;
     my $trans = SH::Transform->new();
-    my @unittestfiles = $passcode->list('unittest');
+    my @unittestfiles;
+    eval {
+        @unittestfiles = $passcode->list('unittest');
+    } or do {
+        skip "No unittest db accessible";
+    };
     p @unittestfiles;
     $_->delete for @unittestfiles;
     $trans->transform({file=>'t/data/testdata.csv', sep_char => ","},{type => 'PassCode'});
