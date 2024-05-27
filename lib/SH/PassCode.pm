@@ -13,7 +13,7 @@ SH::PassCode - Interface to pass code
     use SH::PassCode;
     my $pc = SH::PassCode->new;
     $pc->create('finance/nordea', 'my password', {username=>'myuser', url=>'mybank.com',comment=>'savings'});
-    say $pc->list->map($_->name)->each;
+    say $pc->list('')->map($_->name)->each;
     say $pc->list_tree->each;
     say $pc->list('finance')->each;
     say $pc->show('finance/nordea');
