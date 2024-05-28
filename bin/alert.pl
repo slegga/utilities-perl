@@ -38,6 +38,7 @@ Pipe text into script for sending a groupme to me. Fine for alerting about serve
 =cut
 
 option 'dryrun!', 'Print to screen instead of doing changes';
+option 'ignore=s',  'Ignore alerting if regexp match';
 has alert => sub{SH::Alert->new(dryrun=>$_[0]->dryrun)};
 
 sub main($self) {
@@ -49,7 +50,15 @@ sub main($self) {
     }
     return if ! $text;
     return if $text !~ /\w/;
-
+    if ($self->ignore) {
+        my $re = $self->ignore;
+        return if $text =~ /$re/;
+    }
+    if ($self->dryrun) {
+        say "DRYRUN: alert will report this text";
+        say $text;
+        return;
+    }
     $self->alert->groupme($text);
 }
 
