@@ -3,6 +3,9 @@ use Mojo::Base -base, -signatures;
 use IPC::Run qw/run/;
 use Data::Printer;
 use SH::PassCode::File;
+use Capture::Tiny qw/capture/;
+use File::Basename;
+
 
 =head1 NAME
 
@@ -34,52 +37,74 @@ Initialzation of pass code:
 
 =head1 ATTRIBUTES
 
-=head2 dir - The path to the password store directory.
+=head2 password_dir - The path to the password store directory.
 
 =cut
 
-has 'dir';
+has password_dir => sub {
+    return $ENV{PASSWORD_STORE_DIR}||$ENV{HOME}.'/.password-store';
+};
+
+has 'git_pulled'; # Mark if git pull is ran.
+has osname => sub {my $self =shift; my ($x) = $self->xsystem('uname'); chomp $x;return $x};
+
 
 =head1 METHODS
 
 =head2 list
 
-    my @items = $pc->list('finance');
+    my @items = $self->list('finance');
 
 Return a list of SH::PassCode::Item that is placed in directory.
 
 =cut
 
 
+=head2 list
 
-sub list($self, $path) {
-    if ($self->dir) {
-        ...;
-    }
-    my $rcode = run [ "pass", "code", "ls", $path ],
-    \my $stdin, \my $stdout, \my $stderr;
+List friendly filename and catalogs in given path
 
-    if ($rcode>1) {
-        warn " $rcode: $stderr";
-    }
-    if ($stderr) {
-        warn $stderr;
-    }
+=cut
 
-    return if ! $stdout;
-    p $stdout;
+sub list($self, $path, $sopts={}) {
+ #   if ($self->dir) {
+ #       ...;
+ #   }
+ #   my $rcode = run [ "pass", "code", "ls", $path ],
+ #   \my $stdin, \my $stdout, \my $stderr;
+
+#    if ($rcode>1) {
+#        warn " $rcode: $stderr";
+#    }
+#    if ($stderr) {
+#        say " '$rcode' '$path'";
+#        p $self;
+#        die $stderr;
+#    }
+
+#    return if ! $stdout;
+#    p $stdout;
 #   unittest
 #   ├── 10.0.0.23
 #   └── paypal.com
-    my @filenames;
-    for my $l(split(/\n/,$stdout) ) {
-        next if ($l eq $path);
-        my $f;
-        (undef, $f) = split(/ /,$l,2);
-        push @filenames, "$path/$f";
+    my @filenames = keys %{$self->get_files()};
+    my %files=();
+    for my $l( @filenames ) {
+        if ($l=~s/^$path//) {
+            my $tmp = $l;
+            $tmp=~ s/^\///;
+            if ( $tmp =~ s/\/.*// ) {
+            }else {
+                if ($sopts->{dir_only}) {
+                    next;
+                }
+            }
+            $files{$tmp}++;
+        }
     }
-    my @files = map { SH::PassCode::File->from_file($_) } @filenames;
-    return @files;
+    my $return = [sort keys %files];
+    p $return;
+    return $return;
 }
 
 =head2 list_tree
@@ -112,5 +137,92 @@ Create the file if not exists or update the file if exists with.
 
 =cut
 
+# get_files
+# return {filename=>'encodedfilename',filename2=>'encodedfilename.gpg'}
+sub get_files ($self,$regex = undef) {
+    my $return;
+    my $errfilename = "/tmp/".basename($0)."-$$.err";
+    my ($out,$err) = $self->xsystem("gpg --decrypt ".$self->password_dir."/.passcode.gpg");;
+    for my $l(split(/\n/, $out)) {
+        my ($real,$friendly) = split (/\:/, $l);
+        die "Missing : in $l     err: $err" if !$friendly;
+        next if ($regex && $friendly !~ /$regex/);
+        $return->{$friendly} = $real;
+    }
+
+    return $return;
+}
+
+sub git_pull($self) {
+    return 0 if $ENV{NO_GIT};
+    return 0 if $self->git_pulled;
+    my $githome = $self->password_dir;
+    say '*'.$self->osname.'*';
+    my ($last_pull,$err);
+    my $datefile = "~/$githome/.git/FETCH_HEAD";
+    eval {
+        if (! -e $datefile) {
+            $last_pull = 0;
+        }
+        else {
+            ($last_pull,$err) = $self->xsystem(($self->osname ne 'Darwin' ? "stat -c %Y $datefile" : "stat -t%Y $datefile |cut -f1 -d' '" ));
+        }
+    };
+    say $@ if $@;
+    chomp $last_pull if defined $last_pull;
+    $last_pull||=0;
+    if ($last_pull =~ /\D/) {
+        die "Error: ".$last_pull. ' -- '.$err;
+    }
+    if (time() - $last_pull> 3600 *24 * 1) {
+        my ($out,$err) =  $self->xsystem("pass code git pull");
+        say $out if $out;
+        die $err if $err;
+        $self->git_pulled(1);
+        return 1 ;
+    }
+    return 0;
+}
+
+
+
+sub xsystem($self,$command) {
+    my ($stdout, $stderr)  = capture {
+        system($command);
+    };
+    if ($stderr) { #  && $stderr =~/err/i
+        $stderr =~ s/^bind.+?Address already in use\s*//;
+        $stderr =~ s/^channel_setup.+?\n//;
+        $stderr =~ s/^Could not request local forwarding.\s*//;
+        $stderr =~ s/^This system.+a court of law.\s*//m;
+
+		if (!$stderr ) {
+			# ignore ssh warnings
+		}
+        elsif ( index ($stderr,'is not in the password store.')>=0 ) {
+            $stdout = undef;
+            # accept error
+        }
+        elsif ($stderr =~ /^gpg\: kryptert med|^gpg\: encrypted with/) {
+            # dummy err
+            $stderr ='';
+        }
+        elsif ($stderr =~ /bash\: warning: setlocale/) {
+            # ignore
+
+        }
+        else {
+            say "";
+            say "ERROR with: $command";
+            say "STDERR:";
+            say $stderr;
+            say "STDOUT:" if $stdout;
+            say $stdout  if $stdout;
+            croak("OS command error");
+            #confess("OS command error");
+        }
+    }
+    return $stdout, $stderr;
+}
 
 1;

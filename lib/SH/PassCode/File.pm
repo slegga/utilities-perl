@@ -18,6 +18,8 @@ SH::PassCode::File
 
 Designed to be a sub utility class for making easier for SH::PassCode to manipulate password files.
 
+Responsible to read/write pass files.
+
 =head1 ATTRBIUTES
 
 =head2 password
