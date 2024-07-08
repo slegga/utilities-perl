@@ -50,6 +50,8 @@ ENVIRONMENT VARIABLES
 
 has ['filepath','password', 'changed', 'username', 'url', 'comment', 'extra', 'dir'];
 
+has pc => sub{SH::PassCode->new(password_dir=>$_[0]->dir)};
+
 =head1 FUNCTIONS
 
 =head2 new
@@ -160,8 +162,9 @@ sub to_file($self, $args = undef) {
         $dir = $args->{dir} || $self->dir;
         $subdir = sub {$ENV{PASSWORD_STORE_DIR}="$dir"};
     }
-
-    _xrun($subdir, {stdin=>$cont,ok_errors=>['tr\: write error']},"pass", "code", "insert", "-m", "-f", $self->filepath);
+    
+    $self->pc->xsystem(["pass", "code", "insert", "-m", "-f", $self->filepath], $cont, {subdir=>$subdir, ok_errors=>['tr \: write error']});
+#    _xrun($subdir, {stdin=>$cont,ok_errors=>['tr\: write error']},"pass", "code", "insert", "-m", "-f", $self->filepath);
 }
 
 

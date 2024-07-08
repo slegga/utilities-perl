@@ -24,7 +24,7 @@ use Data::Printer;
 
 SKIP: {
     skip "pass is not is installed", 1 unless `which pass`;
-
+    $ENV{PASSWORD_STORE_DIR} = 't/data/password-store';
     my $passcode = SH::PassCode->new;
     my $trans = SH::Transform->new();
     my @unittestfiles;
@@ -43,7 +43,7 @@ SKIP: {
 
 {
     my $trans = SH::Transform->new();
-    my $exportfile=path('t/temp/test3.yaml');
+    my $exportfile = path('t/temp/test3.yaml');
     $exportfile->remove;
     $trans->transform({type=>'SQLiteTable',file=>'t/data/testdata.db', table=>'unittest'},{file=>$exportfile});
     ok(-s "$exportfile"> 20,"Export file contains data.");

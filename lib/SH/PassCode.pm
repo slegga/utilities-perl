@@ -5,6 +5,7 @@ use Data::Printer;
 use SH::PassCode::File;
 use Capture::Tiny qw/capture/;
 use File::Basename;
+use Carp 'croak';
 
 
 =head1 NAME
@@ -34,6 +35,14 @@ Installation of pass - https://www.passwordstore.org/
 Installation of pass code - https://github.com/alpernebbi/pass-code
 
 Initialzation of pass code:
+
+=head1 ENVIRONMENT VARIABLES
+
+=over 4
+
+=item PASSWORD_STORE_DIR - The path to the passwordstore. default ~/.password-store
+
+=back
 
 =head1 ATTRIBUTES
 
@@ -66,33 +75,16 @@ List friendly filename and catalogs in given path
 
 =cut
 
-sub list($self, $path, $sopts={}) {
- #   if ($self->dir) {
- #       ...;
- #   }
- #   my $rcode = run [ "pass", "code", "ls", $path ],
- #   \my $stdin, \my $stdout, \my $stderr;
-
-#    if ($rcode>1) {
-#        warn " $rcode: $stderr";
-#    }
-#    if ($stderr) {
-#        say " '$rcode' '$path'";
-#        p $self;
-#        die $stderr;
-#    }
-
-#    return if ! $stdout;
-#    p $stdout;
+sub list($self, $path, $sopts = {}) {
 #   unittest
 #   ├── 10.0.0.23
 #   └── paypal.com
     my @filenames = keys %{$self->get_files()};
-    my %files=();
+    my %files = ();
     for my $l( @filenames ) {
-        if ($l=~s/^$path//) {
+        if ($l =~ s/^$path//) {
             my $tmp = $l;
-            $tmp=~ s/^\///;
+            $tmp =~ s/^\///;
             if ( $tmp =~ s/\/.*// ) {
             }else {
                 if ($sopts->{dir_only}) {
@@ -103,7 +95,7 @@ sub list($self, $path, $sopts={}) {
         }
     }
     my $return = [sort keys %files];
-    p $return;
+#    p $return;
     return $return;
 }
 
@@ -137,8 +129,18 @@ Create the file if not exists or update the file if exists with.
 
 =cut
 
-# get_files
-# return {filename=>'encodedfilename',filename2=>'encodedfilename.gpg'}
+=head2  get_files
+
+    my $files_as_array_ref =$self->get_files('site');
+
+Takes regexp of a file.
+
+Return friendlyname as key and real name as value.
+
+return {filename=>'encodedfilename',filename2=>'encodedfilename.gpg'}
+
+=cut
+
 sub get_files ($self,$regex = undef) {
     my $return;
     my $errfilename = "/tmp/".basename($0)."-$$.err";
@@ -153,6 +155,14 @@ sub get_files ($self,$regex = undef) {
     return $return;
 }
 
+=head2 git_pull
+
+    $self->git_pull;
+
+Do a git pull for the password-store
+
+=cut
+
 sub git_pull($self) {
     return 0 if $ENV{NO_GIT};
     return 0 if $self->git_pulled;
@@ -165,7 +175,7 @@ sub git_pull($self) {
             $last_pull = 0;
         }
         else {
-            ($last_pull,$err) = $self->xsystem(($self->osname ne 'Darwin' ? "stat -c %Y $datefile" : "stat -t%Y $datefile |cut -f1 -d' '" ));
+            ($last_pull,$err) = $self->xsystem($self->osname ne 'Darwin' ? "stat -c %Y $datefile" : "stat -t%Y $datefile |cut -f1 -d' '" );
         }
     };
     say $@ if $@;
@@ -185,11 +195,30 @@ sub git_pull($self) {
 }
 
 
+=head2 xsystem
 
-sub xsystem($self,$command) {
-    my ($stdout, $stderr)  = capture {
-        system($command);
-    };
+    my $stdin = 'hello';
+    my ($stdout,$stderr) = $self->xsystem('echo',$stdin);
+
+Run command on OS
+
+=cut
+
+sub xsystem($self,$command, $stdin = undef, $config = {}) {
+    use IPC::Run3;    # Exports run3() by default
+    my @cmd;
+    if (ref $command ) {
+        @cmd = @$command;
+    }
+    else {
+        @cmd = split / /, $command;
+    }
+    my ($stdout,$stderr);
+    run3 \@cmd, \$stdin, \$stdout, \$stderr;
+#    my ($stdout, $stderr)  = capture {
+#        system($command);
+#    };
+    chomp $stderr;
     if ($stderr) { #  && $stderr =~/err/i
         $stderr =~ s/^bind.+?Address already in use\s*//;
         $stderr =~ s/^channel_setup.+?\n//;
@@ -211,9 +240,12 @@ sub xsystem($self,$command) {
             # ignore
 
         }
+        elsif ($config->{continue_on_error}) {
+            # do nothing
+        }
         else {
             say "";
-            say "ERROR with: $command";
+            say "ERROR with: ".(ref $command ? join(' ', @$command) : $command);
             say "STDERR:";
             say $stderr;
             say "STDOUT:" if $stdout;
