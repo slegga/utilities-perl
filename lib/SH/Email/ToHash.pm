@@ -207,7 +207,7 @@ sub parameterify {
         if ($multiline) {
             $return->{content} .= $l . "\n";
         }
-        elsif ($l =~ /^([\w\-]+):\s(.*)/) {
+        elsif ($l =~ /^([\w\-]+):\s(.*)$/) {
             $k = $1;
             my $v = $2;
 
@@ -257,6 +257,9 @@ sub parameterify {
             if ($l =~ /^From / && scalar keys %$return == 0) {
                 $return->{heading} .= $l;
             }
+            elsif ($l =~ /^([\w\-]+):(\S.*)$/) {
+                    $return->{error_header} .= $l;
+            }
             else {
                 #Normal multilinestart
                 $multiline = 1;
@@ -264,7 +267,7 @@ sub parameterify {
 
             #...;
         }
-        $prev_l=$l//'';
+        $prev_l = $l // '';
     }
 
 #$return = $self->hash_parse_values($return, sub {my ($value)=@_;if ($value && $value=~/\;/sm) {return {a=>[split(/\;/,$value)]} };$value} );
@@ -350,8 +353,22 @@ sub extract_emailaddress {
     my $self = shift;
     my $from = shift;
     return if !$from;
-    if (ref $from) {
+    RETRY:
+    if (ref $from eq 'ARRAY') {
         ($from) = grep {index($_,'@')>=0} @$from;
+    } elsif (ref $from eq "") {
+    }elsif (ref $from eq 'HASH') {
+        if (keys %$from == 1) {  # example of {a=>[]}
+            $from = (values %$from)[0];
+        }
+        else {
+            p $from;
+            ...;
+        }
+    } else {
+        warn "ref \$from is a ". ref($from);
+        p $from;
+        ...;
     }
     die "Cant find email address" if !$from =~ /\@/;
     if ($from =~ /\<([\w\.\_\-\+]+\@[\w\.\_\-]+)>/) {
