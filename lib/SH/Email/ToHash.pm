@@ -275,7 +275,7 @@ sub parameterify {
         $return,
         sub {
             my ($value, $key) = @_;
-            if ($value && ref $value eq '' && $key ne 'content' && $value =~ /\;/sm) {
+            if ($value && ref $value eq '' && $key ne 'content' && $value =~ /\;/sm && $value !~ /^[^"]*\"[^"]*\;.*\"/) {
                 return ({a => [split(/\;/, $value)],}, 'next');
             }
             return ($value, 'continue');
