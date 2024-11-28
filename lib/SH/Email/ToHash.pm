@@ -275,6 +275,13 @@ sub parameterify {
         $return,
         sub {
             my ($value, $key) = @_;
+
+            # Do not split Subject if ; is in the header
+            if ($key && $key eq 'Subject') {
+                return ($value, 'continue');
+            }
+
+            # Make Array
             if ($value && ref $value eq '' && $key ne 'content' && $value =~ /\;/sm && $value !~ /^[^"]*\"[^"]*\;.*\"/) {
                 return ({a => [split(/\;/, $value)],}, 'next');
             }
