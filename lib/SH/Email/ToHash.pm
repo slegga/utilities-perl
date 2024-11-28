@@ -258,21 +258,21 @@ sub parameterify {
                 $return->{heading} .= $l;
             }
             elsif ($l =~ /^([\w\-]+):(\S.*)$/) {
-#                    $return->{error_header} .= $l;
-                    $k = $1;
-                    my $v = $2;
+          #     $return->{error_header} .= $l;
+                $k = $1;
+                my $v = $2;
 
-                    if (!exists $return->{$k}) {
-                        $return->{$k} = $v;
-                    }
-                    elsif (ref $return->{$k} eq 'ARRAY') {
-                        push @{$return->{$k}}, $v;
-                    }
-                    else {
-                        $return->{$k} = [$return->{$k}];
-                        push @{$return->{$k}}, $v;
-                    }
+                if (!exists $return->{$k}) {
+                    $return->{$k} = $v;
                 }
+                elsif (ref $return->{$k} eq 'ARRAY') {
+                    push @{$return->{$k}}, $v;
+                }
+                else {
+                    $return->{$k} = [$return->{$k}];
+                    push @{$return->{$k}}, $v;
+                }
+
             }
             else {
                 #Normal multilinestart
