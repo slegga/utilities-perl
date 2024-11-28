@@ -258,7 +258,7 @@ sub parameterify {
                 $return->{heading} .= $l;
             }
             elsif ($l =~ /^([\w\-]+):(\S.*)$/) {
-//                    $return->{error_header} .= $l;
+#                    $return->{error_header} .= $l;
                     $k = $1;
                     my $v = $2;
 
