@@ -100,8 +100,8 @@ sub main($self) {
                 @ownwordlist = sort {$a cmp $b} @ownwordlist;
             @ownwordlist = uniq @ownwordlist;
             @ownwordlist = grep {/\w/} @ownwordlist;
-            my $bak= $pdfile;
-            $bak=~s/txt$/bak/;
+            my $bak = $pdfile;
+            $bak =~ s/txt$/bak/;
             move $pdfile, $bak;
             open my $fhw, '>', $pdfile;
             for my $word (@ownwordlist) {
@@ -114,7 +114,7 @@ sub main($self) {
         }
     } else {
         binmode (STDIN,':utf8');
-        say $self->extra_options;
+        say @{$self->extra_options} if @{$self->extra_options};
         my $owntext = do { local $/; <STDIN> };
         say $owntext;
         print join("\n", SH::Test::Pod::spellcheck($owntext));
