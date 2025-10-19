@@ -13,7 +13,7 @@ use utf8;
 has 'file';
 has language=>'nb_NO'; # en_US
 has speller => sub {
-    my $ok=eval {
+    my $ok = eval {
         require Text::Aspell;
     };
     my $aspell;
@@ -37,11 +37,6 @@ has mywords =>sub {
     }
     return \@ownwordlist;
 };
-#sub { Text::Hunspell->new('','/usr/share/liblouis/tables/hyph_nb_NO.dic');
-  #  "/usr/share/hunspell/en_US.aff",    # Hunspell affix file
-#    "/usr/share/hunspell/".$_[0]->language.".aff", "/usr/share/hunspell/".$_[0]->language.".dic"     # Hunspell dictionary file
-#)
-#};
 
 =encoding UTF-8
 
@@ -96,7 +91,7 @@ cpanm --interactive --verbose Text::Aspell
 
 =head2 test_text_spelling;
 
-    $t->test_text_spelling;;
+    $t->test_text_spelling;
 
 =cut
 
@@ -121,15 +116,13 @@ sub test_text_spelling($self,@params) {
         $reason = 'No data in file '. $self->file;
         return $tb->ok($ok,0,$reason);
     }
-#    say $string;
+
     my @words = map {lc $_} grep {$_ !~ /^[A-ZÆØÅ][a-zæøå]*$/} split('[^\wæøåÆØÅ]+', $string);
 
     if (!@words) {
         return $tb->ok(1,'No words in file');
     }
     else {
-   # warn join(',', grep {defined } @words);
-        #my $words_utf8 = map{decode} @words;
         my %hw = map{$_ =>1 } @words;
         @words = keys %hw;
         my @wrongs;
@@ -141,7 +134,6 @@ sub test_text_spelling($self,@params) {
                 push @wrongs, $w;
             }
         }
-        #push (@wrongs,$_) while ($self->speller->next_word);
         if (! @wrongs) {
             return $tb->ok($ok,$reason);
         }

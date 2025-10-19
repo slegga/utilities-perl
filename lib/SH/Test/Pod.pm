@@ -25,11 +25,14 @@ use Test::Builder::Module;
 use PPR;
 use Cwd 'abs_path';
 
+use utf8;                                # Source code encoded using UTF-8
+use open ':std', ':encoding(UTF-8)';     # Terminal provides/expects UTF-8
+
 our @ISA    = qw(Test::Builder::Module Exporter);
 our @EXPORT = qw(check_modules_pod check_scripts_pod);
 
 my $CLASS = __PACKAGE__;
-my $ok=1;
+my $ok = 1;
 my $DICT_FILE = abs_path('/usr/share/dict/words');
 
 =head1 NAME
@@ -219,15 +222,15 @@ Read from /local/net/etc/.dictionary.txt
 sub spellcheck {
     my $text = shift; #text to be spellchecked
     my $extrawords_ar = shift;#additional legal words as
-    my @mywords= split(/\b/, $text);
+    my @mywords = split(/[\s.,;:()\[\]|?\/!>"'<+-]+/, $text);
     @mywords = sort {lc($a) cmp lc($b)} @mywords;
      @mywords = uniq @mywords;
 
-    my @return=();
+    my @return = ();
 
-    my @ownwordlist=();
+    my @ownwordlist = ();
     if ($extrawords_ar) {
-        @ownwordlist=@{$extrawords_ar};
+        @ownwordlist = @{$extrawords_ar};
     }
     my $pdfile = $ENV{HOME} . '/.dictionary.txt';
     if (-r $pdfile) {
@@ -258,7 +261,7 @@ sub spellcheck {
     }
 
 
-    my @newwords=();
+    my @newwords = ();
     for my $word(@mywords){
         next if $word !~ /\w/;
         next if $word =~ /\d/;
@@ -279,10 +282,10 @@ sub spellcheck {
 
     open my $fhr,'<', $DICT_FILE;
     my $word = shift @newwords;
-    my $dword=<$fhr>;
+    my $dword = <$fhr>;
 
     while (defined $dword && defined  $word) {
-        if($dword=~/^[\wæøåÆØÅ]/) {
+        if($dword =~ /^[^\wæøåÆØÅ]/) {
             $dword = <$fhr>;
         }
         elsif ($dword eq $word || $dword eq lc $word) {
@@ -315,11 +318,6 @@ sub spellcheck {
     return @return;#@capmywords{@return};
 }
 
-# =head2 check_environment_variables
-# ignore HOME
-#Check if all environemnts variables is  documented in POD
-
-
 sub _check_environment_variables {
     my ($in_cfg,$modulename,$podfile,$text) = @_; # ($cfg, $modulename,$podfile, "Environment variables")
 
@@ -328,7 +326,7 @@ sub _check_environment_variables {
     my $parser = Pod::Simple::Text->new;
     $parser->output_string(\$podtext);
     $parser->parse_file($podfile);
-    my $perltext = path($podfile)->slurp;                    # Get the source
+    my $perltext = path($podfile)->slurp('UTF-8');                    # Get the source
     $perltext =~ s{ (?&PerlNWS)  $PPR::GRAMMAR }{ }gx;  # Compact whitespace
     my @env_keys;
     for my $l(split(/\n/, $perltext)) {
@@ -348,10 +346,6 @@ sub _check_environment_variables {
     }
     return _return_test($modulename);
 }
-
-# _get_config
-# Return config tree. Root is repo and user.
-# Calculate user config
 
 sub _get_config {
     my $repo_config = shift;
@@ -380,12 +374,12 @@ sub _get_config {
                 elsif (ref $return->{user}->{$realm}->{$key} eq 'ARRAY' && ref $personal->{$realm}->{$key} eq 'ARRAY') {
                     # merge arrays and keep order
                     my %order;
-                    my $i=0;
+                    my $i = 0;
                     for my $key(@{$return->{user}->{$realm}->{$key}}) {
                         $order{$key}= $i;
-                        $i=$i+1000;
+                        $i = $i+1000;
                     }
-                    $i=-1000;
+                    $i = -1000;
 
                     for my $key (@{$personal->{$realm}->{$key}}) {
                         if (exists $order{$key}) {

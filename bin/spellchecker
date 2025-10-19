@@ -38,6 +38,8 @@ spellchecker - Spell check a file
 Spellcheck a file. or stdin.
 Use OS dictionary
 
+stein@IdeaPad-S145-14IWL:~/git/dokumentasjon$ find docs/ -name "*.md" -exec spellchecker --silence --file {} \;
+
 =head2 Dictionaries
 
 =over
@@ -75,9 +77,13 @@ Slegga - C<steihamm@gmail.com>
 #    [ 'file|f=s',       'Run only the given file' ],
 #    {return_uncatched_arguments => 1}
 #);
-    option ('add!',          'add words to the personaldictonary.txt file' );
-    option ('email=s',      'Send to email instead of screen' );
-    option ('file=s',       'Run only the given file' );
+    option ('add!',           'add words to the personaldictonary.txt file' );
+    option ('email=s',        'Send to email instead of screen' );
+    option ('file=s',         'Run only the given file' );
+    option ('fileregex=s',    'Takes regexp. Matchet with full path' );
+    option ('path=s',         'Togetter with fileregex set path to search');
+    option ('ignoredfiles=s', 'List of ignored files separated with comma. Only the filename not path');
+    option ('silence!',       'Only print wrong words' );
 
 sub main($self) {
     if ( $self->add ) {
@@ -112,6 +118,34 @@ sub main($self) {
         }else {
             die "Now additional words";
         }
+    } elsif ($self->file){
+        say "Wrong words if any:" if ! $self->silence;
+        my $owntext = path($self->file)->slurp('UTF-8');
+        say join("\n", SH::Test::Pod::spellcheck($owntext));
+    } elsif ($self->fileregex) {
+        my $pathdir = Mojo::File->new('.');
+        $pathdir = Mojo::File->new($self->path) if $self->path ;
+        my @ignored_files = ();
+        if ($self->ignoredfiles) {
+            my $ignoredfiles = $self->ignoredfiles;
+            @ignored_files = split(/,/, $ignoredfiles);
+        }
+        PATHFILE:
+        for my $pathfile($pathdir->list_tree->each) {
+            my $regex = $self->fileregex;
+            my $qr = qr($regex);
+            next if $pathfile !~ /$qr/;
+            for my $ignore(@ignored_files) {
+                next PATHFILE if $pathfile =~ /\/$ignore$/;
+            }
+            my $owntext = $pathfile->slurp('UTF-8');
+            my @words = SH::Test::Pod::spellcheck($owntext);
+            if (@words) {
+                say "File $pathfile:";
+                say $_ for @words;
+            }
+        }
+
     } else {
         binmode (STDIN,':utf8');
         say @{$self->extra_options} if @{$self->extra_options};
