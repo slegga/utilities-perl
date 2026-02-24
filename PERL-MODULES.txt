@@ -1,0 +1,9 @@
+# To install modules:    cat PERL-MODULES.txt|cpanm -i
+Mojo::Base
+Git::RepositoryList::MoreUtils
+YAML::Tiny
+YAML::Tiny
+Mojo::SQLite
+IO::Interactive
+Getopt::Long::Descriptive
+Term::ReadKey
