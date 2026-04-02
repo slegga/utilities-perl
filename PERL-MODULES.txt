@@ -8,3 +8,6 @@ Mojo::SQLite
 IO::Interactive
 Getopt::Long::Descriptive
 Term::ReadKey
+DateTime
+Term::ReadKey
+DateTime::Format::MySQL
