@@ -38,7 +38,7 @@ spellchecker - Spell check a file
 Spellcheck a file. or stdin.
 Use OS dictionary
 
-stein@IdeaPad-S145-14IWL:~/git/dokumentasjon$ find docs/ -name "*.md" -exec spellchecker --silence --file {} \;
+$ find docs/ -name "*.md" -exec spellchecker --silence --file {} \;
 
 =head2 Dictionaries
 
