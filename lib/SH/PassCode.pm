@@ -34,7 +34,7 @@ Installation of pass - https://www.passwordstore.org/
 
 Installation of pass code - https://github.com/alpernebbi/pass-code
 
-Initialzation of pass code:
+Initialization of pass code:
 
 =head1 ENVIRONMENT VARIABLES
 

@@ -15,7 +15,7 @@ SH::Transform::Plugin::Exporter::YAML - create file and fill it with data in yam
 
 =head1 DESCRIPTION
 
-Enable export to yaml formated file.
+Enable export to yaml formatted file.
 
 =head1 METHODS
 

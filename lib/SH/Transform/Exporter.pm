@@ -27,13 +27,13 @@ Base class for modules named SH::Transform::Plugin::Exporter::*
 
 =head2 is_accepted
 
-Dies if not overrrided.
+Dies if not overridden.
 
-Decide if this modue can be used or not.
+Decide if this module can be used or not.
 
 =head2 export
 
-Dies if not overrided.
+Dies if not overridden.
 
 Import
 

@@ -433,9 +433,9 @@ sub _all_module_name_path_hash_ref {
     # warn  "$FindBin::Bin/../lib";
     my @paths;
     @paths = grep {$_ =~ /\.pm$/} path("$FindBin::Bin/../lib")->list_tree->grep (qr/^((?!\/auto\/).)*$/)->each;
-    my $name2path={};
+    my $name2path = {};
     for my $p(@paths) {
-    	$name2path->{_path2name("$p")}= "$p";
+    	$name2path->{_path2name("$p")} = "$p";
     }
 #    my $name2path = Pod::Simple::Search->new->inc(0)->survey("$FindBin::Bin/../lib");
     if (exists $cfg->{user}->{skip}) {
@@ -509,7 +509,7 @@ sub _nms_check_pod {
     # my $ok=1;
 
     my $pod_hr = {};
-    my @act_order=();
+    my @act_order = ();
     my $head1;
     for my $item (@$pod_hr_raw) {
         next if ref $item eq 'HASH';
@@ -595,12 +595,12 @@ sub _nms_spell_check {
     # warn $in_cfg->{master};
 
     if (! $in_cfg->{master}) {
-        $in_cfg->{master} = ($pod=~/$in_cfg->{name}/img)?'user':'repo';
+        $in_cfg->{master} = ($pod =~ /$in_cfg->{name}/img)?'user':'repo';
     }
     return if ! _is_cfg_active($in_cfg,($modulename?'module_pod':'script_pod'),'spell_check'); # Do not spell check others modules if not wanted
 
     # Do not check for function names
-    my $additional_words=[];
+    my $additional_words = [];
     if ($modulename) {
         my $pc = Pod::Coverage->new(package => $modulename);
         my @subs = $pc->covered;
@@ -638,8 +638,8 @@ sub _print_fail {
 
 sub _return_test {
     my $text = shift;
-    my $send_ok=$ok;
-    $ok=1;# reset
+    my $send_ok = $ok;
+    $ok = 1;# reset
     # local $Test::Builder::Level = $Test::Builder::Level + 2;
     $CLASS->builder->ok( $send_ok, $text );
 }
@@ -650,13 +650,13 @@ my $pod_hr_raw = Pod::Simple::SimpleTree->new->parse_file($podfile)->root;
     shift @$pod_hr_raw;
     shift @$pod_hr_raw;
 	die if ! ref $in_cfg;
-    my $ok=1;
+    my $ok = 1;
 
     my $pod_hr = {};
-    my @act_order=();
+    my @act_order = ();
     my $head1;
-    my $in_synopsis=0;
-    my @synopsis=();
+    my $in_synopsis = 0;
+    my @synopsis = ();
     for my $item (@$pod_hr_raw) {
         next if ref $item eq 'HASH';
         if (ref $item eq 'ARRAY') {

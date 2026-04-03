@@ -32,7 +32,7 @@ In an example move to work password is exported to ~/.work-password-store
 
 =head2 is_accepted
 
-Decide if moduke is usable for the task or not.
+Decide if module is useable for the task or not.
 
 =head2 export
 

@@ -68,7 +68,8 @@ Try to make spellchecking like Test::Mojo;
     cpanm -i Text::ASpell
 
 =head2 MAC OSX
-Gjør det over først.
+
+Do the above first.
 
 export C_INCLUDE_PATH=/opt/homebrew/Cellar/aspell/0.60.8/include
 xcode-select --install

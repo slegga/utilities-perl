@@ -24,20 +24,20 @@ SH::Transform::Importer
 =head1 DESCRIPTION
 
 Base class for modules named SH::Transform::Plugin::Importer::*
-Import method crash with oder method. Rename to importx
+Import method crash with order method. Rename to importx
 
 
 =head1 METHODS
 
 =head2 is_accepted
 
-Dies if not overrrided.
+Dies if not overridden.
 
-Decide if this modue can be used or not.
+Decide if this module can be used or not.
 
 =head2 importx
 
-Dies if not overrrided.
+Dies if not overridden.
 
 Import
 

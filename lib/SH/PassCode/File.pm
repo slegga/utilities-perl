@@ -20,7 +20,7 @@ Designed to be a sub utility class for making easier for SH::PassCode to manipul
 
 Responsible to read/write pass files.
 
-=head1 ATTRBIUTES
+=head1 ATTRIBUTES
 
 =head2 password
 
@@ -34,7 +34,7 @@ Responsible to read/write pass files.
 
 =head2 comment
 
-=head2 extra - {secrect question: secret answer}
+=head2 extra - {secret question: secret answer}
 
 =head2 dir - Alternative password dir
 
