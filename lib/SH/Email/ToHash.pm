@@ -447,15 +447,15 @@ sub multipart {
         || $tmptype eq 'multipart/mixed'
         || $tmptype eq 'multipart/related') {
 
-        #choose first which is usually easy to traverse
+#choose first which is usually easy to traverse
         return if !$body;
         my $rest = $body;
-        ($body, $rest) = split /$boundary/, $rest, 2;
+        my $escaped_boundary = eval { qr/\Q$boundary\E/ } // quotemeta($boundary);
+        ($body, $rest) = split $escaped_boundary, $rest, 2;
 
         if (!defined $body || $body !~ /\w/) {    # Discard empty alternatives
 
-#            die join("\n\n", !!$body, !!$rest);
-            (undef, $body) = split /$boundary/, $rest, 2;
+            (undef, $body) = split $escaped_boundary, $rest, 2;
         }
         return $body;
     }
