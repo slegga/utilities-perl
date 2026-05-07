@@ -130,23 +130,42 @@ sub msgtext2hash {
                 }
                 else {
                     if ($v->{'Content-Transfer-Encoding'}) {
-                        if (lc $v->{'Content-Transfer-Encoding'} eq 'quoted-printable') {
+                        my $cte = lc $v->{'Content-Transfer-Encoding'};
+                        $cte =~ s/^\s+|\s+$//g;
+                        $cte =~ s/[.;,]+$//;
+                        my $charset = (ref $v->{'Content-Type'} && $v->{'Content-Type'}->{h}->{charset})
+                            ? $v->{'Content-Type'}->{h}->{charset}
+                            : '';
+                        $charset =~ s/^["']|["']$//g;
+                        if ($cte eq 'quoted-printable') {
                             $v->{content} = decode_qp($v->{content});
+                            if (uc $charset eq 'UTF-8') {
+                                $v->{content} = decode('UTF-8', $v->{content});
+                            }
                         }
-                        elsif (lc $v->{'Content-Transfer-Encoding'} eq 'base64') {
+                        elsif ($cte eq 'base64') {
                             $v->{content} = decode_base64($v->{content});
+                            if (uc $charset eq 'UTF-8') {
+                                $v->{content} = decode('UTF-8', $v->{content});
+                            }
                         }
-                        elsif (lc $v->{'Content-Transfer-Encoding'} eq '7bit') {
+                        elsif ($cte eq '7bit') {
 
                             # plain ASCII. Do notthing.
                         }
-                        elsif (lc $v->{'Content-Transfer-Encoding'} eq '8bit') {
-
-                            # nonstandard but probably latin1 do nothing, until problems
+                        elsif ($cte eq '8bit' || $cte eq 'binary') {
+                            # 8bit: bytes are sent as-is; decode according to charset.
+                            if (uc $charset eq 'UTF-8') {
+                                $v->{content} = decode('UTF-8', $v->{content});
+                            }
+                            elsif ($charset && $charset =~ /^(iso-8859-\d+|latin\d+|windows-125\d)$/i) {
+                                $v->{content} = decode($charset, $v->{content});
+                            }
+                            # else: leave bytes alone (default latin1 interpretation by Perl)
                         }
 
                         else {
-                            warn "Unknown Content-Transfer-Encoding: " . $v->{'Content-Transfer-Encoding'};
+                            warn "Unknown Content-Transfer-Encoding: '" . $v->{'Content-Transfer-Encoding'} . "'";
                         }
                     }
                     elsif (ref $v->{'Content-Type'} && $v->{'Content-Type'}->{h}->{charset}  && uc $v->{'Content-Type'}->{h}->{charset} eq 'UTF-8') {
