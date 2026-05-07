@@ -441,7 +441,7 @@ sub multipart {
         die "Missing boundary in Content-Type";
     }
 
-    my $boundary = $type->{h}->{boundary};
+    my $boundary = quotemeta($type->{h}->{boundary});
     my $tmptype = lc($type->{a}->[0]);
     if (   $tmptype eq 'multipart/alternative'
         || $tmptype eq 'multipart/mixed'
